@@ -1,14 +1,16 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Breadcrumbs from './Breadcrumbs';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Layout = () => {
   return (
-    <div className="flex h-screen bg-secondary-50">
+    <div className="flex h-screen overflow-hidden bg-secondary-50">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-auto lg:ml-64">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out">
+        <div className="max-w-7xl mx-auto p-6">
+          <Breadcrumbs />
           <Outlet />
         </div>
       </main>

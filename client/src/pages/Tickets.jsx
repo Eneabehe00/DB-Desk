@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaSearch, FaFilter, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaSortAmountDown, FaSortAmountUp, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
 
 const Tickets = () => {
@@ -15,6 +15,8 @@ const Tickets = () => {
   const [sortField, setSortField] = useState('updatedAt');
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
@@ -112,6 +114,28 @@ const Tickets = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Errore nella creazione del ticket');
     }
+  };
+
+  const handleUpdateStatus = async (newStatus) => {
+    if (!selectedTicket) return;
+    
+    try {
+      await api.put(`/tickets/${selectedTicket.id}`, {
+        status: newStatus
+      });
+      toast.success(`Stato del ticket aggiornato a ${translateStatus(newStatus)}`);
+      setShowStatusModal(false);
+      setSelectedTicket(null);
+      fetchTickets();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Errore nell\'aggiornamento dello stato');
+    }
+  };
+
+  const openStatusModal = (ticket, e) => {
+    e.stopPropagation(); // Impedisce la navigazione alla pagina del ticket
+    setSelectedTicket(ticket);
+    setShowStatusModal(true);
   };
 
   const filteredTickets = tickets.filter(ticket => {
@@ -355,18 +379,6 @@ const Tickets = () => {
                 <th 
                   scope="col" 
                   className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center">
-                    Stato
-                    {sortField === 'status' && (
-                      sortDirection === 'asc' ? <FaSortAmountUp className="ml-1" /> : <FaSortAmountDown className="ml-1" />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('priority')}
                 >
                   <div className="flex items-center">
@@ -388,33 +400,54 @@ const Tickets = () => {
                     )}
                   </div>
                 </th>
+                <th 
+                  scope="col" 
+                  className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center">
+                    Stato
+                    {sortField === 'status' && (
+                      sortDirection === 'asc' ? <FaSortAmountUp className="ml-1" /> : <FaSortAmountDown className="ml-1" />
+                    )}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-secondary-200">
               {filteredTickets.map((ticket) => (
-                <tr key={ticket.id} className="hover:bg-secondary-50 cursor-pointer" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={ticket.id} className="hover:bg-secondary-50 cursor-pointer">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
                     <div className="text-sm font-medium text-secondary-900">{ticket.title}</div>
                     <div className="text-xs text-secondary-500 truncate max-w-xs">
                       {ticket.description.substring(0, 60)}
                       {ticket.description.length > 60 ? '...' : ''}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
                     <div className="text-sm text-secondary-700">{ticket.client?.name}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`badge ${getStatusBadgeClass(ticket.status)}`}>
-                      {translateStatus(ticket.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
                     <span className={`badge ${getPriorityBadgeClass(ticket.priority)}`}>
                       {translatePriority(ticket.priority)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
                     {new Date(ticket.updatedAt).toLocaleDateString('it-IT')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <span className={`badge ${getStatusBadgeClass(ticket.status)}`}>
+                        {translateStatus(ticket.status)}
+                      </span>
+                      <button 
+                        className="p-1 rounded-full hover:bg-secondary-100 text-secondary-600"
+                        onClick={(e) => openStatusModal(ticket, e)}
+                        title="Modifica stato"
+                      >
+                        <FaEdit size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -525,6 +558,67 @@ const Tickets = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Change Modal */}
+      {showStatusModal && selectedTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Modifica Stato Ticket</h2>
+              <p className="mb-4 text-secondary-600">
+                Seleziona il nuovo stato per il ticket: <span className="font-medium">{selectedTicket.title}</span>
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <button 
+                  className={`p-3 border rounded-lg flex flex-col items-center 
+                    ${selectedTicket.status === 'OPEN' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
+                  onClick={() => handleUpdateStatus('OPEN')}
+                >
+                  <span className="badge badge-blue mb-2">Aperto</span>
+                  <span className="text-xs text-secondary-500">Ticket da elaborare</span>
+                </button>
+                
+                <button 
+                  className={`p-3 border rounded-lg flex flex-col items-center 
+                    ${selectedTicket.status === 'IN_PROGRESS' ? 'border-yellow-500 bg-yellow-50 text-yellow-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
+                  onClick={() => handleUpdateStatus('IN_PROGRESS')}
+                >
+                  <span className="badge badge-yellow mb-2">In Corso</span>
+                  <span className="text-xs text-secondary-500">Ticket in lavorazione</span>
+                </button>
+                
+                <button 
+                  className={`p-3 border rounded-lg flex flex-col items-center 
+                    ${selectedTicket.status === 'RESOLVED' ? 'border-green-500 bg-green-50 text-green-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
+                  onClick={() => handleUpdateStatus('RESOLVED')}
+                >
+                  <span className="badge badge-green mb-2">Risolto</span>
+                  <span className="text-xs text-secondary-500">Soluzione disponibile</span>
+                </button>
+                
+                <button 
+                  className={`p-3 border rounded-lg flex flex-col items-center 
+                    ${selectedTicket.status === 'CLOSED' ? 'border-red-500 bg-red-50 text-red-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
+                  onClick={() => handleUpdateStatus('CLOSED')}
+                >
+                  <span className="badge badge-red mb-2">Chiuso</span>
+                  <span className="text-xs text-secondary-500">Ticket completato</span>
+                </button>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Annulla
+                </button>
+              </div>
             </div>
           </div>
         </div>
