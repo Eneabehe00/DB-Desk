@@ -26,9 +26,17 @@ const Tickets = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    status: 'OPEN',
     priority: 'MEDIUM',
     clientId: '',
-    assignedToId: ''
+    assignedToId: '',
+    clientDetails: {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      chain: ''
+    }
   });
   
   const { user } = useAuth();
@@ -74,9 +82,60 @@ const Tickets = () => {
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'clientId') {
+      // Se è stato selezionato un cliente esistente, popoliamo i dettagli
+      if (value) {
+        const selectedClient = clients.find(client => client.id === value);
+        if (selectedClient) {
+          setFormData({
+            ...formData,
+            clientId: value,
+            clientDetails: {
+              name: selectedClient.name || '',
+              email: selectedClient.email || '',
+              phone: selectedClient.phone || '',
+              address: selectedClient.address || '',
+              chain: selectedClient.chain || ''
+            }
+          });
+          return;
+        }
+      } else {
+        // Reset dei dettagli cliente se viene deselezionato
+        setFormData({
+          ...formData,
+          clientId: '',
+          clientDetails: {
+            name: '',
+            email: '',
+            phone: '',
+            address: '',
+            chain: ''
+          }
+        });
+        return;
+      }
+    }
+    
+    // Per i campi nei dettagli cliente
+    if (name.startsWith('client_')) {
+      const clientField = name.substring(7); // Rimuove 'client_' dal nome
+      setFormData({
+        ...formData,
+        clientDetails: {
+          ...formData.clientDetails,
+          [clientField]: value
+        }
+      });
+      return;
+    }
+    
+    // Per tutti gli altri campi
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 
@@ -100,15 +159,50 @@ const Tickets = () => {
     e.preventDefault();
     
     try {
-      await api.post('/tickets', formData);
+      let ticketData = { ...formData };
+      let clientId = formData.clientId;
+      
+      // Se non è stato selezionato un cliente esistente ma sono stati inseriti dettagli
+      if (!clientId && formData.clientDetails.name && formData.clientDetails.email) {
+        // Crea un nuovo cliente
+        const clientResponse = await api.post('/clients', {
+          name: formData.clientDetails.name,
+          email: formData.clientDetails.email,
+          phone: formData.clientDetails.phone,
+          address: formData.clientDetails.address,
+          chain: formData.clientDetails.chain
+        });
+        
+        clientId = clientResponse.data.id;
+        toast.success('Nuovo cliente creato con successo');
+      }
+      
+      // Crea il ticket con il clientId (esistente o appena creato)
+      await api.post('/tickets', {
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        clientId: clientId,
+        assignedToId: formData.assignedToId
+      });
+      
       toast.success('Ticket creato con successo');
       setShowModal(false);
       setFormData({
         title: '',
         description: '',
+        status: 'OPEN',
         priority: 'MEDIUM',
         clientId: '',
-        assignedToId: ''
+        assignedToId: '',
+        clientDetails: {
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          chain: ''
+        }
       });
       fetchTickets();
     } catch (error) {
@@ -511,6 +605,8 @@ const Tickets = () => {
                     required
                   />
                 </div>
+                
+                {/* Selezione Cliente o Nuovo Cliente */}
                 <div className="mb-4">
                   <label htmlFor="clientId" className="form-label">Cliente *</label>
                   <select
@@ -519,15 +615,107 @@ const Tickets = () => {
                     value={formData.clientId}
                     onChange={handleChange}
                     className="form-input"
-                    required
                   >
-                    <option value="">Seleziona cliente</option>
+                    <option value="">Nuovo cliente (compila i campi sotto)</option>
                     {clients.map(client => (
-                      <option key={client.id} value={client.id}>{client.name}</option>
+                      <option key={client.id} value={client.id}>{client.name} {client.chain ? `(${client.chain})` : ''}</option>
                     ))}
                   </select>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                
+                {/* Dettagli cliente - visibili quando clientId è vuoto (nuovo cliente) o i campi sono già popolati */}
+                {(!formData.clientId || formData.clientDetails.name) && (
+                  <div className="mb-4 p-4 border border-secondary-200 rounded-lg">
+                    <h3 className="text-md font-semibold mb-3">Dettagli Cliente</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label htmlFor="client_name" className="form-label">Nome Cliente {!formData.clientId && '*'}</label>
+                        <input
+                          type="text"
+                          id="client_name"
+                          name="client_name"
+                          value={formData.clientDetails.name}
+                          onChange={handleChange}
+                          className="form-input"
+                          required={!formData.clientId}
+                          disabled={!!formData.clientId}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="client_email" className="form-label">Email Cliente {!formData.clientId && '*'}</label>
+                        <input
+                          type="email"
+                          id="client_email"
+                          name="client_email"
+                          value={formData.clientDetails.email}
+                          onChange={handleChange}
+                          className="form-input"
+                          required={!formData.clientId}
+                          disabled={!!formData.clientId}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="client_phone" className="form-label">Telefono</label>
+                        <input
+                          type="text"
+                          id="client_phone"
+                          name="client_phone"
+                          value={formData.clientDetails.phone}
+                          onChange={handleChange}
+                          className="form-input"
+                          disabled={!!formData.clientId}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="client_chain" className="form-label">Catena</label>
+                        <input
+                          type="text"
+                          id="client_chain"
+                          name="client_chain"
+                          value={formData.clientDetails.chain}
+                          onChange={handleChange}
+                          className="form-input"
+                          placeholder="es. Carrefour, Eurospin, ecc."
+                          disabled={!!formData.clientId}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label htmlFor="client_address" className="form-label">Indirizzo</label>
+                        <textarea
+                          id="client_address"
+                          name="client_address"
+                          value={formData.clientDetails.address}
+                          onChange={handleChange}
+                          className="form-input"
+                          rows="2"
+                          disabled={!!formData.clientId}
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="status" className="form-label">Stato</label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="form-input"
+                    >
+                      <option value="OPEN">Aperto</option>
+                      <option value="CLOSED">Chiuso</option>
+                      <option value="PLANNED">Painificato</option>
+                      <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                      <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                      <option value="PLANNED_ONSITE">Previsto onsite</option>
+                      <option value="VERIFYING">In verifica esito</option>
+                      <option value="WAITING_CLIENT">In attesa Cliente</option>
+                      <option value="TO_REPORT">Da riportare</option>
+                    </select>
+                  </div>
                   <div>
                     <label htmlFor="priority" className="form-label">Priorità</label>
                     <select
