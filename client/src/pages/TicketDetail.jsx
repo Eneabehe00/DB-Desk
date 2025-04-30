@@ -436,32 +436,71 @@ const TicketDetail = () => {
 
       {/* Edit Ticket Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Modifica Ticket</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-6">
+              <h2 className="text-xl font-bold text-white">Modifica Ticket</h2>
+              <p className="text-primary-100 text-sm">Modifica i dettagli del ticket</p>
+            </div>
+            
+            <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
               <form onSubmit={handleUpdate}>
+                {/* Client Information (Read-only) */}
+                <div className="mb-6 bg-secondary-50 p-4 rounded-lg border border-secondary-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-md font-semibold text-secondary-800">Dettagli Cliente</h3>
+                    <Link to={`/clients/${ticket.client.id}`} className="text-xs px-2 py-1 bg-primary-100 text-primary-800 rounded-full flex items-center">
+                      <FaEdit className="mr-1" size={10} />
+                      Vai al cliente
+                    </Link>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-secondary-600 mb-1">Nome:</div>
+                      <div className="font-medium text-secondary-800">{ticket.client.name}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 mb-1">Email:</div>
+                      <div className="font-medium text-secondary-800">{ticket.client.email}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 mb-1">Telefono:</div>
+                      <div className="font-medium text-secondary-800">{ticket.client.phone || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 mb-1">Catena:</div>
+                      <div className="font-medium text-secondary-800">{ticket.client.chain || '-'}</div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <div className="text-sm text-secondary-600 mb-1">Indirizzo:</div>
+                      <div className="font-medium text-secondary-800">{ticket.client.address || '-'}</div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="mb-4">
-                  <label htmlFor="title" className="form-label">Titolo *</label>
+                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
                   <input
                     type="text"
                     id="title"
                     name="title"
                     value={ticketData.title}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     required
                   />
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
-                    <label htmlFor="status" className="form-label">Stato</label>
+                    <label htmlFor="status" className="form-label text-secondary-700">Stato</label>
                     <select
                       id="status"
                       name="status"
                       value={ticketData.status}
                       onChange={handleChange}
-                      className="form-input"
+                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     >
                       <option value="OPEN">Aperto</option>
                       <option value="CLOSED">Chiuso</option>
@@ -475,13 +514,13 @@ const TicketDetail = () => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="priority" className="form-label">Priorità</label>
+                    <label htmlFor="priority" className="form-label text-secondary-700">Priorità</label>
                     <select
                       id="priority"
                       name="priority"
                       value={ticketData.priority}
                       onChange={handleChange}
-                      className="form-input"
+                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     >
                       <option value="LOW">Bassa</option>
                       <option value="MEDIUM">Media</option>
@@ -490,13 +529,13 @@ const TicketDetail = () => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="assignedToId" className="form-label">Assegnato a</label>
+                    <label htmlFor="assignedToId" className="form-label text-secondary-700">Assegnato a</label>
                     <select
                       id="assignedToId"
                       name="assignedToId"
                       value={ticketData.assignedToId}
                       onChange={handleChange}
-                      className="form-input"
+                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     >
                       <option value="">Non assegnato</option>
                       {users.map(user => (
@@ -505,28 +544,31 @@ const TicketDetail = () => {
                     </select>
                   </div>
                 </div>
+                
                 <div className="mb-6">
-                  <label htmlFor="description" className="form-label">Descrizione *</label>
+                  <label htmlFor="description" className="form-label text-secondary-700">Descrizione *</label>
                   <textarea
                     id="description"
                     name="description"
                     value={ticketData.description}
                     onChange={handleChange}
-                    className="form-input h-32"
+                    className="form-textarea w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    rows="6"
                     required
                   ></textarea>
                 </div>
-                <div className="flex justify-end space-x-3">
+                
+                <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="btn btn-secondary"
+                    className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                   >
                     Annulla
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-sm transition-colors"
                   >
                     Salva Modifiche
                   </button>
@@ -539,24 +581,27 @@ const TicketDetail = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-red-500 to-red-700 p-6">
+              <h2 className="text-xl font-bold text-white">Conferma Eliminazione</h2>
+              <p className="text-red-100 text-sm">Questa azione non può essere annullata</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Conferma Eliminazione</h2>
               <p className="mb-6 text-secondary-600">
                 Sei sicuro di voler eliminare il ticket <span className="font-semibold">{ticket.title}</span>? 
-                Questa azione non può essere annullata.
+                Tutti i commenti e le informazioni associate a questo ticket verranno eliminati permanentemente.
               </p>
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="btn btn-secondary"
+                  className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="btn btn-danger"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-colors"
                 >
                   Elimina
                 </button>
@@ -568,33 +613,37 @@ const TicketDetail = () => {
 
       {/* Add Comment Modal */}
       {showCommentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-6">
+              <h2 className="text-xl font-bold text-white">Aggiungi Commento</h2>
+              <p className="text-primary-100 text-sm">Aggiungi un commento a questo ticket</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Aggiungi Commento</h2>
               <form onSubmit={handleAddComment}>
                 <div className="mb-6">
-                  <label htmlFor="comment" className="form-label">Commento *</label>
+                  <label htmlFor="comment" className="form-label text-secondary-700">Commento *</label>
                   <textarea
                     id="comment"
                     value={comment}
                     onChange={handleCommentChange}
-                    className="form-input h-32"
+                    className="form-textarea w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    rows="6"
                     placeholder="Scrivi il tuo commento..."
                     required
                   ></textarea>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                   <button
                     type="button"
                     onClick={() => setShowCommentModal(false)}
-                    className="btn btn-secondary"
+                    className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                   >
                     Annulla
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-sm transition-colors"
                   >
                     Aggiungi
                   </button>
@@ -607,26 +656,29 @@ const TicketDetail = () => {
 
       {/* Delete Comment Modal */}
       {showDeleteCommentModal && selectedComment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-red-500 to-red-700 p-6">
+              <h2 className="text-xl font-bold text-white">Elimina Commento</h2>
+              <p className="text-red-100 text-sm">Questa azione non può essere annullata</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Elimina Commento</h2>
-              <p className="mb-4 text-secondary-600">
-                Sei sicuro di voler eliminare questo commento? Questa azione non può essere annullata.
+              <p className="mb-6 text-secondary-600">
+                Sei sicuro di voler eliminare questo commento? Il commento verrà rimosso permanentemente.
               </p>
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                 <button
                   onClick={() => {
                     setShowDeleteCommentModal(false);
                     setSelectedComment(null);
                   }}
-                  className="btn btn-secondary"
+                  className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleDeleteComment}
-                  className="btn btn-danger"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-colors"
                 >
                   Elimina
                 </button>

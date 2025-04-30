@@ -305,80 +305,83 @@ const ClientDetail = () => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Modifica Cliente</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-6">
+              <h2 className="text-xl font-bold text-white">Modifica Cliente</h2>
+              <p className="text-primary-100 text-sm">Modifica le informazioni del cliente</p>
+            </div>
+            <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
               <form onSubmit={handleUpdate}>
                 <div className="mb-4">
-                  <label htmlFor="name" className="form-label">Nome *</label>
+                  <label htmlFor="name" className="form-label text-secondary-700">Nome *</label>
                   <input
                     type="text"
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="chain" className="form-label">Catena</label>
+                  <label htmlFor="chain" className="form-label text-secondary-700">Catena</label>
                   <input
                     type="text"
                     id="chain"
                     name="chain"
                     value={formData.chain}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     placeholder="es. Carrefour, Eurospin, ecc."
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="email" className="form-label">Email *</label>
+                  <label htmlFor="email" className="form-label text-secondary-700">Email *</label>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="phone" className="form-label">Telefono</label>
+                  <label htmlFor="phone" className="form-label text-secondary-700">Telefono</label>
                   <input
                     type="text"
                     id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                   />
                 </div>
                 <div className="mb-6">
-                  <label htmlFor="address" className="form-label">Indirizzo</label>
+                  <label htmlFor="address" className="form-label text-secondary-700">Indirizzo</label>
                   <textarea
                     id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="form-input"
-                    rows="2"
+                    className="form-textarea w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    rows="3"
                   ></textarea>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="btn btn-secondary"
+                    className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                   >
                     Annulla
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-sm transition-colors"
                   >
                     Aggiorna
                   </button>
@@ -391,23 +394,27 @@ const ClientDetail = () => {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-gradient-to-r from-red-500 to-red-700 p-6">
+              <h2 className="text-xl font-bold text-white">Elimina Cliente</h2>
+              <p className="text-red-100 text-sm">Questa azione non può essere annullata</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Elimina Cliente</h2>
-              <p className="mb-4 text-secondary-600">
-                Sei sicuro di voler eliminare {client.name}? Questa azione non può essere annullata.
+              <p className="mb-6 text-secondary-600">
+                Sei sicuro di voler eliminare <span className="font-semibold">{client.name}</span>? 
+                Tutti i ticket associati a questo cliente verranno eliminati permanentemente.
               </p>
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="btn btn-secondary"
+                  className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="btn btn-danger"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-colors"
                 >
                   Elimina
                 </button>
