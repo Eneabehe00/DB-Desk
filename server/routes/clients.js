@@ -46,7 +46,7 @@ router.get('/:id', auth, async (req, res) => {
 // Create client
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, chain } = req.body;
     
     // Check if client with this email already exists
     const existingClient = await prisma.client.findUnique({
@@ -62,7 +62,8 @@ router.post('/', auth, async (req, res) => {
         name,
         email,
         phone,
-        address
+        address,
+        chain
       }
     });
     
@@ -75,7 +76,7 @@ router.post('/', auth, async (req, res) => {
 // Update client
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, chain } = req.body;
     
     const client = await prisma.client.update({
       where: { id: req.params.id },
@@ -83,7 +84,8 @@ router.put('/:id', auth, async (req, res) => {
         name,
         email,
         phone,
-        address
+        address,
+        chain
       }
     });
     

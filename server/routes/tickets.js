@@ -198,4 +198,33 @@ router.post('/:id/comments', auth, async (req, res) => {
   }
 });
 
+// Update comment
+router.put('/comments/:id', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    
+    const comment = await prisma.comment.update({
+      where: { id: req.params.id },
+      data: { content }
+    });
+    
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete comment
+router.delete('/comments/:id', auth, async (req, res) => {
+  try {
+    await prisma.comment.delete({
+      where: { id: req.params.id }
+    });
+    
+    res.json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 export default router; 

@@ -23,6 +23,11 @@ const TicketDetail = () => {
     priority: '',
     assignedToId: ''
   });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [editCommentId, setEditCommentId] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
+  const [selectedComment, setSelectedComment] = useState(null);
 
   useEffect(() => {
     fetchTicket();
@@ -144,12 +149,22 @@ const TicketDetail = () => {
     switch (status) {
       case 'OPEN':
         return 'Aperto';
-      case 'IN_PROGRESS':
-        return 'In Corso';
-      case 'RESOLVED':
-        return 'Risolto';
       case 'CLOSED':
         return 'Chiuso';
+      case 'PLANNED':
+        return 'Painificato';
+      case 'CLOSED_REMOTE':
+        return 'Chiuso Remoto';
+      case 'CLOSED_ONSITE':
+        return 'Chiuso Onsite';
+      case 'PLANNED_ONSITE':
+        return 'Previsto onsite';
+      case 'VERIFYING':
+        return 'In verifica esito';
+      case 'WAITING_CLIENT':
+        return 'In attesa Cliente';
+      case 'TO_REPORT':
+        return 'Da riportare';
       default:
         return status;
     }
@@ -180,6 +195,49 @@ const TicketDetail = () => {
     });
   };
 
+  // Function to handle edit comment
+  const handleEditComment = (comment) => {
+    setEditCommentId(comment.id);
+    setEditCommentContent(comment.content);
+  };
+
+  // Function to save edited comment
+  const handleUpdateComment = async () => {
+    if (!editCommentContent.trim()) {
+      toast.error('Il commento non può essere vuoto');
+      return;
+    }
+
+    try {
+      await api.put(`/tickets/comments/${editCommentId}`, { content: editCommentContent });
+      toast.success('Commento aggiornato con successo');
+      setEditCommentId(null);
+      setEditCommentContent('');
+      fetchTicket();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Errore nell\'aggiornamento del commento');
+    }
+  };
+
+  // Function to handle delete comment confirmation
+  const handleConfirmDeleteComment = (comment) => {
+    setSelectedComment(comment);
+    setShowDeleteCommentModal(true);
+  };
+
+  // Function to delete comment
+  const handleDeleteComment = async () => {
+    try {
+      await api.delete(`/tickets/comments/${selectedComment.id}`);
+      toast.success('Commento eliminato con successo');
+      setShowDeleteCommentModal(false);
+      setSelectedComment(null);
+      fetchTicket();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Errore nell\'eliminazione del commento');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -195,7 +253,10 @@ const TicketDetail = () => {
           <FaArrowLeft />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">{ticket.title}</h1>
+          <h1 className="text-2xl font-bold text-secondary-900">
+            {ticket.title} 
+            <span className="ml-2 text-sm font-normal text-secondary-500">#{ticket.id.substring(0, 8)}</span>
+          </h1>
           <div className="flex flex-wrap gap-2 mt-1">
             <span className={`badge ${getStatusBadgeClass(ticket.status)}`}>
               {translateStatus(ticket.status)}
@@ -205,21 +266,45 @@ const TicketDetail = () => {
             </span>
           </div>
         </div>
-        <div className="ml-auto space-x-2">
-          <button 
-            onClick={() => setShowEditModal(true)}
-            className="btn btn-secondary flex items-center"
-          >
-            <FaEdit className="mr-2" />
-            Modifica
-          </button>
-          <button 
-            onClick={() => setShowDeleteModal(true)}
-            className="btn btn-danger flex items-center"
-          >
-            <FaTrash className="mr-2" />
-            Elimina
-          </button>
+        <div className="ml-auto">
+          <div className="relative inline-block text-left">
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="btn btn-secondary flex items-center"
+            >
+              Azioni
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {dropdownOpen && (
+              <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(true);
+                      setDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900"
+                    role="menuitem"
+                  >
+                    <FaEdit className="inline mr-2" /> Modifica
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(true);
+                      setDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-secondary-100 hover:text-red-700"
+                    role="menuitem"
+                  >
+                    <FaTrash className="inline mr-2" /> Elimina
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -247,20 +332,67 @@ const TicketDetail = () => {
               {ticket.comments && ticket.comments.length > 0 ? (
                 ticket.comments.map((comment) => (
                   <div key={comment.id} className="border border-secondary-200 rounded-lg p-4">
-                    <div className="flex justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm font-medium text-primary-700 mr-2">
-                          <FaUser />
+                    {editCommentId === comment.id ? (
+                      <div className="mb-2">
+                        <textarea
+                          className="form-input w-full h-24"
+                          value={editCommentContent}
+                          onChange={(e) => setEditCommentContent(e.target.value)}
+                        />
+                        <div className="flex justify-end mt-2 space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditCommentId(null);
+                              setEditCommentContent('');
+                            }}
+                            className="btn btn-secondary btn-sm"
+                          >
+                            Annulla
+                          </button>
+                          <button
+                            onClick={handleUpdateComment}
+                            className="btn btn-primary btn-sm"
+                          >
+                            Salva
+                          </button>
                         </div>
-                        <span className="font-medium text-secondary-800">Utente</span>
                       </div>
-                      <span className="text-xs text-secondary-500">{formatDate(comment.createdAt)}</span>
-                    </div>
-                    <p className="text-secondary-700">{comment.content}</p>
+                    ) : (
+                      <>
+                        <div className="flex justify-between mb-2">
+                          <div className="flex items-center">
+                            <div className="bg-primary-100 text-primary-700 rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                              <FaUser />
+                            </div>
+                            <span className="font-medium">{comment.author ? comment.author.name : 'Utente'}</span>
+                            <span className="text-secondary-500 ml-2 text-sm">
+                              {formatDate(comment.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => handleEditComment(comment)}
+                              className="text-secondary-600 hover:text-secondary-800"
+                              title="Modifica commento"
+                            >
+                              <FaEdit size={14} />
+                            </button>
+                            <button 
+                              onClick={() => handleConfirmDeleteComment(comment)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Elimina commento"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-secondary-700 whitespace-pre-line">{comment.content}</p>
+                      </>
+                    )}
                   </div>
                 ))
               ) : (
-                <p className="text-secondary-500 italic">Nessun commento ancora. Aggiungi il primo commento!</p>
+                <p className="text-secondary-500 text-center py-4">Nessun commento presente</p>
               )}
             </div>
           </div>
@@ -332,9 +464,14 @@ const TicketDetail = () => {
                       className="form-input"
                     >
                       <option value="OPEN">Aperto</option>
-                      <option value="IN_PROGRESS">In Corso</option>
-                      <option value="RESOLVED">Risolto</option>
                       <option value="CLOSED">Chiuso</option>
+                      <option value="PLANNED">Painificato</option>
+                      <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                      <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                      <option value="PLANNED_ONSITE">Previsto onsite</option>
+                      <option value="VERIFYING">In verifica esito</option>
+                      <option value="WAITING_CLIENT">In attesa Cliente</option>
+                      <option value="TO_REPORT">Da riportare</option>
                     </select>
                   </div>
                   <div>
@@ -463,6 +600,37 @@ const TicketDetail = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Comment Modal */}
+      {showDeleteCommentModal && selectedComment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Elimina Commento</h2>
+              <p className="mb-4 text-secondary-600">
+                Sei sicuro di voler eliminare questo commento? Questa azione non può essere annullata.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteCommentModal(false);
+                    setSelectedComment(null);
+                  }}
+                  className="btn btn-secondary"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={handleDeleteComment}
+                  className="btn btn-danger"
+                >
+                  Elimina
+                </button>
+              </div>
             </div>
           </div>
         </div>

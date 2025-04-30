@@ -19,6 +19,7 @@ import TicketDetail from './pages/TicketDetail';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
+import ClientDetail from './pages/ClientDetail';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
               <Route path="/tickets" element={<Tickets />} />
               <Route path="/tickets/:id" element={<TicketDetail />} />
               <Route path="/clients" element={<Clients />} />
+              <Route path="/clients/:id" element={<ClientDetail />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
             </Route>

@@ -116,16 +116,14 @@ const Tickets = () => {
     }
   };
 
-  const handleUpdateStatus = async (newStatus) => {
-    if (!selectedTicket) return;
+  const handleUpdateStatus = async (newStatus, ticket) => {
+    if (!ticket) return;
     
     try {
-      await api.put(`/tickets/${selectedTicket.id}`, {
+      await api.put(`/tickets/${ticket.id}`, {
         status: newStatus
       });
       toast.success(`Stato del ticket aggiornato a ${translateStatus(newStatus)}`);
-      setShowStatusModal(false);
-      setSelectedTicket(null);
       fetchTickets();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Errore nell\'aggiornamento dello stato');
@@ -171,12 +169,22 @@ const Tickets = () => {
     switch (status) {
       case 'OPEN':
         return 'badge-blue';
-      case 'IN_PROGRESS':
-        return 'badge-yellow';
-      case 'RESOLVED':
-        return 'badge-green';
       case 'CLOSED':
         return 'badge-red';
+      case 'PLANNED':
+        return 'badge-purple';
+      case 'CLOSED_REMOTE':
+        return 'badge-slate';
+      case 'CLOSED_ONSITE':
+        return 'badge-gray';
+      case 'PLANNED_ONSITE':
+        return 'badge-indigo';
+      case 'VERIFYING':
+        return 'badge-yellow';
+      case 'WAITING_CLIENT':
+        return 'badge-orange';
+      case 'TO_REPORT':
+        return 'badge-green';
       default:
         return 'badge-blue';
     }
@@ -201,12 +209,22 @@ const Tickets = () => {
     switch (status) {
       case 'OPEN':
         return 'Aperto';
-      case 'IN_PROGRESS':
-        return 'In Corso';
-      case 'RESOLVED':
-        return 'Risolto';
       case 'CLOSED':
         return 'Chiuso';
+      case 'PLANNED':
+        return 'Painificato';
+      case 'CLOSED_REMOTE':
+        return 'Chiuso Remoto';
+      case 'CLOSED_ONSITE':
+        return 'Chiuso Onsite';
+      case 'PLANNED_ONSITE':
+        return 'Previsto onsite';
+      case 'VERIFYING':
+        return 'In verifica esito';
+      case 'WAITING_CLIENT':
+        return 'In attesa Cliente';
+      case 'TO_REPORT':
+        return 'Da riportare';
       default:
         return status;
     }
@@ -252,32 +270,23 @@ const Tickets = () => {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FaSearch className="text-secondary-400" />
+      <div className="card overflow-hidden mb-6">
+        <div className="p-4">
+          <div className="mb-4">
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="text-secondary-400" />
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={handleSearch}
+                className="form-input pl-10 w-full"
+                placeholder="Cerca ticket..."
+              />
+            </div>
           </div>
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearch}
-            className="form-input pl-10 w-full"
-            placeholder="Cerca ticket..."
-          />
-        </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="btn btn-secondary flex items-center justify-center"
-        >
-          <FaFilter className="mr-2" />
-          Filtri
-        </button>
-      </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Filtra Ticket</h3>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label htmlFor="status" className="form-label">Stato</label>
@@ -290,9 +299,14 @@ const Tickets = () => {
               >
                 <option value="">Tutti</option>
                 <option value="OPEN">Aperto</option>
-                <option value="IN_PROGRESS">In Corso</option>
-                <option value="RESOLVED">Risolto</option>
                 <option value="CLOSED">Chiuso</option>
+                <option value="PLANNED">Painificato</option>
+                <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                <option value="PLANNED_ONSITE">Previsto onsite</option>
+                <option value="VERIFYING">In verifica esito</option>
+                <option value="WAITING_CLIENT">In attesa Cliente</option>
+                <option value="TO_REPORT">Da riportare</option>
               </select>
             </div>
             <div>
@@ -344,7 +358,7 @@ const Tickets = () => {
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Tickets Table */}
       <div className="card overflow-hidden">
@@ -440,13 +454,27 @@ const Tickets = () => {
                       <span className={`badge ${getStatusBadgeClass(ticket.status)}`}>
                         {translateStatus(ticket.status)}
                       </span>
-                      <button 
-                        className="p-1 rounded-full hover:bg-secondary-100 text-secondary-600"
-                        onClick={(e) => openStatusModal(ticket, e)}
-                        title="Modifica stato"
-                      >
-                        <FaEdit size={14} />
-                      </button>
+                      <div className="relative">
+                        <select
+                          className="form-input py-1 text-xs bg-white border border-secondary-200 rounded"
+                          value={ticket.status}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleUpdateStatus(e.target.value, ticket);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <option value="OPEN">Aperto</option>
+                          <option value="CLOSED">Chiuso</option>
+                          <option value="PLANNED">Painificato</option>
+                          <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                          <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                          <option value="PLANNED_ONSITE">Previsto onsite</option>
+                          <option value="VERIFYING">In verifica esito</option>
+                          <option value="WAITING_CLIENT">In attesa Cliente</option>
+                          <option value="TO_REPORT">Da riportare</option>
+                        </select>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -577,7 +605,7 @@ const Tickets = () => {
                 <button 
                   className={`p-3 border rounded-lg flex flex-col items-center 
                     ${selectedTicket.status === 'OPEN' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
-                  onClick={() => handleUpdateStatus('OPEN')}
+                  onClick={() => handleUpdateStatus('OPEN', selectedTicket)}
                 >
                   <span className="badge badge-blue mb-2">Aperto</span>
                   <span className="text-xs text-secondary-500">Ticket da elaborare</span>
@@ -586,7 +614,7 @@ const Tickets = () => {
                 <button 
                   className={`p-3 border rounded-lg flex flex-col items-center 
                     ${selectedTicket.status === 'IN_PROGRESS' ? 'border-yellow-500 bg-yellow-50 text-yellow-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
-                  onClick={() => handleUpdateStatus('IN_PROGRESS')}
+                  onClick={() => handleUpdateStatus('IN_PROGRESS', selectedTicket)}
                 >
                   <span className="badge badge-yellow mb-2">In Corso</span>
                   <span className="text-xs text-secondary-500">Ticket in lavorazione</span>
@@ -595,7 +623,7 @@ const Tickets = () => {
                 <button 
                   className={`p-3 border rounded-lg flex flex-col items-center 
                     ${selectedTicket.status === 'RESOLVED' ? 'border-green-500 bg-green-50 text-green-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
-                  onClick={() => handleUpdateStatus('RESOLVED')}
+                  onClick={() => handleUpdateStatus('RESOLVED', selectedTicket)}
                 >
                   <span className="badge badge-green mb-2">Risolto</span>
                   <span className="text-xs text-secondary-500">Soluzione disponibile</span>
@@ -604,7 +632,7 @@ const Tickets = () => {
                 <button 
                   className={`p-3 border rounded-lg flex flex-col items-center 
                     ${selectedTicket.status === 'CLOSED' ? 'border-red-500 bg-red-50 text-red-700' : 'border-secondary-200 hover:bg-secondary-50'}`}
-                  onClick={() => handleUpdateStatus('CLOSED')}
+                  onClick={() => handleUpdateStatus('CLOSED', selectedTicket)}
                 >
                   <span className="badge badge-red mb-2">Chiuso</span>
                   <span className="text-xs text-secondary-500">Ticket completato</span>

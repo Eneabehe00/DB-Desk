@@ -16,7 +16,8 @@ const Clients = () => {
     name: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    chain: ''
   });
 
   useEffect(() => {
@@ -62,7 +63,8 @@ const Clients = () => {
         name: '',
         email: '',
         phone: '',
-        address: ''
+        address: '',
+        chain: ''
       });
       fetchClients();
     } catch (error) {
@@ -100,7 +102,8 @@ const Clients = () => {
       name: client.name,
       email: client.email,
       phone: client.phone || '',
-      address: client.address || ''
+      address: client.address || '',
+      chain: client.chain || ''
     });
     setShowEditModal(true);
   };
@@ -158,6 +161,9 @@ const Clients = () => {
                   Nome
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                  Catena
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
                   Email
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
@@ -173,17 +179,20 @@ const Clients = () => {
             </thead>
             <tbody className="bg-white divide-y divide-secondary-200">
               {filteredClients.map((client) => (
-                <tr key={client.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={client.id} className="hover:bg-secondary-50 cursor-pointer">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/clients/${client.id}`}>
                     <div className="text-sm font-medium text-secondary-900">{client.name}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/clients/${client.id}`}>
+                    <div className="text-sm text-secondary-500">{client.chain || '-'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/clients/${client.id}`}>
                     <div className="text-sm text-secondary-500">{client.email}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/clients/${client.id}`}>
                     <div className="text-sm text-secondary-500">{client.phone || '-'}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/clients/${client.id}`}>
                     <div className="flex items-center">
                       <FaTicketAlt className="text-primary-500 mr-1" />
                       <span className="text-sm text-secondary-500">
@@ -237,6 +246,18 @@ const Clients = () => {
                     onChange={handleChange}
                     className="form-input"
                     required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="chain" className="form-label">Catena</label>
+                  <input
+                    type="text"
+                    id="chain"
+                    name="chain"
+                    value={formData.chain}
+                    onChange={handleChange}
+                    className="form-input"
+                    placeholder="es. Carrefour, Eurospin, ecc."
                   />
                 </div>
                 <div className="mb-4">
@@ -311,6 +332,18 @@ const Clients = () => {
                     onChange={handleChange}
                     className="form-input"
                     required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="edit-chain" className="form-label">Catena</label>
+                  <input
+                    type="text"
+                    id="edit-chain"
+                    name="chain"
+                    value={formData.chain}
+                    onChange={handleChange}
+                    className="form-input"
+                    placeholder="es. Carrefour, Eurospin, ecc."
                   />
                 </div>
                 <div className="mb-4">
