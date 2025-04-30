@@ -539,7 +539,7 @@ const Tickets = () => {
                   onClick={() => handleSort('title')}
                 >
                   <div className="flex items-center">
-                    <span>Titolo</span>
+                    <span>Dettagli</span>
                     {sortField === 'title' && (
                       sortDirection === 'asc' ? 
                         <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -549,14 +549,6 @@ const Tickets = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider hover:bg-secondary-100 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <span>Descrizione</span>
                   </div>
                 </th>
                 <th 
@@ -618,7 +610,7 @@ const Tickets = () => {
             <tbody className="bg-white divide-y divide-secondary-200">
               {filteredTickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-primary-50 transition-colors cursor-pointer">
-                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
+                  <td className="px-6 py-4" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
                     <div className="text-sm text-secondary-700 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center mr-2 text-xs font-bold">
                         {ticket.client?.name.charAt(0)}
@@ -631,13 +623,11 @@ const Tickets = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <div className="text-sm font-medium text-secondary-900 mb-1">{ticket.title}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <div className="text-xs text-secondary-500 truncate max-w-xs">
-                      {ticket.description.substring(0, 60)}
-                      {ticket.description.length > 60 ? '...' : ''}
+                  <td className="px-6 py-4" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
+                    <div className="text-sm font-medium text-secondary-900 mb-1 line-clamp-1">{ticket.title}</div>
+                    <div className="text-xs text-secondary-500 line-clamp-1 max-w-[200px]">
+                      {ticket.description.substring(0, 50)}
+                      {ticket.description.length > 50 ? '...' : ''}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
@@ -681,7 +671,7 @@ const Tickets = () => {
               
               {filteredTickets.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-10 text-center">
+                  <td colSpan="5" className="px-6 py-10 text-center">
                     <div className="text-center">
                       <svg className="mx-auto h-12 w-12 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

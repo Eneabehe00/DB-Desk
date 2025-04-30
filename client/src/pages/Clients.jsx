@@ -184,19 +184,16 @@ const Clients = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ticket
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Azioni
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredClients.length > 0 ? (
                 filteredClients.map((client) => (
-                  <tr key={client.id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
-                      <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                  <tr key={client.id} className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
+                    <td className="px-6 py-4 h-[60px]">
+                      <div className="text-sm font-medium text-gray-900 line-clamp-1 max-w-[150px]">{client.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
+                    <td className="px-6 py-4 h-[60px]">
                       {client.chain ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                           {client.chain}
@@ -205,13 +202,13 @@ const Clients = () => {
                         <span className="text-sm text-gray-500">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
-                      <div className="text-sm text-gray-500">{client.email}</div>
+                    <td className="px-6 py-4 h-[60px]">
+                      <div className="text-sm text-gray-500 line-clamp-1 max-w-[200px]">{client.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
+                    <td className="px-6 py-4 h-[60px]">
                       <div className="text-sm text-gray-500">{client.phone || '-'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
+                    <td className="px-6 py-4 h-[60px]">
                       <div className="flex items-center">
                         <FaTicketAlt className="mr-1.5 h-4 w-4 text-primary-500" aria-hidden="true" />
                         <span className="text-sm text-gray-500 font-medium">
@@ -219,27 +216,11 @@ const Clients = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => openEditModal(client)}
-                        className="text-primary-600 hover:text-primary-900 mr-3 p-1 rounded-full hover:bg-primary-50 transition-colors duration-150"
-                        aria-label="Modifica cliente"
-                      >
-                        <FaEdit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(client)}
-                        className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50 transition-colors duration-150"
-                        aria-label="Elimina cliente"
-                      >
-                        <FaTrash className="h-4 w-4" />
-                      </button>
-                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center">
+                  <td colSpan="5" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="bg-gray-100 rounded-full p-3 mb-4">
                         <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

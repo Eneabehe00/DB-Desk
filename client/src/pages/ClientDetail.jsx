@@ -354,18 +354,18 @@ const ClientDetail = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {client.tickets.map((ticket) => (
                         <tr key={ticket.id} className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 h-[60px]">
                             <div className="flex items-center">
-                              <FaTicketAlt className="text-gray-400 mr-2 h-4 w-4" />
-                              <div className="text-sm font-medium text-gray-900">{ticket.title}</div>
+                              <FaTicketAlt className="text-gray-400 mr-2 h-4 w-4 flex-shrink-0" />
+                              <div className="text-sm font-medium text-gray-900 line-clamp-1 max-w-[300px]">{ticket.title}</div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 h-[60px]">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(ticket.status)}`}>
                               {translateStatus(ticket.status)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 h-[60px] text-sm text-gray-500">
                             {formatDate(ticket.createdAt)}
                           </td>
                         </tr>
