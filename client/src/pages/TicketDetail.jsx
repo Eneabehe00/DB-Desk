@@ -478,19 +478,6 @@ const TicketDetail = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div className="mb-4">
-                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={ticketData.title}
-                    onChange={handleChange}
-                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    required
-                  />
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
@@ -543,6 +530,19 @@ const TicketDetail = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={ticketData.title}
+                    onChange={handleChange}
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    required
+                  />
                 </div>
                 
                 <div className="mb-6">

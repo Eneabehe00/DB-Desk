@@ -849,20 +849,6 @@ const Tickets = () => {
                   </div>
                 )}
                 
-                <div>
-                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    required
-                    placeholder="Inserisci un titolo descrittivo"
-                  />
-                </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label htmlFor="status" className="form-label text-secondary-700">Stato</label>
@@ -914,6 +900,20 @@ const Tickets = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    required
+                    placeholder="Inserisci un titolo descrittivo"
+                  />
                 </div>
                 
                 <div>
