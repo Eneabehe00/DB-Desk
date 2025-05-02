@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaSearch, FaEdit, FaTrash, FaTicketAlt } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaEdit, FaTrash, FaTicketAlt, FaPhone, FaEnvelope, FaMapMarkerAlt, FaStore, FaEllipsisH, FaList, FaThLarge } from 'react-icons/fa';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -12,6 +12,7 @@ const Clients = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentClient, setCurrentClient] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // 'list' o 'grid'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -42,7 +43,8 @@ const Clients = () => {
 
   const filteredClients = clients.filter(client => 
     client.name.toLowerCase().includes(search.toLowerCase()) || 
-    client.email.toLowerCase().includes(search.toLowerCase())
+    (client.email && client.email.toLowerCase().includes(search.toLowerCase())) ||
+    (client.chain && client.chain.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleChange = (e) => {
@@ -96,7 +98,8 @@ const Clients = () => {
     }
   };
 
-  const openEditModal = (client) => {
+  const openEditModal = (client, e) => {
+    if (e) e.stopPropagation();
     setCurrentClient(client);
     setFormData({
       name: client.name,
@@ -108,9 +111,38 @@ const Clients = () => {
     setShowEditModal(true);
   };
 
-  const openDeleteModal = (client) => {
+  const openDeleteModal = (client, e) => {
+    if (e) e.stopPropagation();
     setCurrentClient(client);
     setShowDeleteModal(true);
+  };
+
+  const getInitials = (name) => {
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const getRandomColor = (id) => {
+    const colors = [
+      'bg-blue-100 text-blue-700',
+      'bg-green-100 text-green-700',
+      'bg-purple-100 text-purple-700',
+      'bg-yellow-100 text-yellow-700',
+      'bg-pink-100 text-pink-700',
+      'bg-indigo-100 text-indigo-700',
+      'bg-red-100 text-red-700',
+      'bg-cyan-100 text-cyan-700'
+    ];
+    
+    // Usa l'ID per determinare un indice stabile
+    const index = id ? id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length : 0;
+    
+    return colors[index];
   };
 
   if (loading) {
@@ -122,134 +154,268 @@ const Clients = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="sm:flex sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clienti</h1>
-          <p className="mt-2 text-sm text-gray-500">Gestisci i tuoi clienti e visualizza i relativi ticket</p>
+          <h1 className="text-2xl font-bold text-secondary-900">Clienti</h1>
+          <p className="text-secondary-500">Gestisci i clienti e i loro ticket</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+          className="btn btn-primary mt-4 md:mt-0 flex items-center"
         >
-          <FaPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+          <FaPlus className="mr-2" />
           Nuovo Cliente
         </button>
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-        <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FaSearch className="h-4 w-4 text-gray-400" aria-hidden="true" />
+      {/* Search & Filter Bar */}
+      <div className="card overflow-hidden mb-6">
+        <div className="p-4">
+          <div className="mb-4">
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="text-secondary-400" />
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={handleSearch}
+                className="form-input pl-10 w-full"
+                placeholder="Cerca cliente per nome, email o catena..."
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-400 hover:text-secondary-600"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearch}
-            className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-all"
-            placeholder="Cerca cliente per nome, email o catena..."
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Clients Table Card */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-100">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Catena
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Telefono
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ticket
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClients.length > 0 ? (
-                filteredClients.map((client) => (
-                  <tr key={client.id} className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onClick={() => window.location.href = `/clients/${client.id}`}>
-                    <td className="px-6 py-4 h-[60px]">
-                      <div className="text-sm font-medium text-gray-900 line-clamp-1 max-w-[150px]">{client.name}</div>
-                    </td>
-                    <td className="px-6 py-4 h-[60px]">
-                      {client.chain ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                          {client.chain}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-500">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 h-[60px]">
-                      <div className="text-sm text-gray-500 line-clamp-1 max-w-[200px]">{client.email}</div>
-                    </td>
-                    <td className="px-6 py-4 h-[60px]">
-                      <div className="text-sm text-gray-500">{client.phone || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 h-[60px]">
-                      <div className="flex items-center">
-                        <FaTicketAlt className="mr-1.5 h-4 w-4 text-primary-500" aria-hidden="true" />
-                        <span className="text-sm text-gray-500 font-medium">
-                          {client.tickets?.length || 0}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="bg-gray-100 rounded-full p-3 mb-4">
-                        <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-base font-medium text-gray-900">
-                        {search ? 'Nessun cliente trovato' : 'Nessun cliente presente'}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {search ? `Nessun risultato per "${search}"` : 'Aggiungi il tuo primo cliente per iniziare'}
-                      </p>
-                      {!search && (
-                        <button
-                          onClick={() => setShowAddModal(true)}
-                          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
-                        >
-                          <FaPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-                          Aggiungi Cliente
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* View Controls */}
+      <div className="flex flex-wrap items-center justify-between mb-4">
+        <div className="text-sm text-secondary-600 mb-2 md:mb-0">
+          {filteredClients.length} clienti trovati
+        </div>
+        <div className="flex items-center space-x-4">
+          {/* View Mode Toggle */}
+          <div className="bg-white border border-secondary-200 rounded-lg flex mr-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center p-1.5 rounded-l-lg ${
+                viewMode === 'list' 
+                  ? 'bg-primary-50 text-primary-600' 
+                  : 'text-secondary-500 hover:bg-secondary-50'
+              }`}
+              aria-label="Vista Lista"
+              title="Vista Lista"
+            >
+              <FaList className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center justify-center p-1.5 rounded-r-lg ${
+                viewMode === 'grid' 
+                  ? 'bg-primary-50 text-primary-600' 
+                  : 'text-secondary-500 hover:bg-secondary-50'
+              }`}
+              aria-label="Vista Griglia"
+              title="Vista Griglia"
+            >
+              <FaThLarge className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Clients Display */}
+      {filteredClients.length > 0 ? (
+        <>
+          {/* List View */}
+          {viewMode === 'list' && (
+            <div className="space-y-3">
+              {filteredClients.map((client) => (
+                <div 
+                  key={client.id} 
+                  className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md hover:border-primary-200 transition-all overflow-hidden cursor-pointer"
+                  onClick={() => window.location.href = `/clients/${client.id}`}
+                >
+                  <div className="p-4 sm:p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      {/* Cliente con avatar e nome */}
+                      <div className="flex items-center sm:w-52 sm:min-w-[13rem]">
+                        <div className={`flex-shrink-0 h-11 w-11 rounded-full ${getRandomColor(client.id)} flex items-center justify-center mr-3 text-base font-bold shadow-sm`}>
+                          {getInitials(client.name)}
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="font-medium text-secondary-900 truncate">{client.name}</div>
+                          {client.chain && (
+                            <div className="text-xs text-secondary-500 truncate">{client.chain}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Contatti centrali */}
+                      <div className="flex-1 sm:border-l sm:border-r sm:border-secondary-100 sm:pl-4 sm:pr-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {client.email && (
+                            <div className="flex items-center text-sm text-secondary-600">
+                              <FaEnvelope className="mr-2 text-secondary-400 flex-shrink-0" />
+                              <span className="truncate">{client.email}</span>
+                            </div>
+                          )}
+                          {client.phone && (
+                            <div className="flex items-center text-sm text-secondary-600">
+                              <FaPhone className="mr-2 text-secondary-400 flex-shrink-0" />
+                              <span>{client.phone}</span>
+                            </div>
+                          )}
+                          {client.address && (
+                            <div className="flex items-center text-sm text-secondary-600 md:col-span-2">
+                              <FaMapMarkerAlt className="mr-2 text-secondary-400 flex-shrink-0" />
+                              <span className="truncate">{client.address}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Azioni sulla destra */}
+                      <div className="flex items-center gap-3 sm:w-48 justify-between sm:justify-end">
+                        <div className="flex items-center bg-primary-50 text-primary-700 rounded-full px-3 py-1">
+                          <FaTicketAlt className="mr-1.5 h-3 w-3" />
+                          <span className="text-xs font-medium">{client.tickets?.length || 0} Ticket</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-1">
+                          <button 
+                            className="p-1.5 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
+                            onClick={(e) => openEditModal(client, e)}
+                            title="Modifica"
+                          >
+                            <FaEdit className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-1.5 text-secondary-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            onClick={(e) => openDeleteModal(client, e)}
+                            title="Elimina"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Grid View */}
+          {viewMode === 'grid' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredClients.map((client) => (
+                <div 
+                  key={client.id} 
+                  className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md hover:border-primary-200 transition-all overflow-hidden cursor-pointer"
+                  onClick={() => window.location.href = `/clients/${client.id}`}
+                >
+                  <div className="p-5">
+                    {/* Cliente con avatar e nome */}
+                    <div className="flex items-center mb-4">
+                      <div className={`flex-shrink-0 h-12 w-12 rounded-full ${getRandomColor(client.id)} flex items-center justify-center mr-3 text-base font-bold shadow-sm`}>
+                        {getInitials(client.name)}
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="font-medium text-lg text-secondary-900 truncate">{client.name}</div>
+                        {client.chain && (
+                          <div className="text-sm text-secondary-500 truncate">{client.chain}</div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Contatti del cliente */}
+                    <div className="space-y-2 mb-4">
+                      {client.email && (
+                        <div className="flex items-center text-sm text-secondary-600">
+                          <FaEnvelope className="mr-2 text-secondary-400 flex-shrink-0" />
+                          <span className="truncate">{client.email}</span>
+                        </div>
+                      )}
+                      {client.phone && (
+                        <div className="flex items-center text-sm text-secondary-600">
+                          <FaPhone className="mr-2 text-secondary-400 flex-shrink-0" />
+                          <span>{client.phone}</span>
+                        </div>
+                      )}
+                      {client.address && (
+                        <div className="flex items-center text-sm text-secondary-600">
+                          <FaMapMarkerAlt className="mr-2 text-secondary-400 flex-shrink-0" />
+                          <span className="truncate">{client.address}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Footer with actions */}
+                    <div className="flex items-center justify-between pt-3 border-t border-secondary-100">
+                      <div className="flex items-center bg-primary-50 text-primary-700 rounded-full px-3 py-1">
+                        <FaTicketAlt className="mr-1.5 h-3 w-3" />
+                        <span className="text-xs font-medium">{client.tickets?.length || 0} Ticket</span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-1">
+                        <button 
+                          className="p-1.5 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
+                          onClick={(e) => openEditModal(client, e)}
+                          title="Modifica"
+                        >
+                          <FaEdit className="h-4 w-4" />
+                        </button>
+                        <button 
+                          className="p-1.5 text-secondary-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          onClick={(e) => openDeleteModal(client, e)}
+                          title="Elimina"
+                        >
+                          <FaTrash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-8 text-center">
+          <div className="mx-auto h-16 w-16 text-secondary-400 mb-4">
+            <svg className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-secondary-900 mb-1">
+            {search ? 'Nessun cliente trovato' : 'Nessun cliente presente'}
+          </h3>
+          <p className="text-secondary-500 mb-6">
+            {search ? `Nessun risultato per "${search}"` : 'Aggiungi il tuo primo cliente per iniziare'}
+          </p>
+          {!search && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn btn-primary inline-flex items-center"
+            >
+              <FaPlus className="mr-2" />
+              Aggiungi Cliente
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Add Client Modal */}
       {showAddModal && (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaSearch, FaFilter, FaSortAmountDown, FaSortAmountUp, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaSortAmountDown, FaSortAmountUp, FaEdit, FaCheck, FaTimes, FaThLarge, FaList } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
 
 const Tickets = () => {
@@ -17,6 +17,7 @@ const Tickets = () => {
   const [users, setUsers] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [viewMode, setViewMode] = useState('list');
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
@@ -509,183 +510,278 @@ const Tickets = () => {
         </div>
       </div>
 
-      {/* Tickets Table */}
-      <div className="card overflow-hidden bg-white rounded-xl shadow-lg border border-secondary-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-secondary-200">
-            <thead>
-              <tr className="bg-secondary-50">
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 transition-colors"
-                  onClick={() => handleSort('client')}
-                >
-                  <div className="flex items-center">
-                    <span>Cliente</span>
-                    {sortField === 'client' && (
-                      sortDirection === 'asc' ? 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg> : 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 transition-colors"
-                  onClick={() => handleSort('title')}
-                >
-                  <div className="flex items-center">
-                    <span>Dettagli</span>
-                    {sortField === 'title' && (
-                      sortDirection === 'asc' ? 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg> : 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 transition-colors"
-                  onClick={() => handleSort('updatedAt')}
-                >
-                  <div className="flex items-center">
-                    <span>Aggiornato</span>
-                    {sortField === 'updatedAt' && (
-                      sortDirection === 'asc' ? 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg> : 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 transition-colors"
-                  onClick={() => handleSort('priority')}
-                >
-                  <div className="flex items-center">
-                    <span>Priorità</span>
-                    {sortField === 'priority' && (
-                      sortDirection === 'asc' ? 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg> : 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-4 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider cursor-pointer hover:bg-secondary-100 transition-colors"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center">
-                    <span>Stato</span>
-                    {sortField === 'status' && (
-                      sortDirection === 'asc' ? 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg> : 
-                        <svg className="w-4 h-4 ml-1.5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    )}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-secondary-200">
+      {/* Sort Controls */}
+      <div className="flex flex-wrap items-center justify-between mb-4">
+        <div className="text-sm text-secondary-600 mb-2 md:mb-0">
+          {filteredTickets.length} ticket trovati
+        </div>
+        <div className="flex items-center space-x-4">
+          {/* View Mode Toggle */}
+          <div className="bg-white border border-secondary-200 rounded-lg flex mr-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center p-1.5 rounded-l-lg ${
+                viewMode === 'list' 
+                  ? 'bg-primary-50 text-primary-600' 
+                  : 'text-secondary-500 hover:bg-secondary-50'
+              }`}
+              aria-label="Vista Lista"
+              title="Vista Lista"
+            >
+              <FaList className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`flex items-center justify-center p-1.5 rounded-r-lg ${
+                viewMode === 'card' 
+                  ? 'bg-primary-50 text-primary-600' 
+                  : 'text-secondary-500 hover:bg-secondary-50'
+              }`}
+              aria-label="Vista Card"
+              title="Vista Card"
+            >
+              <FaThLarge className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <span className="text-sm text-secondary-600">Ordina per:</span>
+          <div className="relative">
+            <select
+              value={sortField}
+              onChange={(e) => {
+                setSortField(e.target.value);
+                setSortDirection('desc');
+              }}
+              className="form-select py-1 text-sm appearance-none pr-8 bg-white border border-secondary-200 rounded-lg shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+            >
+              <option value="updatedAt">Data aggiornamento</option>
+              <option value="title">Titolo</option>
+              <option value="priority">Priorità</option>
+              <option value="status">Stato</option>
+              <option value="client">Cliente</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <svg className="w-4 h-4 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+            </div>
+          </div>
+          <button
+            onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+            className="p-1.5 rounded-md hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            {sortDirection === 'asc' ? (
+              <FaSortAmountUp className="w-4 h-4 text-secondary-600" />
+            ) : (
+              <FaSortAmountDown className="w-4 h-4 text-secondary-600" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Tickets Views */}
+      {filteredTickets.length > 0 ? (
+        <>
+          {/* List View */}
+          {viewMode === 'list' && (
+            <div className="space-y-3">
               {filteredTickets.map((ticket) => (
-                <tr key={ticket.id} className="hover:bg-primary-50 transition-colors cursor-pointer">
-                  <td className="px-6 py-4" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <div className="text-sm text-secondary-700 flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center mr-2 text-xs font-bold">
-                        {ticket.client?.name.charAt(0)}
+                <div 
+                  key={ticket.id} 
+                  className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md hover:border-primary-200 transition-all overflow-hidden cursor-pointer"
+                  onClick={() => window.location.href = `/tickets/${ticket.id}`}
+                >
+                  <div className="p-4 sm:p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      {/* Cliente con avatar e dettagli */}
+                      <div className="flex items-center sm:w-52 sm:min-w-[13rem]">
+                        <div className="flex-shrink-0 h-11 w-11 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center mr-3 text-base font-bold shadow-sm">
+                          {ticket.client?.name.charAt(0)}
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="font-medium text-secondary-900 truncate">{ticket.client?.name}</div>
+                          {ticket.client?.chain && (
+                            <div className="text-xs text-secondary-500 truncate">{ticket.client.chain}</div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium">{ticket.client?.name}</div>
-                        {ticket.client?.chain && (
-                          <div className="text-xs text-secondary-500">{ticket.client.chain}</div>
+
+                      {/* Contenuto centrale: titolo e descrizione */}
+                      <div className="flex-1 sm:border-l sm:border-r sm:border-secondary-100 sm:pl-4 sm:pr-4">
+                        <h3 className="font-semibold text-secondary-900 mb-1 line-clamp-1">{ticket.title}</h3>
+                        <p className="text-sm text-secondary-600 line-clamp-2">
+                          {ticket.description}
+                        </p>
+                      </div>
+
+                      {/* Informazioni sulla destra */}
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:w-64 sm:justify-end">
+                        {/* Status Badge */}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-${getStatusBadgeClass(ticket.status)} text-white`}>
+                          {translateStatus(ticket.status)}
+                        </span>
+                        
+                        {/* Priority Badge */}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityBadgeClass(ticket.priority)}`}>
+                          {translatePriority(ticket.priority)}
+                        </span>
+                        
+                        {/* Status Dropdown */}
+                        <div 
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-block"
+                        >
+                          <select
+                            className="form-select py-1 text-xs bg-white border border-secondary-200 rounded shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                            value={ticket.status}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleUpdateStatus(e.target.value, ticket);
+                            }}
+                          >
+                            <option value="OPEN">Aperto</option>
+                            <option value="CLOSED">Chiuso</option>
+                            <option value="PLANNED">Painificato</option>
+                            <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                            <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                            <option value="PLANNED_ONSITE">Previsto onsite</option>
+                            <option value="VERIFYING">In verifica esito</option>
+                            <option value="WAITING_CLIENT">In attesa Cliente</option>
+                            <option value="TO_REPORT">Da riportare</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Footer della card: data aggiornamento e assegnazione */}
+                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-secondary-100 text-xs text-secondary-500">
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Aggiornato: {new Date(ticket.updatedAt).toLocaleDateString('it-IT')}
+                      </div>
+                      
+                      <div className="flex items-center">
+                        {ticket.assignedTo ? (
+                          <>
+                            <svg className="w-4 h-4 mr-1 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Assegnato a: {ticket.assignedTo?.name || "Non specificato"}
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 mr-1 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Non assegnato
+                          </>
                         )}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <div className="text-sm font-medium text-secondary-900 mb-1 line-clamp-1">{ticket.title}</div>
-                    <div className="text-xs text-secondary-500 line-clamp-1 max-w-[200px]">
-                      {ticket.description.substring(0, 50)}
-                      {ticket.description.length > 50 ? '...' : ''}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <div className="flex items-center">
-                      <svg className="w-4 h-4 mr-1.5 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {new Date(ticket.updatedAt).toLocaleDateString('it-IT')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap" onClick={() => window.location.href = `/tickets/${ticket.id}`}>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityBadgeClass(ticket.priority)}`}>
-                      {translatePriority(ticket.priority)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <select
-                        className="form-select py-1 text-xs bg-white border border-secondary-200 rounded shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        value={ticket.status}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleUpdateStatus(e.target.value, ticket);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <option value="OPEN">Aperto</option>
-                        <option value="CLOSED">Chiuso</option>
-                        <option value="PLANNED">Painificato</option>
-                        <option value="CLOSED_REMOTE">Chiuso Remoto</option>
-                        <option value="CLOSED_ONSITE">Chiuso Onsite</option>
-                        <option value="PLANNED_ONSITE">Previsto onsite</option>
-                        <option value="VERIFYING">In verifica esito</option>
-                        <option value="WAITING_CLIENT">In attesa Cliente</option>
-                        <option value="TO_REPORT">Da riportare</option>
-                      </select>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-              
-              {filteredTickets.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-6 py-10 text-center">
-                    <div className="text-center">
-                      <svg className="mx-auto h-12 w-12 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="mt-2 text-sm font-medium text-secondary-900">Nessun ticket trovato</h3>
-                      <p className="mt-1 text-sm text-secondary-500">I ticket che crei appariranno qui.</p>
+            </div>
+          )}
+          
+          {/* Card View */}
+          {viewMode === 'card' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredTickets.map((ticket) => (
+                <div 
+                  key={ticket.id} 
+                  className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+                  onClick={() => window.location.href = `/tickets/${ticket.id}`}
+                >
+                  <div className="p-4">
+                    {/* Client Info */}
+                    <div className="flex items-center mb-3">
+                      <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center mr-3 text-sm font-bold">
+                        {ticket.client?.name.charAt(0)}
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="font-medium text-secondary-900 truncate">{ticket.client?.name}</div>
+                        {ticket.client?.chain && (
+                          <div className="text-xs text-secondary-500 truncate">{ticket.client.chain}</div>
+                        )}
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    
+                    {/* Ticket Details */}
+                    <h3 className="font-semibold text-secondary-900 mb-2 line-clamp-1">{ticket.title}</h3>
+                    <p className="text-sm text-secondary-600 mb-4 line-clamp-2">
+                      {ticket.description}
+                    </p>
+                    
+                    {/* Tags and Badges */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityBadgeClass(ticket.priority)}`}>
+                        {translatePriority(ticket.priority)}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-${getStatusBadgeClass(ticket.status)} text-white`}>
+                        {translateStatus(ticket.status)}
+                      </span>
+                    </div>
+                    
+                    <div className="border-t border-secondary-100 pt-3 flex items-center justify-between">
+                      <div className="text-xs text-secondary-500 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {new Date(ticket.updatedAt).toLocaleDateString('it-IT')}
+                      </div>
+                      
+                      {/* Status Dropdown */}
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-block"
+                      >
+                        <select
+                          className="form-select py-1 text-xs bg-white border border-secondary-200 rounded shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                          value={ticket.status}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleUpdateStatus(e.target.value, ticket);
+                          }}
+                        >
+                          <option value="OPEN">Aperto</option>
+                          <option value="CLOSED">Chiuso</option>
+                          <option value="PLANNED">Painificato</option>
+                          <option value="CLOSED_REMOTE">Chiuso Remoto</option>
+                          <option value="CLOSED_ONSITE">Chiuso Onsite</option>
+                          <option value="PLANNED_ONSITE">Previsto onsite</option>
+                          <option value="VERIFYING">In verifica esito</option>
+                          <option value="WAITING_CLIENT">In attesa Cliente</option>
+                          <option value="TO_REPORT">Da riportare</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-8 text-center">
+          <div className="mx-auto h-16 w-16 text-secondary-400 mb-4">
+            <svg className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-secondary-900 mb-1">Nessun ticket trovato</h3>
+          <p className="text-secondary-500 mb-6">I ticket che crei appariranno qui.</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn btn-primary inline-flex items-center"
+          >
+            <FaPlus className="mr-2" />
+            Crea Nuovo Ticket
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Add Ticket Modal */}
       {showModal && (
