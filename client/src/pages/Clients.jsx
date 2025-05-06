@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
@@ -20,6 +20,15 @@ const Clients = () => {
     address: '',
     chain: ''
   });
+  
+  // Nuovi stati per il caricamento progressivo
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [allClients, setAllClients] = useState([]);
+  const clientsPerPage = 10;
+  const observer = useRef();
+  const lastClientElementRef = useRef();
 
   useEffect(() => {
     fetchClients();
@@ -29,7 +38,9 @@ const Clients = () => {
     try {
       setLoading(true);
       const response = await api.get('/clients');
-      setClients(response.data);
+      setAllClients(response.data);
+      setClients(response.data.slice(0, clientsPerPage));
+      setHasMore(response.data.length > clientsPerPage);
       setLoading(false);
     } catch (error) {
       toast.error('Errore nel caricamento dei clienti');
@@ -37,15 +48,82 @@ const Clients = () => {
     }
   };
 
+  // Funzione per caricare altri clienti quando si scorre verso il basso
+  const loadMoreClients = () => {
+    if (loadingMore || !hasMore) return;
+    
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const start = (nextPage - 1) * clientsPerPage;
+    const end = start + clientsPerPage;
+    
+    // Filtro i clienti in base ai criteri di ricerca
+    const filteredResults = getFilteredClients(allClients);
+    
+    // Aggiungo i prossimi clienti
+    if (start < filteredResults.length) {
+      setClients(prev => [...prev, ...filteredResults.slice(start, end)]);
+      setHasMore(end < filteredResults.length);
+      setPage(nextPage);
+    } else {
+      setHasMore(false);
+    }
+    
+    setLoadingMore(false);
+  };
+
+  // Setup dell'IntersectionObserver per rilevare quando l'utente scorre fino alla fine della lista
+  useEffect(() => {
+    if (loading) return;
+    
+    const options = {
+      root: null,
+      rootMargin: '20px',
+      threshold: 0.1
+    };
+    
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreClients();
+      }
+    }, options);
+    
+    if (lastClientElementRef.current) {
+      observer.current.observe(lastClientElementRef.current);
+    }
+    
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, [loading, hasMore, clients]);
+
   const handleSearch = (e) => {
     setSearch(e.target.value);
   };
 
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(search.toLowerCase()) || 
-    (client.email && client.email.toLowerCase().includes(search.toLowerCase())) ||
-    (client.chain && client.chain.toLowerCase().includes(search.toLowerCase()))
-  );
+  // Funzione per filtrare i clienti in base ai criteri di ricerca
+  const getFilteredClients = (clientsToFilter) => {
+    return clientsToFilter.filter(client => 
+      client.name.toLowerCase().includes(search.toLowerCase()) || 
+      (client.email && client.email.toLowerCase().includes(search.toLowerCase())) ||
+      (client.chain && client.chain.toLowerCase().includes(search.toLowerCase()))
+    );
+  };
+
+  // Computed value per i clienti filtrati
+  const filteredClients = getFilteredClients(clients);
+
+  // Reset della paginazione quando la ricerca cambia
+  useEffect(() => {
+    if (allClients.length > 0) {
+      const filtered = getFilteredClients(allClients);
+      setClients(filtered.slice(0, clientsPerPage));
+      setHasMore(filtered.length > clientsPerPage);
+      setPage(1);
+    }
+  }, [search]);
 
   const handleChange = (e) => {
     setFormData({
@@ -241,9 +319,10 @@ const Clients = () => {
           {/* List View */}
           {viewMode === 'list' && (
             <div className="space-y-3">
-              {filteredClients.map((client) => (
+              {filteredClients.map((client, index) => (
                 <div 
                   key={client.id} 
+                  ref={index === filteredClients.length - 1 ? lastClientElementRef : null}
                   className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md hover:border-primary-200 transition-all overflow-hidden cursor-pointer"
                   onClick={() => window.location.href = `/clients/${client.id}`}
                 >
@@ -251,7 +330,18 @@ const Clients = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                       {/* Cliente con avatar e nome */}
                       <div className="flex items-center sm:w-52 sm:min-w-[13rem]">
-                        <div className={`flex-shrink-0 h-11 w-11 rounded-full ${getRandomColor(client.id)} flex items-center justify-center mr-3 text-base font-bold shadow-sm`}>
+                        <div 
+                          className="flex-shrink-0 h-11 w-11 rounded-full flex items-center justify-center mr-3 text-base font-bold shadow-sm"
+                          style={{
+                            // Generiamo un colore basato sul nome del cliente
+                            backgroundColor: client.name 
+                              ? `hsl(${client.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 90%)`
+                              : '#e2e8f0',
+                            color: client.name 
+                              ? `hsl(${client.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 30%)`
+                              : '#475569'
+                          }}
+                        >
                           {getInitials(client.name)}
                         </div>
                         <div className="overflow-hidden">
@@ -320,16 +410,28 @@ const Clients = () => {
           {/* Grid View */}
           {viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredClients.map((client) => (
+              {filteredClients.map((client, index) => (
                 <div 
                   key={client.id} 
+                  ref={index === filteredClients.length - 1 ? lastClientElementRef : null}
                   className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md hover:border-primary-200 transition-all overflow-hidden cursor-pointer"
                   onClick={() => window.location.href = `/clients/${client.id}`}
                 >
                   <div className="p-5">
                     {/* Cliente con avatar e nome */}
                     <div className="flex items-center mb-4">
-                      <div className={`flex-shrink-0 h-12 w-12 rounded-full ${getRandomColor(client.id)} flex items-center justify-center mr-3 text-base font-bold shadow-sm`}>
+                      <div 
+                        className="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center mr-3 text-base font-bold shadow-sm"
+                        style={{
+                          // Generiamo un colore basato sul nome del cliente
+                          backgroundColor: client.name 
+                            ? `hsl(${client.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 90%)`
+                            : '#e2e8f0',
+                          color: client.name 
+                            ? `hsl(${client.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 30%)`
+                            : '#475569'
+                        }}
+                      >
                         {getInitials(client.name)}
                       </div>
                       <div className="overflow-hidden">
@@ -389,6 +491,13 @@ const Clients = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+          
+          {/* Loading indicator */}
+          {loadingMore && (
+            <div className="flex justify-center py-4">
+              <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
             </div>
           )}
         </>
