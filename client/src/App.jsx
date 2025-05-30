@@ -16,6 +16,8 @@ import Clients from './pages/Clients';
 // Pages to be created later
 import Tickets from './pages/Tickets';
 import TicketDetail from './pages/TicketDetail';
+import CreateTicket from './pages/CreateTicket';
+import EditTicket from './pages/EditTicket';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -35,7 +37,9 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tickets" element={<Tickets />} />
+              <Route path="/tickets/create" element={<CreateTicket />} />
               <Route path="/tickets/:id" element={<TicketDetail />} />
+              <Route path="/tickets/:id/edit" element={<EditTicket />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/clients/:id" element={<ClientDetail />} />
               <Route path="/reports" element={<Reports />} />

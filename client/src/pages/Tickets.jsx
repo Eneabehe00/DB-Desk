@@ -63,7 +63,6 @@ const Tickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [showModal, setShowModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [sortDirection, setSortDirection] = useState('desc');
   const [sortField, setSortField] = useState('updatedAt');
@@ -79,24 +78,6 @@ const Tickets = () => {
     assignedToId: '',
     dateRange: ''
   });
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    status: 'OPEN',
-    priority: 'MEDIUM',
-    clientId: '',
-    assignedToId: '',
-    clientDetails: {
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      chain: ''
-    }
-  });
-  const [searchClient, setSearchClient] = useState('');
-  const [filteredClients, setFilteredClients] = useState([]);
-  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -150,116 +131,6 @@ const Tickets = () => {
     setSearch(e.target.value);
   };
 
-  const handleClientSearch = (e) => {
-    const query = e.target.value;
-    setSearchClient(query);
-    
-    if (query.trim() === '') {
-      setFilteredClients([]);
-      setShowClientDropdown(false);
-      return;
-    }
-    
-    const matchingClients = clients.filter(client => 
-      client.name.toLowerCase().includes(query.toLowerCase()) || 
-      (client.chain && client.chain.toLowerCase().includes(query.toLowerCase())) ||
-      client.email.toLowerCase().includes(query.toLowerCase())
-    );
-    
-    setFilteredClients(matchingClients);
-    setShowClientDropdown(true);
-  };
-  
-  const selectClient = (client) => {
-    setSearchClient(client.name);
-    setShowClientDropdown(false);
-    
-    setFormData({
-      ...formData,
-      clientId: client.id,
-      clientDetails: {
-        name: client.name || '',
-        email: client.email || '',
-        phone: client.phone || '',
-        address: client.address || '',
-        chain: client.chain || ''
-      }
-    });
-  };
-  
-  const clearClientSelection = () => {
-    setSearchClient('');
-    setFormData({
-      ...formData,
-      clientId: '',
-      clientDetails: {
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        chain: ''
-      }
-    });
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'clientId') {
-      // Se è stato selezionato un cliente esistente, popoliamo i dettagli
-      if (value) {
-        const selectedClient = clients.find(client => client.id === value);
-        if (selectedClient) {
-          setFormData({
-            ...formData,
-            clientId: value,
-            clientDetails: {
-              name: selectedClient.name || '',
-              email: selectedClient.email || '',
-              phone: selectedClient.phone || '',
-              address: selectedClient.address || '',
-              chain: selectedClient.chain || ''
-            }
-          });
-          return;
-        }
-      } else {
-        // Reset dei dettagli cliente se viene deselezionato
-        setFormData({
-          ...formData,
-          clientId: '',
-          clientDetails: {
-            name: '',
-            email: '',
-            phone: '',
-            address: '',
-            chain: ''
-          }
-        });
-        return;
-      }
-    }
-    
-    // Per i campi nei dettagli cliente
-    if (name.startsWith('client_')) {
-      const clientField = name.substring(7); // Rimuove 'client_' dal nome
-      setFormData({
-        ...formData,
-        clientDetails: {
-          ...formData.clientDetails,
-          [clientField]: value
-        }
-      });
-      return;
-    }
-    
-    // Per tutti gli altri campi
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
   const handleFilterChange = (e) => {
     setFilters({
       ...filters,
@@ -276,59 +147,11 @@ const Tickets = () => {
     }
   };
 
-  const handleAddTicket = async (e) => {
+  const openStatusModal = (ticket, e) => {
     e.preventDefault();
-    
-    try {
-      let ticketData = { ...formData };
-      let clientId = formData.clientId;
-      
-      // Se non è stato selezionato un cliente esistente ma sono stati inseriti dettagli
-      if (!clientId && formData.clientDetails.name && formData.clientDetails.email) {
-        // Crea un nuovo cliente
-        const clientResponse = await api.post('/clients', {
-          name: formData.clientDetails.name,
-          email: formData.clientDetails.email,
-          phone: formData.clientDetails.phone,
-          address: formData.clientDetails.address,
-          chain: formData.clientDetails.chain
-        });
-        
-        clientId = clientResponse.data.id;
-        toast.success('Nuovo cliente creato con successo');
-      }
-      
-      // Crea il ticket con il clientId (esistente o appena creato)
-      await api.post('/tickets', {
-        title: formData.title,
-        description: formData.description,
-        status: formData.status,
-        priority: formData.priority,
-        clientId: clientId,
-        assignedToId: formData.assignedToId
-      });
-      
-      toast.success('Ticket creato con successo');
-      setShowModal(false);
-      setFormData({
-        title: '',
-        description: '',
-        status: 'OPEN',
-        priority: 'MEDIUM',
-        clientId: '',
-        assignedToId: '',
-        clientDetails: {
-          name: '',
-          email: '',
-          phone: '',
-          address: '',
-          chain: ''
-        }
-      });
-      fetchTickets();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Errore nella creazione del ticket');
-    }
+    e.stopPropagation();
+    setSelectedTicket(ticket);
+    setShowStatusModal(true);
   };
 
   const handleUpdateStatus = async (newStatus, ticket) => {
@@ -343,12 +166,6 @@ const Tickets = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Errore nell\'aggiornamento dello stato');
     }
-  };
-
-  const openStatusModal = (ticket, e) => {
-    e.stopPropagation(); // Impedisce la navigazione alla pagina del ticket
-    setSelectedTicket(ticket);
-    setShowStatusModal(true);
   };
 
   const loadMoreTickets = () => {
@@ -587,19 +404,17 @@ const Tickets = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Ticket</h1>
-          <p className="text-secondary-500">Gestisci i ticket di supporto</p>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn btn-primary mt-4 md:mt-0 flex items-center"
+    <div className="container mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-secondary-900 mb-4 md:mb-0">Tickets</h1>
+        <Link
+          to="/tickets/create"
+          className="btn-primary flex items-center md:w-auto"
         >
           <FaPlus className="mr-2" />
           Nuovo Ticket
-        </button>
+        </Link>
       </div>
 
       {/* Search and Filter Bar */}
@@ -1249,267 +1064,13 @@ const Tickets = () => {
           </div>
           <h3 className="text-lg font-medium text-secondary-900 mb-1">Nessun ticket trovato</h3>
           <p className="text-secondary-500 mb-6">I ticket che crei appariranno qui.</p>
-          <button
-            onClick={() => setShowModal(true)}
+          <Link
+            to="/tickets/create"
             className="btn btn-primary inline-flex items-center"
           >
             <FaPlus className="mr-2" />
             Crea Nuovo Ticket
-          </button>
-        </div>
-      )}
-
-      {/* Add Ticket Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
-          <div className="bg-white rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden transform transition-all">
-            <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-6">
-              <h2 className="text-xl font-bold text-white">Nuovo Ticket</h2>
-              <p className="text-primary-100 text-sm">Compila tutti i campi per creare un nuovo ticket</p>
-            </div>
-            
-            <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-              <form onSubmit={handleAddTicket} className="space-y-6">
-                {/* Selezione Cliente con Ricerca */}
-                <div className="relative">
-                  <label htmlFor="clientId" className="form-label text-secondary-700">Cliente *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="clientId"
-                      name="clientId"
-                      value={searchClient}
-                      onChange={handleClientSearch}
-                      className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50 pl-10"
-                      placeholder="Cerca cliente per nome, email o catena"
-                      onFocus={() => setShowClientDropdown(true)}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    {formData.clientId && (
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-400 hover:text-secondary-600"
-                        onClick={clearClientSelection}
-                      >
-                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                  
-                  {showClientDropdown && filteredClients.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
-                      {filteredClients.map(client => (
-                        <div 
-                          key={client.id} 
-                          className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-primary-50"
-                          onClick={() => selectClient(client)}
-                        >
-                          <div className="flex items-center">
-                            <span className="font-medium block truncate">{client.name}</span>
-                            {client.chain && (
-                              <span className="text-secondary-500 ml-2 text-sm">({client.chain})</span>
-                            )}
-                          </div>
-                          <span className="text-secondary-400 text-xs block">{client.email}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {showClientDropdown && searchClient && filteredClients.length === 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-2 px-3 text-secondary-500">
-                      Nessun cliente trovato. Inserisci i dettagli del nuovo cliente.
-                    </div>
-                  )}
-                </div>
-                
-                {/* Dettagli cliente */}
-                {(!formData.clientId || formData.clientDetails.name) && (
-                  <div className="bg-secondary-50 p-4 rounded-lg border border-secondary-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-md font-semibold text-secondary-800">{formData.clientId ? 'Dettagli Cliente' : 'Nuovo Cliente'}</h3>
-                      {formData.clientId && (
-                        <span className="text-xs px-2 py-1 bg-primary-100 text-primary-800 rounded-full">Cliente Esistente</span>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="client_name" className="form-label text-secondary-700">Nome Cliente {!formData.clientId && '*'}</label>
-                        <input
-                          type="text"
-                          id="client_name"
-                          name="client_name"
-                          value={formData.clientDetails.name}
-                          onChange={handleChange}
-                          className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                          required={!formData.clientId}
-                          disabled={!!formData.clientId}
-                          placeholder="Nome"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="client_email" className="form-label text-secondary-700">Email Cliente {!formData.clientId && '*'}</label>
-                        <input
-                          type="email"
-                          id="client_email"
-                          name="client_email"
-                          value={formData.clientDetails.email}
-                          onChange={handleChange}
-                          className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                          required={!formData.clientId}
-                          disabled={!!formData.clientId}
-                          placeholder="Email"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="client_phone" className="form-label text-secondary-700">Telefono</label>
-                        <input
-                          type="text"
-                          id="client_phone"
-                          name="client_phone"
-                          value={formData.clientDetails.phone}
-                          onChange={handleChange}
-                          className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                          disabled={!!formData.clientId}
-                          placeholder="Telefono"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="client_chain" className="form-label text-secondary-700">Catena</label>
-                        <input
-                          type="text"
-                          id="client_chain"
-                          name="client_chain"
-                          value={formData.clientDetails.chain}
-                          onChange={handleChange}
-                          className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                          placeholder="es. Carrefour, Eurospin, ecc."
-                          disabled={!!formData.clientId}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label htmlFor="client_address" className="form-label text-secondary-700">Indirizzo</label>
-                        <textarea
-                          id="client_address"
-                          name="client_address"
-                          value={formData.clientDetails.address}
-                          onChange={handleChange}
-                          className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                          rows="2"
-                          disabled={!!formData.clientId}
-                          placeholder="Indirizzo completo"
-                        ></textarea>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="status" className="form-label text-secondary-700">Stato</label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    >
-                      <option value="OPEN">Aperto</option>
-                      <option value="CLOSED">Chiuso</option>
-                      <option value="PLANNED">Painificato</option>
-                      <option value="CLOSED_REMOTE">Chiuso Remoto</option>
-                      <option value="CLOSED_ONSITE">Chiuso Onsite</option>
-                      <option value="PLANNED_ONSITE">Previsto onsite</option>
-                      <option value="VERIFYING">In verifica esito</option>
-                      <option value="WAITING_CLIENT">In attesa Cliente</option>
-                      <option value="TO_REPORT">Da riportare</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="priority" className="form-label text-secondary-700">Priorità</label>
-                    <select
-                      id="priority"
-                      name="priority"
-                      value={formData.priority}
-                      onChange={handleChange}
-                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    >
-                      <option value="LOW">Bassa</option>
-                      <option value="MEDIUM">Media</option>
-                      <option value="HIGH">Alta</option>
-                      <option value="URGENT">Urgente</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="assignedToId" className="form-label text-secondary-700">Assegna a</label>
-                    <select
-                      id="assignedToId"
-                      name="assignedToId"
-                      value={formData.assignedToId}
-                      onChange={handleChange}
-                      className="form-select w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    >
-                      <option value="">Non assegnato</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.id}>{user.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="title" className="form-label text-secondary-700">Titolo *</label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="form-input w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    required
-                    placeholder="Inserisci un titolo descrittivo"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="description" className="form-label text-secondary-700">Descrizione *</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="form-textarea w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                    rows="6"
-                    required
-                    placeholder="Descrivi il problema o la richiesta in dettaglio"
-                  ></textarea>
-                </div>
-                
-                <div className="flex justify-end space-x-3 pt-4 border-t border-secondary-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 bg-white border border-secondary-300 rounded-lg text-secondary-700 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 shadow-sm transition-colors"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-sm transition-colors"
-                  >
-                    Crea Ticket
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          </Link>
         </div>
       )}
 

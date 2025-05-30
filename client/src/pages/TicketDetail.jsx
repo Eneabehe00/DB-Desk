@@ -11,7 +11,6 @@ const TicketDetail = () => {
   const { user } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [users, setUsers] = useState([]);
@@ -79,7 +78,6 @@ const TicketDetail = () => {
     try {
       await api.put(`/tickets/${id}`, ticketData);
       toast.success('Ticket aggiornato con successo');
-      setShowEditModal(false);
       fetchTicket();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Errore nell\'aggiornamento del ticket');
@@ -293,17 +291,15 @@ const TicketDetail = () => {
             {dropdownOpen && (
               <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 divide-y divide-gray-100">
                 <div className="py-1" role="menu" aria-orientation="vertical">
-                  <button
-                    onClick={() => {
-                      setShowEditModal(true);
-                      setDropdownOpen(false);
-                    }}
+                  <Link
+                    to={`/tickets/${id}/edit`}
                     className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
                     role="menuitem"
+                    onClick={() => setDropdownOpen(false)}
                   >
                     <FaEdit className="mr-3 h-4 w-4 text-gray-500" />
                     Modifica ticket
-                  </button>
+                  </Link>
                 </div>
                 <div className="py-1">
                   <button
@@ -511,200 +507,15 @@ const TicketDetail = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => setShowEditModal(true)}
+          <Link
+            to={`/tickets/${id}/edit`}
             className="w-full py-2.5 px-4 border border-primary-300 font-medium rounded-lg text-primary-700 bg-primary-50 hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 text-sm flex items-center justify-center"
           >
-            <FaEdit className="mr-2 h-4 w-4" />
-            Modifica questo ticket
-          </button>
+            <FaEdit className="mr-2" />
+            Modifica ticket
+          </Link>
         </div>
       </div>
-
-      {/* Edit Ticket Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="edit-ticket-modal" role="dialog" aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-              <div className="bg-gradient-to-r from-primary-500 to-primary-700 px-4 py-5 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg leading-6 font-medium text-white">
-                    Modifica Ticket
-                  </h3>
-                  <button
-                    type="button"
-                    className="bg-primary-600 rounded-md text-primary-200 hover:text-white focus:outline-none"
-                    onClick={() => setShowEditModal(false)}
-                  >
-                    <span className="sr-only">Close</span>
-                    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <form onSubmit={handleUpdate}>
-                <div className="bg-white p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-                  {/* Client Information (Read-only) */}
-                  <div className="mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-base font-semibold text-gray-900 flex items-center">
-                        <div className="bg-blue-100 p-1.5 rounded-full mr-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        Dettagli Cliente
-                      </h3>
-                      <Link 
-                        to={`/clients/${ticket.client.id}`} 
-                        className="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full flex items-center border border-blue-200 hover:bg-blue-100 transition-colors duration-200"
-                      >
-                        <FaEdit className="mr-1" size={10} />
-                        Visualizza cliente
-                      </Link>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1">Nome:</div>
-                        <div className="font-medium text-gray-900">{ticket.client.name}</div>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1">Email:</div>
-                        <div className="font-medium text-gray-900">{ticket.client.email}</div>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1">Telefono:</div>
-                        <div className="font-medium text-gray-900">{ticket.client.phone || '-'}</div>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1">Catena:</div>
-                        <div className="font-medium text-gray-900">{ticket.client.chain || '-'}</div>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg md:col-span-2">
-                        <div className="text-xs text-gray-500 mb-1">Indirizzo:</div>
-                        <div className="font-medium text-gray-900">{ticket.client.address || '-'}</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="my-6">
-                    <h4 className="text-base font-medium text-gray-700 mb-4">Informazioni Ticket</h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                          Stato
-                        </label>
-                        <select
-                          id="status"
-                          name="status"
-                          value={ticketData.status}
-                          onChange={handleChange}
-                          className="shadow-sm block w-full focus:ring-primary-500 focus:border-primary-500 sm:text-sm border border-gray-300 rounded-lg transition-all"
-                        >
-                          <option value="OPEN">Aperto</option>
-                          <option value="CLOSED">Chiuso</option>
-                          <option value="PLANNED">Painificato</option>
-                          <option value="CLOSED_REMOTE">Chiuso Remoto</option>
-                          <option value="CLOSED_ONSITE">Chiuso Onsite</option>
-                          <option value="PLANNED_ONSITE">Previsto onsite</option>
-                          <option value="VERIFYING">In verifica esito</option>
-                          <option value="WAITING_CLIENT">In attesa Cliente</option>
-                          <option value="TO_REPORT">Da riportare</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
-                          Priorità
-                        </label>
-                        <select
-                          id="priority"
-                          name="priority"
-                          value={ticketData.priority}
-                          onChange={handleChange}
-                          className="shadow-sm block w-full focus:ring-primary-500 focus:border-primary-500 sm:text-sm border border-gray-300 rounded-lg transition-all"
-                        >
-                          <option value="LOW">Bassa</option>
-                          <option value="MEDIUM">Media</option>
-                          <option value="HIGH">Alta</option>
-                          <option value="URGENT">Urgente</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="assignedToId" className="block text-sm font-medium text-gray-700 mb-1">
-                          Assegnato a
-                        </label>
-                        <select
-                          id="assignedToId"
-                          name="assignedToId"
-                          value={ticketData.assignedToId}
-                          onChange={handleChange}
-                          className="shadow-sm block w-full focus:ring-primary-500 focus:border-primary-500 sm:text-sm border border-gray-300 rounded-lg transition-all"
-                        >
-                          <option value="">Non assegnato</option>
-                          {users.map(user => (
-                            <option key={user.id} value={user.id}>{user.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                        Titolo <span className="text-red-600">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={ticketData.title}
-                        onChange={handleChange}
-                        className="shadow-sm block w-full focus:ring-primary-500 focus:border-primary-500 sm:text-sm border border-gray-300 rounded-lg transition-all"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                        Descrizione <span className="text-red-600">*</span>
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        value={ticketData.description}
-                        onChange={handleChange}
-                        rows="6"
-                        className="shadow-sm block w-full focus:ring-primary-500 focus:border-primary-500 sm:text-sm border border-gray-300 rounded-lg resize-none transition-all"
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200"
-                  >
-                    Salva modifiche
-                  </button>
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200"
-                    onClick={() => setShowEditModal(false)}
-                  >
-                    Annulla
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
