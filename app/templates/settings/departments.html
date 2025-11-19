@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Reparti{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-building"></i>
+                    Gestione Reparti
+                </h1>
+                {% if current_user.has_permission('can_manage_departments') %}
+                <a href="{{ url_for('settings.new_department') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nuovo Reparto
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul"></i>
+                        Lista Reparti
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if departments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Reparto</th>
+                                    <th>Nome Interno</th>
+                                    <th>Manager</th>
+                                    <th class="text-center">Utenti</th>
+                                    <th class="text-center">Ticket</th>
+                                    <th class="text-center">Clienti</th>
+                                    <th class="text-center">Magazzino</th>
+                                    <th class="text-center">Stato</th>
+                                    <th class="text-center">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for department in departments %}
+                                <tr onclick="window.location='{{ url_for('settings.view_department', id=department.id) }}'" style="cursor: pointer;">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="rounded-circle d-inline-block" 
+                                                     style="width: 12px; height: 12px; background-color: {{ department.color }};"></div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ department.display_name }}</div>
+                                                {% if department.description %}
+                                                <small class="text-muted">{{ department.description[:50] }}{% if department.description|length > 50 %}...{% endif %}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code class="text-muted">{{ department.name }}</code>
+                                    </td>
+                                    <td>
+                                        {% if department.manager %}
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-person-badge me-2 text-primary"></i>
+                                                {{ department.manager.full_name }}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Nessun manager</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ department.active_users_count }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{ department.open_tickets_count }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ department.total_clients_count }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning">{{ department.total_inventory_items }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if department.is_active %}
+                                            <span class="badge bg-success">Attivo</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disattivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center" onclick="event.stopPropagation();">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('settings.view_department', id=department.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Visualizza">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if current_user.has_permission('can_manage_departments') %}
+                                            <a href="{{ url_for('settings.edit_department', id=department.id) }}" 
+                                               class="btn btn-sm btn-outline-secondary" title="Modifica">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if current_user.has_permission('can_manage_system') %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-{% if department.is_active %}warning{% else %}success{% endif %}"
+                                                    onclick="toggleDepartmentStatus({{ department.id }})"
+                                                    title="{% if department.is_active %}Disattiva{% else %}Attiva{% endif %}">
+                                                <i class="bi bi-{% if department.is_active %}pause{% else %}play{% endif %}"></i>
+                                            </button>
+                                            {% if not department.is_active and department.active_users_count == 0 %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="deleteDepartment({{ department.id }}, '{{ department.display_name }}')"
+                                                    title="Elimina">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 text-muted">Nessun reparto configurato</h5>
+                        <p class="text-muted">
+                            {% if current_user.has_permission('can_manage_departments') %}
+                            <a href="{{ url_for('settings.new_department') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Crea il primo reparto
+                            </a>
+                            {% else %}
+                            Contatta un amministratore per configurare i reparti.
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare il reparto <strong id="departmentName"></strong>?</p>
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa operazione non può essere annullata.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Elimina</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDepartmentStatus(departmentId) {
+    fetch(`/settings/departments/${departmentId}/toggle_status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Errore durante l\'operazione');
+    });
+}
+
+function deleteDepartment(departmentId, departmentName) {
+    document.getElementById('departmentName').textContent = departmentName;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+    
+    document.getElementById('confirmDelete').onclick = function() {
+        fetch(`/settings/departments/${departmentId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'eliminazione');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Errore durante l\'eliminazione');
+        });
+        
+        modal.hide();
+    };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+@echo off
+taskkill /F /IM AccesoBalanzaPC.exe
+start "" "C:\SW1100\BalanzaPC\AccesoBalanzaPC.exe"

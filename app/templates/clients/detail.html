@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cliente.ragione_sociale }} - DB-Desk{% endblock %}
+{% block page_title %}Dettaglio Cliente{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Informazioni cliente -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4 class="card-title mb-1">{{ cliente.ragione_sociale }}</h4>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-{{ 'success' if cliente.is_active else 'secondary' }}">
+                                {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
+                            </span>
+                            {% if cliente.settore %}
+                                <span class="badge bg-info">{{ cliente.settore }}</span>
+                            {% endif %}
+                            {% if cliente.provincia %}
+                                <span class="badge bg-light text-dark">{{ cliente.provincia }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil"></i>
+                            Modifica
+                        </a>
+                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" 
+                                data-bs-toggle="dropdown">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}">
+                                    <i class="bi bi-plus-circle"></i> Nuovo ticket
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="mailto:{{ cliente.email }}">
+                                    <i class="bi bi-envelope"></i> Invia email
+                                </a>
+                            </li>
+                            {% if cliente.telefono %}
+                            <li>
+                                <a class="dropdown-item" href="tel:{{ cliente.telefono }}">
+                                    <i class="bi bi-telephone"></i> Chiama
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item toggle-status" 
+                                        data-client-id="{{ cliente.id }}"
+                                        data-current-status="{{ cliente.is_active }}">
+                                    <i class="bi bi-toggle-{{ 'off' if cliente.is_active else 'on' }}"></i>
+                                    {{ 'Disattiva' if cliente.is_active else 'Attiva' }}
+                                </button>
+                            </li>
+                            {% if current_user.is_admin and cliente.ticket_count == 0 %}
+                            <li>
+                                <button class="dropdown-item text-danger delete-client" 
+                                        data-client-id="{{ cliente.id }}" 
+                                        data-client-name="{{ cliente.ragione_sociale }}">
+                                    <i class="bi bi-trash"></i> Elimina
+                                </button>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informazioni di Contatto</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">
+                                <a href="mailto:{{ cliente.email }}" class="text-decoration-none">
+                                    <i class="bi bi-envelope"></i> {{ cliente.email }}
+                                </a>
+                            </dd>
+                            
+                            {% if cliente.telefono %}
+                            <dt class="col-sm-4">Telefono:</dt>
+                            <dd class="col-sm-8">
+                                <a href="tel:{{ cliente.telefono }}" class="text-decoration-none">
+                                    <i class="bi bi-telephone"></i> {{ cliente.telefono }}
+                                </a>
+                            </dd>
+                            {% endif %}
+                            
+                            {% if cliente.cellulare %}
+                            <dt class="col-sm-4">Cellulare:</dt>
+                            <dd class="col-sm-8">
+                                <a href="tel:{{ cliente.cellulare }}" class="text-decoration-none">
+                                    <i class="bi bi-phone"></i> {{ cliente.cellulare }}
+                                </a>
+                            </dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informazioni Fiscali</h6>
+                        <dl class="row">
+                            {% if cliente.codice_fiscale %}
+                            <dt class="col-sm-4">Codice Fiscale:</dt>
+                            <dd class="col-sm-8"><code>{{ cliente.codice_fiscale }}</code></dd>
+                            {% endif %}
+                            
+                            {% if cliente.partita_iva %}
+                            <dt class="col-sm-4">Partita IVA:</dt>
+                            <dd class="col-sm-8"><code>{{ cliente.partita_iva }}</code></dd>
+                            {% endif %}
+                            
+                            {% if not cliente.codice_fiscale and not cliente.partita_iva %}
+                            <dd class="col-sm-12 text-muted">Nessuna informazione fiscale disponibile</dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+                
+                {% if cliente.indirizzo_completo %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted">Indirizzo</h6>
+                        <p class="mb-0">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ cliente.indirizzo_completo }}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if cliente.note %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted">Note</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ cliente.note | replace('\n', '<br>') | safe }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Ticket del cliente -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-ticket-detailed"></i>
+                    Ticket del Cliente
+                    <span class="badge bg-primary">{{ tickets_stats.totali }}</span>
+                </h5>
+                <div>
+                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo Ticket
+                    </a>
+                    {% if tickets_stats.totali > 0 %}
+                    <a href="{{ url_for('clients.client_tickets', id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list"></i>
+                        Vedi Tutti
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if ultimi_tickets %}
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Numero</th>
+                                <th>Titolo</th>
+                                <th>Stato</th>
+                                <th>Priorità</th>
+                                <th>Creato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in ultimi_tickets %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
+                                       class="text-decoration-none fw-bold">
+                                        {{ ticket.numero_ticket }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}
+                                    {% if ticket.is_scaduto %}
+                                        <i class="bi bi-exclamation-triangle text-danger" title="Scaduto"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }}">
+                                        {{ ticket.stato }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                                        {{ ticket.priorita }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ ticket.created_at.strftime('%d/%m/%Y') }}</small>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card-body text-center">
+                <i class="bi bi-ticket fs-1 text-muted"></i>
+                <h6 class="text-muted mt-2">Nessun ticket presente</h6>
+                <p class="text-muted">Questo cliente non ha ancora ticket associati.</p>
+                <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Crea il primo ticket
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Macchine assegnate al cliente -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Macchine Assegnate
+                    <span class="badge bg-primary">{{ macchine_assegnate|length }}</span>
+                </h5>
+                {% if macchine_assegnate %}
+                <a href="{{ url_for('macchine.index') }}?cliente_id={{ cliente.id }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-list"></i>
+                    Vedi Tutte
+                </a>
+                {% endif %}
+            </div>
+
+            {% if macchine_assegnate %}
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Codice</th>
+                                <th>Modello</th>
+                                <th>Marca</th>
+                                <th>Stato</th>
+                                <th>Assegnata il</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for macchina in macchine_assegnate %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
+                                       class="text-decoration-none fw-bold">
+                                        {{ macchina.codice }}
+                                    </a>
+                                </td>
+                                <td>{{ macchina.modello }}</td>
+                                <td>{{ macchina.marca }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if macchina.stato == 'In prestito' else 'warning' if macchina.stato == 'In riparazione' else 'info' if macchina.stato == 'Attiva' else 'secondary' }}">
+                                        {{ macchina.stato }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ macchina.data_assegnazione.strftime('%d/%m/%Y') if macchina.data_assegnazione else 'N/D' }}</small>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card-body text-center">
+                <i class="bi bi-gear fs-1 text-muted"></i>
+                <h6 class="text-muted mt-2">Nessuna macchina assegnata</h6>
+                <p class="text-muted">Questo cliente non ha macchine assegnate al momento.</p>
+                <a href="{{ url_for('macchine.index') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Assegna Macchina
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar con statistiche -->
+    <div class="col-lg-4">
+        <!-- Statistiche ticket -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Statistiche Ticket
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-0">{{ tickets_stats.totali }}</h4>
+                            <small class="text-muted">Totali</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-{{ 'warning' if tickets_stats.aperti > 0 else 'success' }} mb-0">{{ tickets_stats.aperti }}</h4>
+                        <small class="text-muted">Aperti</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-warning mb-0">{{ tickets_stats.in_lavorazione }}</h6>
+                            <small class="text-muted">In Lavorazione</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-success mb-0">{{ tickets_stats.risolti }}</h6>
+                            <small class="text-muted">Risolti</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-secondary mb-0">{{ tickets_stats.chiusi }}</h6>
+                        <small class="text-muted">Chiusi</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informazioni generali -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informazioni Generali
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Registrato:</dt>
+                    <dd class="col-sm-6">{{ cliente.created_at.strftime('%d/%m/%Y') }}</dd>
+                    
+                    <dt class="col-sm-6">Ultima modifica:</dt>
+                    <dd class="col-sm-6">{{ cliente.updated_at.strftime('%d/%m/%Y') }}</dd>
+                    
+                    {% if cliente.settore %}
+                    <dt class="col-sm-6">Settore:</dt>
+                    <dd class="col-sm-6">{{ cliente.settore }}</dd>
+                    {% endif %}
+                    
+                    <dt class="col-sm-6">Stato:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-{{ 'success' if cliente.is_active else 'secondary' }}">
+                            {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Azioni rapide -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i>
+                    Azioni Rapide
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo Ticket
+                    </a>
+                    <a href="mailto:{{ cliente.email }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-envelope"></i>
+                        Invia Email
+                    </a>
+                    {% if cliente.telefono %}
+                    <a href="tel:{{ cliente.telefono }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-telephone"></i>
+                        Chiama
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil"></i>
+                        Modifica Dati
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare il cliente <strong>{{ cliente.ragione_sociale }}</strong>?
+                <br><br>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa azione non può essere annullata.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form method="POST" action="{{ url_for('clients.delete_client', id=cliente.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle stato cliente
+document.querySelectorAll('.toggle-status').forEach(button => {
+    button.addEventListener('click', function() {
+        const clientId = this.dataset.clientId;
+        const currentStatus = this.dataset.currentStatus === 'True';
+        
+        fetch(`{{ url_for('clients.toggle_status', id=0) }}`.replace('0', clientId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            showToast('Errore durante l\'aggiornamento dello stato', 'danger');
+        });
+    });
+});
+
+// Elimina cliente
+document.querySelectorAll('.delete-client').forEach(button => {
+    button.addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+});
+</script>
+{% endblock %}

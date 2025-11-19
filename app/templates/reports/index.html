@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Report - DB-Desk{% endblock %}
+{% block page_title %}Report e Statistiche{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h2 class="display-6 text-primary">
+                    <i class="bi bi-graph-up"></i>
+                    Report e Statistiche
+                </h2>
+                <p class="lead text-muted">
+                    Analizza le performance del tuo sistema di ticketing con report dettagliati
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Report Ticket -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-ticket-detailed"></i>
+                    Report Ticket
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Analisi completa dei ticket: distribuzione per stato, priorità, categoria, 
+                    trend temporali e performance di risoluzione.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Statistiche generali</li>
+                    <li><i class="bi bi-check text-success"></i> Distribuzione per stato/priorità</li>
+                    <li><i class="bi bi-check text-success"></i> Trend giornalieri</li>
+                    <li><i class="bi bi-check text-success"></i> Tempo medio di risoluzione</li>
+                    <li><i class="bi bi-check text-success"></i> Ticket scaduti</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('reports.tickets_report') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Visualizza Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Clienti -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i>
+                    Report Clienti
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Analisi della base clienti: distribuzione geografica, settori di attività,
+                    top clienti per numero di ticket e trend di crescita.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Statistiche clienti attivi</li>
+                    <li><i class="bi bi-check text-success"></i> Distribuzione geografica</li>
+                    <li><i class="bi bi-check text-success"></i> Settori di attività</li>
+                    <li><i class="bi bi-check text-success"></i> Top clienti per ticket</li>
+                    <li><i class="bi bi-check text-success"></i> Nuovi clienti per mese</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('reports.clients_report') }}" class="btn btn-success w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Visualizza Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Performance -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Report Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Analisi delle performance del team: produttività per utente, 
+                    tempi di risoluzione, carico di lavoro e efficienza.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Performance per utente</li>
+                    <li><i class="bi bi-check text-success"></i> Ticket creati vs risolti</li>
+                    <li><i class="bi bi-check text-success"></i> Tempo medio risoluzione</li>
+                    <li><i class="bi bi-check text-success"></i> Carico di lavoro</li>
+                    <li><i class="bi bi-check text-success"></i> Efficienza del team</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('reports.performance_report') }}" class="btn btn-warning w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Visualizza Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche rapide -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer"></i>
+                    Panoramica Rapida
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center" id="quickStats">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-ticket-detailed fs-1 text-primary"></i>
+                            <h4 class="mt-2 mb-1" id="totalTickets">-</h4>
+                            <p class="text-muted mb-0">Ticket Totali</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+                            <h4 class="mt-2 mb-1" id="openTickets">-</h4>
+                            <p class="text-muted mb-0">Ticket Aperti</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-people fs-1 text-success"></i>
+                            <h4 class="mt-2 mb-1" id="totalClients">-</h4>
+                            <p class="text-muted mb-0">Clienti Attivi</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-clock fs-1 text-info"></i>
+                            <h4 class="mt-2 mb-1" id="avgResolutionTime">-</h4>
+                            <p class="text-muted mb-0">Tempo Medio (ore)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafici rapidi -->
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Distribuzione Stati Ticket (Ultimo Mese)
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Trend Ticket (Ultimi 7 Giorni)
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Azioni rapide -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-download"></i>
+                    Export Report
+                </h6>
+                <p class="card-text text-muted">
+                    Esporta i dati in formato CSV per analisi esterne
+                </p>
+                <div class="btn-group">
+                    <a href="{{ url_for('reports.export_report', report_type='tickets_summary') }}" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                        Export Ticket
+                    </a>
+                    <a href="{{ url_for('reports.export_report', report_type='clients_summary') }}" 
+                       class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                        Export Clienti
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Carica statistiche rapide
+async function loadQuickStats() {
+    try {
+        // Simula caricamento dati (sostituisci con chiamate API reali)
+        document.getElementById('totalTickets').textContent = '...';
+        document.getElementById('openTickets').textContent = '...';
+        document.getElementById('totalClients').textContent = '...';
+        document.getElementById('avgResolutionTime').textContent = '...';
+        
+        // Qui potresti fare chiamate AJAX per ottenere i dati reali
+        // Per ora uso valori di esempio
+        setTimeout(() => {
+            document.getElementById('totalTickets').textContent = '147';
+            document.getElementById('openTickets').textContent = '23';
+            document.getElementById('totalClients').textContent = '605';
+            document.getElementById('avgResolutionTime').textContent = '2.5';
+        }, 500);
+        
+    } catch (error) {
+        console.error('Errore caricamento statistiche:', error);
+    }
+}
+
+// Carica grafici rapidi
+async function loadQuickCharts() {
+    try {
+        // Grafico distribuzione stati
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Aperti', 'In Lavorazione', 'Risolti', 'Chiusi'],
+                datasets: [{
+                    data: [23, 15, 45, 64],
+                    backgroundColor: ['#dc3545', '#fd7e14', '#198754', '#6c757d'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Grafico trend
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+                datasets: [{
+                    label: 'Ticket Creati',
+                    data: [12, 8, 15, 10, 18, 5, 3],
+                    borderColor: '#0d6efd',
+                    backgroundColor: '#0d6efd20',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Errore caricamento grafici:', error);
+    }
+}
+
+// Inizializza al caricamento pagina
+document.addEventListener('DOMContentLoaded', function() {
+    loadQuickStats();
+    loadQuickCharts();
+});
+</script>
+{% endblock %}

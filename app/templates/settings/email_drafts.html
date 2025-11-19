@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Email Drafts - DB-Desk{% endblock %}
+{% block page_title %}Email Drafts{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+      <h5 class="mb-0">Email in Attesa di Conversione</h5>
+      <div class="btn-group btn-group-sm">
+        <a href="{{ url_for('settings.email_drafts', status='pending') }}" 
+           class="btn {{ 'btn-primary' if status == 'pending' else 'btn-outline-primary' }}">
+          In Attesa
+        </a>
+        <a href="{{ url_for('settings.email_drafts', status='converted') }}" 
+           class="btn {{ 'btn-primary' if status == 'converted' else 'btn-outline-primary' }}">
+          Convertite
+        </a>
+        <a href="{{ url_for('settings.email_drafts', status='ignored') }}" 
+           class="btn {{ 'btn-primary' if status == 'ignored' else 'btn-outline-primary' }}">
+          Ignorate
+        </a>
+      </div>
+    </div>
+    <a href="{{ url_for('settings.email_import') }}" class="btn btn-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Torna
+    </a>
+  </div>
+  <div class="card-body">
+    {% if drafts.items %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <p class="text-muted mb-0">
+        Mostrando {{ drafts.items|length }} di {{ drafts.total }} email
+        {% if drafts.pages > 1 %}
+        (pagina {{ drafts.page }} di {{ drafts.pages }})
+        {% endif %}
+      </p>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Mittente</th>
+            <th>Oggetto</th>
+            <th>Anteprima</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for draft in drafts.items %}
+          <tr>
+            <td>
+              <small>{{ draft.received_at.strftime('%d/%m/%Y %H:%M') if draft.received_at else 'N/A' }}</small>
+            </td>
+            <td>
+              <strong>{{ draft.from_email }}</strong>
+            </td>
+            <td>
+              <span title="{{ draft.subject }}">
+                {{ draft.subject[:50] + '...' if draft.subject and draft.subject|length > 50 else draft.subject }}
+              </span>
+            </td>
+            <td>
+              <small class="text-muted">
+                {{ draft.body[:100] + '...' if draft.body and draft.body|length > 100 else draft.body }}
+              </small>
+            </td>
+            <td>
+              <span class="badge bg-{{ 'warning' if draft.status == 'pending' else 'success' if draft.status == 'converted' else 'secondary' }}">
+                {{ 'In Attesa' if draft.status == 'pending' else 'Convertita' if draft.status == 'converted' else 'Ignorata' }}
+              </span>
+              {% if draft.converted_ticket_id %}
+              <br><small><a href="{{ url_for('tickets.view_ticket', id=draft.converted_ticket_id) }}">Ticket #{{ draft.converted_ticket_id }}</a></small>
+              {% endif %}
+            </td>
+            <td>
+              {% if draft.status == 'pending' %}
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-success" onclick="convertDraft({{ draft.id }})" title="Converti in ticket">
+                  <i class="bi bi-arrow-right"></i>
+                </button>
+                <button class="btn btn-outline-danger" onclick="ignoreDraft({{ draft.id }})" title="Ignora">
+                  <i class="bi bi-x"></i>
+                </button>
+                <button class="btn btn-outline-info" onclick="viewDraft({{ draft.id }})" title="Visualizza dettagli">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              {% elif draft.status == 'converted' and draft.converted_ticket_id %}
+              <a href="{{ url_for('tickets.view_ticket', id=draft.converted_ticket_id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-ticket"></i> Vedi Ticket
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-inbox display-1"></i>
+      <p class="mt-3">Nessuna email {{ 'in attesa' if status == 'pending' else 'convertita' if status == 'converted' else 'ignorata' }}</p>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Paginazione -->
+  {% if drafts.pages > 1 %}
+  <div class="card-footer">
+    <nav aria-label="Paginazione email drafts">
+      <ul class="pagination pagination-sm justify-content-center mb-0">
+        {% if drafts.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('settings.email_drafts', status=status, page=drafts.prev_num) }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+        {% endif %}
+        
+        {% for page_num in drafts.iter_pages() %}
+          {% if page_num %}
+            {% if page_num != drafts.page %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('settings.email_drafts', status=status, page=page_num) }}">{{ page_num }}</a>
+              </li>
+            {% else %}
+              <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+              </li>
+            {% endif %}
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+        
+        {% if drafts.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('settings.email_drafts', status=status, page=drafts.next_num) }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal per visualizzare dettagli email -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dettagli Email</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="emailContent">
+        <!-- Contenuto caricato dinamicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+        <button type="button" class="btn btn-success" id="convertBtn" onclick="convertDraft()">Converti in Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentDraftId = null;
+
+function convertDraft(draftId) {
+  if (draftId) currentDraftId = draftId;
+  
+  if (confirm('Convertire questa email in ticket?')) {
+    fetch(`/settings/email_import/drafts/${currentDraftId}/convert`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    });
+  }
+}
+
+function ignoreDraft(draftId) {
+  if (confirm('Ignorare questa email?')) {
+    fetch(`/settings/email_import/drafts/${draftId}/ignore`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    });
+  }
+}
+
+function viewDraft(draftId) {
+  currentDraftId = draftId;
+  // Qui potresti caricare i dettagli della email via AJAX
+  // Per ora mostra un placeholder
+  document.getElementById('emailContent').innerHTML = `
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Caricamento...</span>
+    </div>
+  `;
+  
+  new bootstrap.Modal(document.getElementById('emailModal')).show();
+  
+  // Simula caricamento dettagli
+  setTimeout(() => {
+    document.getElementById('emailContent').innerHTML = `
+      <p><strong>ID Draft:</strong> ${draftId}</p>
+      <p>Dettagli completi dell'email verranno mostrati qui...</p>
+    `;
+  }, 500);
+}
+</script>
+{% endblock %}

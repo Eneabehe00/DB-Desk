@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-building"></i>
+                    {{ title }}
+                </h1>
+                <a href="{{ url_for('settings.departments') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla lista
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-pencil"></i>
+                                Informazioni Reparto
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.name.label(class="form-label") }}
+                                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                                            {% if form.name.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.name.description %}
+                                                <div class="form-text">{{ form.name.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.display_name.label(class="form-label") }}
+                                            {{ form.display_name(class="form-control" + (" is-invalid" if form.display_name.errors else "")) }}
+                                            {% if form.display_name.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.display_name.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.display_name.description %}
+                                                <div class="form-text">{{ form.display_name.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.description.label(class="form-label") }}
+                                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3") }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.description.description %}
+                                        <div class="form-text">{{ form.description.description }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.color.label(class="form-label") }}
+                                            <div class="input-group">
+                                                {{ form.color(class="form-control" + (" is-invalid" if form.color.errors else ""), type="color") }}
+                                                <span class="input-group-text">
+                                                    <i class="bi bi-palette"></i>
+                                                </span>
+                                            </div>
+                                            {% if form.color.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.color.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.color.description %}
+                                                <div class="form-text">{{ form.color.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.manager_id.label(class="form-label") }}
+                                            {{ form.manager_id(class="form-select" + (" is-invalid" if form.manager_id.errors else "")) }}
+                                            {% if form.manager_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.manager_id.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.manager_id.description %}
+                                                <div class="form-text">{{ form.manager_id.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tipi di Macchina Associati -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            {{ form.tipi_macchine.label(class="form-label") }}
+                                            <div class="form-text mb-2">
+                                                Seleziona i tipi di macchina che questo reparto può gestire
+                                            </div>
+                                            {% if form.tipi_macchine.choices %}
+                                            <div class="row">
+                                                {% for choice in form.tipi_macchine %}
+                                                <div class="col-md-6 col-lg-4 mb-2">
+                                                    <div class="form-check">
+                                                        {{ choice(class="form-check-input") }}
+                                                        {{ choice.label(class="form-check-label") }}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <div class="alert alert-info">
+                                                <i class="bi bi-info-circle"></i>
+                                                Nessun tipo di macchina disponibile. 
+                                                <a href="{{ url_for('macchine.create_tipo_macchina') }}" class="alert-link">
+                                                    Crea il primo tipo di macchina
+                                                </a>
+                                            </div>
+                                            {% endif %}
+                                            {% if form.tipi_macchine.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.tipi_macchine.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('settings.departments') }}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annulla
+                                    </a>
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i> Guida
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h6><i class="bi bi-tag"></i> Nome interno</h6>
+                            <p class="text-muted small">
+                                Il nome interno viene utilizzato nel sistema e deve essere unico. 
+                                Usa solo lettere minuscole, numeri e underscore (es: <code>marketing</code>, <code>it_support</code>).
+                            </p>
+                            
+                            <h6><i class="bi bi-eye"></i> Nome visualizzato</h6>
+                            <p class="text-muted small">
+                                Il nome che verrà mostrato agli utenti nell'interfaccia 
+                                (es: "Marketing e Comunicazione", "Supporto IT").
+                            </p>
+                            
+                            <h6><i class="bi bi-palette"></i> Colore</h6>
+                            <p class="text-muted small">
+                                Il colore del reparto viene utilizzato per distinguere visivamente 
+                                i dati nei grafici, nelle liste e nei badge.
+                            </p>
+                            
+                            <h6><i class="bi bi-person-badge"></i> Manager</h6>
+                            <p class="text-muted small">
+                                Il manager del reparto ha permessi aggiuntivi per gestire 
+                                gli utenti e i dati del proprio reparto.
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if department %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bar-chart"></i> Statistiche
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="text-primary">
+                                        <i class="bi bi-people"></i>
+                                        <div class="fw-bold">{{ department.active_users_count }}</div>
+                                        <small>Utenti</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-success">
+                                        <i class="bi bi-ticket"></i>
+                                        <div class="fw-bold">{{ department.open_tickets_count }}</div>
+                                        <small>Ticket</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row text-center mt-2">
+                                <div class="col-6">
+                                    <div class="text-info">
+                                        <i class="bi bi-building"></i>
+                                        <div class="fw-bold">{{ department.total_clients_count }}</div>
+                                        <small>Clienti</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-warning">
+                                        <i class="bi bi-box"></i>
+                                        <div class="fw-bold">{{ department.total_inventory_items }}</div>
+                                        <small>Magazzino</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

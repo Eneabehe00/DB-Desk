@@ -1,0 +1,254 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Registrazione - DB-Desk{% endblock %}
+
+{% block content %}
+<div class="auth-header">
+    <div class="icon">
+        <i class="bi bi-person-plus"></i>
+    </div>
+    <h1>Registrazione</h1>
+    <p>Crea il tuo account DB-Desk</p>
+</div>
+
+<div class="auth-body">
+    <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <!-- First and Last Name -->
+        <div class="row mb-3">
+            <div class="col-6">
+                {{ form.first_name.label(class="form-label") }}
+                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), 
+                   placeholder="Nome", 
+                   autocomplete="given-name") }}
+                {% if form.first_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.first_name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-6">
+                {{ form.last_name.label(class="form-label") }}
+                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), 
+                   placeholder="Cognome", 
+                   autocomplete="family-name") }}
+                {% if form.last_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.last_name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Username -->
+        <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), 
+               placeholder="Scegli un username unico", 
+               autocomplete="username") }}
+            {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="form-text">Deve essere unico e contenere 3-80 caratteri</div>
+        </div>
+        
+        <!-- Email -->
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), 
+               placeholder="indirizzo@email.com", 
+               autocomplete="email") }}
+            {% if form.email.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Password Fields -->
+        <div class="row mb-3">
+            <div class="col-6">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), 
+                   placeholder="Password", 
+                   autocomplete="new-password") }}
+                {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.password.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Minimo 6 caratteri</div>
+            </div>
+            <div class="col-6">
+                {{ form.password2.label(class="form-label") }}
+                {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), 
+                   placeholder="Conferma password", 
+                   autocomplete="new-password") }}
+                {% if form.password2.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.password2.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Password Strength Indicator -->
+        <div id="password-strength" class="mb-3" style="display: none;">
+            <div class="progress" style="height: 4px;">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="strength-text text-muted"></small>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="d-grid mb-3">
+            {{ form.submit(class="btn btn-primary btn-lg") }}
+        </div>
+    </form>
+</div>
+
+<div class="auth-footer">
+    <hr class="auth-divider">
+    <p class="mb-2 text-muted">Hai già un account?</p>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-box-arrow-in-right me-1"></i>
+        Accedi qui
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Password strength styles */
+.progress-bar.strength-weak { 
+    background-color: #dc3545 !important; 
+}
+.progress-bar.strength-medium { 
+    background-color: #ffc107 !important; 
+}
+.progress-bar.strength-strong { 
+    background-color: #28a745 !important; 
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Focus sul primo campo
+document.addEventListener('DOMContentLoaded', function() {
+    const firstNameField = document.getElementById('first_name');
+    if (firstNameField) {
+        firstNameField.focus();
+    }
+    
+    // Setup password validation
+    setupPasswordValidation();
+});
+
+// Validazione password in tempo reale
+function setupPasswordValidation() {
+    const password = document.getElementById('password');
+    const password2 = document.getElementById('password2');
+    
+    if (password && password2) {
+        // Controlla conferma password
+        password2.addEventListener('input', function() {
+            const passwordValue = password.value;
+            const confirmValue = this.value;
+            
+            if (confirmValue && passwordValue !== confirmValue) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else if (confirmValue) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+        
+        // Controlla forza password
+        password.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            
+            // Ricontrolla anche la conferma
+            if (password2.value) {
+                password2.dispatchEvent(new Event('input'));
+            }
+        });
+    }
+}
+
+function checkPasswordStrength(password) {
+    const strengthContainer = document.getElementById('password-strength');
+    const progressBar = strengthContainer.querySelector('.progress-bar');
+    const strengthText = strengthContainer.querySelector('.strength-text');
+    
+    if (password.length === 0) {
+        strengthContainer.style.display = 'none';
+        return;
+    }
+    
+    strengthContainer.style.display = 'block';
+    
+    let strength = 0;
+    let text = '';
+    
+    if (password.length >= 6) strength += 1;
+    if (password.match(/[a-z]+/)) strength += 1;
+    if (password.match(/[A-Z]+/)) strength += 1;
+    if (password.match(/[0-9]+/)) strength += 1;
+    if (password.match(/[$@#&!]+/)) strength += 1;
+    
+    switch(strength) {
+        case 0:
+        case 1:
+            progressBar.style.width = '20%';
+            progressBar.className = 'progress-bar strength-weak';
+            text = 'Password troppo debole';
+            break;
+        case 2:
+        case 3:
+            progressBar.style.width = '60%';
+            progressBar.className = 'progress-bar strength-medium';
+            text = 'Password media';
+            break;
+        case 4:
+        case 5:
+            progressBar.style.width = '100%';
+            progressBar.className = 'progress-bar strength-strong';
+            text = 'Password forte';
+            break;
+    }
+    
+    strengthText.textContent = text;
+}
+
+// Validazione form prima del submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+    
+    if (password !== password2) {
+        e.preventDefault();
+        document.getElementById('password2').classList.add('is-invalid');
+        showToast('Le password non corrispondono', 'danger');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}I Miei Ticket - DB-Desk{% endblock %}
+{% block page_title %}I Miei Ticket{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Statistiche rapide -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Totali</h5>
+                                <h3 class="mb-0">{{ tickets.total }}</h3>
+                            </div>
+                            <i class="bi bi-ticket-detailed fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Aperti</h5>
+                                <h3 class="mb-0">{{ tickets.items|selectattr('stato', 'equalto', 'Aperto')|list|length }}</h3>
+                            </div>
+                            <i class="bi bi-exclamation-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">In Lavorazione</h5>
+                                <h3 class="mb-0">{{ tickets.items|selectattr('stato', 'equalto', 'In Lavorazione')|list|length }}</h3>
+                            </div>
+                            <i class="bi bi-clock fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Risolti</h5>
+                                <h3 class="mb-0">{{ tickets.items|selectattr('stato', 'equalto', 'Risolto')|list|length }}</h3>
+                            </div>
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista ticket personali -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-badge"></i>
+                        I Miei Ticket
+                        <span class="badge bg-secondary">{{ tickets.total }}</span>
+                    </h5>
+                    <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo Ticket
+                    </a>
+                </div>
+            </div>
+            
+            {% if tickets.items %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Numero</th>
+                            <th>Titolo</th>
+                            <th>Cliente</th>
+                            <th>Stato</th>
+                            <th>Priorità</th>
+                            <th>Creato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets.items %}
+                        <tr class="priority-{{ ticket.priorita.lower() }} clickable-row" 
+                            onclick="window.location.href='{{ url_for('tickets.view_ticket', id=ticket.id) }}'">
+                            <td>
+                                <strong>{{ ticket.numero_ticket }}</strong>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark">
+                                    {{ ticket.titolo[:60] }}{% if ticket.titolo|length > 60 %}...{% endif %}
+                                </div>
+                                {% if ticket.is_scaduto %}
+                                    <i class="bi bi-exclamation-triangle text-danger" title="Ticket scaduto"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-secondary fw-medium">{{ ticket.cliente.ragione_sociale }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'warning' if ticket.stato == 'Aperto' else 'info' if ticket.stato == 'In Lavorazione' else 'success' if ticket.stato == 'Risolto' else 'secondary' }}">
+                                    {{ ticket.stato }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                                    {{ ticket.priorita }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-secondary">
+                                    {{ ticket.created_at.strftime('%d/%m/%Y') }}<br>
+                                    <small class="text-muted">{{ ticket.giorni_apertura }} giorni fa</small>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginazione -->
+            {% if tickets.pages > 1 %}
+            <div class="card-footer">
+                <nav aria-label="Paginazione ticket">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if tickets.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('tickets.my_tickets', page=tickets.prev_num) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in tickets.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != tickets.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('tickets.my_tickets', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if tickets.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('tickets.my_tickets', page=tickets.next_num) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="card-body text-center">
+                <i class="bi bi-person-badge fs-1 text-muted"></i>
+                <h5 class="text-muted">Nessun ticket assegnato</h5>
+                <p class="text-muted">Non hai ancora ticket assegnati o creati.</p>
+                <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Crea il tuo primo ticket
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

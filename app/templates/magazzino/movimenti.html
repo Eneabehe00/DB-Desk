@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Movimenti - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}Storico Movimenti Magazzino{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Filtri -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Tutti</option>
+                        <option value="Carico">Carico</option>
+                        <option value="Scarico">Scarico</option>
+                        <option value="Rettifica">Rettifica</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ricambio</label>
+                    <input type="text" name="ricambio" class="form-control" placeholder="Codice ricambio...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Data da</label>
+                    <input type="date" name="data_da" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Data a</label>
+                    <input type="date" name="data_a" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Filtra
+                        </button>
+                        <a href="{{ url_for('magazzino.movimenti') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-success" onclick="esportaMovimenti()">
+                            <i class="bi bi-download"></i> Esporta
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Elenco movimenti -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-arrow-left-right text-info"></i>
+                Movimenti ({{ movimenti.total }} totali)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if movimenti.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Data/Ora</th>
+                                <th>Ricambio</th>
+                                <th>Tipo</th>
+                                <th>Quantità</th>
+                                <th>Motivo</th>
+                                <th>Ticket</th>
+                                <th>Utente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movimento in movimenti.items %}
+                            <tr>
+                                <td>
+                                    {{ movimento.created_at.strftime('%d/%m/%Y') }}<br>
+                                    <small class="text-muted">{{ movimento.created_at.strftime('%H:%M') }}</small>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('magazzino.dettaglio_ricambio', id=movimento.ricambio.id) }}">
+                                        <strong>{{ movimento.ricambio.codice }}</strong>
+                                    </a><br>
+                                    <small class="text-muted">{{ movimento.ricambio.descrizione[:40] }}{% if movimento.ricambio.descrizione|length > 40 %}...{% endif %}</small>
+                                </td>
+                                <td>
+                                    {% if movimento.tipo_movimento == 'Carico' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-arrow-up"></i> {{ movimento.tipo_movimento }}
+                                        </span>
+                                    {% elif movimento.tipo_movimento == 'Scarico' %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-arrow-down"></i> {{ movimento.tipo_movimento }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-arrow-repeat"></i> {{ movimento.tipo_movimento }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="fw-bold {% if movimento.quantita > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ '+' if movimento.quantita > 0 else '' }}{{ movimento.quantita }}
+                                    </span>
+                                </td>
+                                <td>{{ movimento.motivo }}</td>
+                                <td>
+                                    {% if movimento.ticket %}
+                                        <a href="{{ url_for('tickets.view_ticket', id=movimento.ticket.id) }}">
+                                            {{ movimento.ticket.numero_ticket }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if movimento.user %}
+                                        {{ movimento.user.full_name }}
+                                    {% else %}
+                                        <span class="text-muted">Sistema</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginazione -->
+                {% if movimenti.pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="Paginazione movimenti">
+                        <ul class="pagination justify-content-center mb-0">
+                            <!-- Pulsante Precedente -->
+                            {% if movimenti.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ movimenti.prev_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-left"></i> Precedente
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="bi bi-chevron-left"></i> Precedente
+                                    </span>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Numeri di pagina -->
+                            {% for page_num in movimenti.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    {% if page_num != movimenti.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">…</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Pulsante Successivo -->
+                            {% if movimenti.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ movimenti.next_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        Successivo <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Successivo <i class="bi bi-chevron-right"></i>
+                                    </span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-arrow-left-right text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">Nessun movimento trovato</h5>
+                    <p class="text-muted">Non ci sono movimenti che corrispondono ai filtri selezionati.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function esportaMovimenti() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'csv');
+    window.open(`${window.location.pathname}?${params.toString()}`, '_blank');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}{{ department.display_name }} - Dettagli Reparto{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle me-3" 
+                             style="width: 20px; height: 20px; background-color: {{ department.color }};"></div>
+                        {{ department.display_name }}
+                    </div>
+                </h1>
+                <div class="btn-group">
+                    <a href="{{ url_for('settings.departments') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Torna alla lista
+                    </a>
+                    {% if current_user.has_permission('can_manage_departments') %}
+                    <a href="{{ url_for('settings.edit_department', id=department.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Modifica
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Informazioni Reparto -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Informazioni Reparto
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Nome interno:</strong>
+                                    <p><code>{{ department.name }}</code></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Nome visualizzato:</strong>
+                                    <p>{{ department.display_name }}</p>
+                                </div>
+                            </div>
+                            
+                            {% if department.description %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <strong>Descrizione:</strong>
+                                    <p>{{ department.description }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Manager:</strong>
+                                    <p>
+                                        {% if department.manager %}
+                                            <i class="bi bi-person-badge text-primary"></i>
+                                            {{ department.manager.full_name }}
+                                            <br><small class="text-muted">{{ department.manager.email }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Nessun manager assegnato</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Stato:</strong>
+                                    <p>
+                                        {% if department.is_active %}
+                                            <span class="badge bg-success">Attivo</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disattivo</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Creato il:</strong>
+                                    <p>{{ department.created_at.strftime('%d/%m/%Y alle %H:%M') if department.created_at else 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Ultimo aggiornamento:</strong>
+                                    <p>{{ department.updated_at.strftime('%d/%m/%Y alle %H:%M') if department.updated_at else 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tipi di Macchina Associati -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-tags"></i>
+                                Tipi di Macchina Associati ({{ tipi_macchine|length }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if tipi_macchine %}
+                            <div class="row">
+                                {% for tipo in tipi_macchine %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ tipo.nome }}</h6>
+                                            {% if tipo.descrizione %}
+                                            <p class="card-text text-muted small">{{ tipo.descrizione }}</p>
+                                            {% endif %}
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    {{ tipo.macchine.count() }} macchine
+                                                </small>
+                                                <a href="{{ url_for('macchine.list_tipi_macchina') }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    Gestisci
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-tags text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">Nessun tipo di macchina associato a questo reparto</p>
+                                <p class="text-muted small">Modifica il reparto per associare dei tipi di macchina</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+
+                    <!-- Utenti del Reparto -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-people"></i>
+                                Utenti del Reparto ({{ users|length }})
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if users %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Utente</th>
+                                            <th>Ruolo</th>
+                                            <th>Email</th>
+                                            <th class="text-center">Ultimo accesso</th>
+                                            <th class="text-center">Stato</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in users %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-person-circle me-2 text-primary"></i>
+                                                    <div>
+                                                        <div class="fw-bold">{{ user.full_name }}</div>
+                                                        <small class="text-muted">{{ user.username }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if user.role %}
+                                                    <span class="badge bg-{% if user.role.name == 'admin' %}danger{% elif user.role.name == 'developer' %}dark{% else %}primary{% endif %}">
+                                                        {{ user.role.display_name }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Nessun ruolo</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ user.email }}</td>
+                                            <td class="text-center">
+                                                {% if user.last_login %}
+                                                    {{ user.last_login.strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                    <span class="text-muted">Mai</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if user.is_active %}
+                                                    <span class="badge bg-success">Attivo</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Disattivo</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">Nessun utente assegnato a questo reparto</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiche -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bar-chart"></i>
+                                Statistiche
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-people text-primary" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-primary">{{ stats.total_users }}</div>
+                                        <small class="text-muted">Utenti Attivi</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-ticket text-success" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-success">{{ stats.active_tickets }}</div>
+                                        <small class="text-muted">Ticket Aperti</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-building text-info" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-info">{{ stats.active_clients }}</div>
+                                        <small class="text-muted">Clienti Attivi</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-box text-warning" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-warning">{{ stats.total_inventory }}</div>
+                                        <small class="text-muted">Articoli Magazzino</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-tags text-primary" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-primary">{{ stats.total_tipi_macchine }}</div>
+                                        <small class="text-muted">Tipi di Macchina</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Azioni Amministrative -->
+                    {% if current_user.has_permission('can_manage_system') %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-gear"></i>
+                                Azioni Amministrative
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn btn-{% if department.is_active %}warning{% else %}success{% endif %}"
+                                        onclick="toggleDepartmentStatus({{ department.id }})">
+                                    <i class="bi bi-{% if department.is_active %}pause{% else %}play{% endif %}"></i>
+                                    {% if department.is_active %}Disattiva{% else %}Attiva{% endif %} Reparto
+                                </button>
+                                
+                                {% if not department.is_active and stats.total_users == 0 and stats.total_tickets == 0 and stats.active_clients == 0 and stats.total_inventory == 0 %}
+                                <button type="button" 
+                                        class="btn btn-danger"
+                                        onclick="deleteDepartment({{ department.id }}, '{{ department.display_name }}')">
+                                    <i class="bi bi-trash"></i>
+                                    Elimina Reparto
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare il reparto <strong id="departmentName"></strong>?</p>
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa operazione non può essere annullata.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Elimina</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDepartmentStatus(departmentId) {
+    fetch(`/settings/departments/${departmentId}/toggle_status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Errore durante l\'operazione');
+    });
+}
+
+function deleteDepartment(departmentId, departmentName) {
+    document.getElementById('departmentName').textContent = departmentName;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+    
+    document.getElementById('confirmDelete').onclick = function() {
+        fetch(`/settings/departments/${departmentId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/settings/departments';
+            } else {
+                alert('Errore durante l\'eliminazione');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Errore durante l\'eliminazione');
+        });
+        
+        modal.hide();
+    };
+}
+</script>
+{% endblock %}

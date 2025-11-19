@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - DB-Desk{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Statistiche rapide -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-stat h-100 border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Ticket Totali</h6>
+                        <h3 class="mb-0 text-primary">{{ total_tickets }}</h3>
+                    </div>
+                    <div class="text-primary">
+                        <i class="bi bi-ticket-detailed fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-stat h-100 border-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Ticket Aperti</h6>
+                        <h3 class="mb-0 text-danger">{{ tickets_aperti }}</h3>
+                    </div>
+                    <div class="text-danger">
+                        <i class="bi bi-exclamation-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-stat h-100 border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Ticket Critici</h6>
+                        <h3 class="mb-0 text-warning">{{ tickets_critici }}</h3>
+                    </div>
+                    <div class="text-warning">
+                        <i class="bi bi-lightning fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-stat h-100 border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Clienti Attivi</h6>
+                        <h3 class="mb-0 text-success">{{ total_clienti }}</h3>
+                    </div>
+                    <div class="text-success">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafici e statistiche -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Distribuzione Ticket per Stato
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Top 5 Clienti per Ticket
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="clientsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sezioni informative -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history"></i>
+                    Ultimi Ticket Creati
+                </h5>
+                <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-sm btn-outline-primary">
+                    Vedi tutti
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if ultimi_tickets %}
+                    <div class="list-group list-group-flush">
+                        {% for ticket in ultimi_tickets %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
+                                               class="text-decoration-none">
+                                                {{ ticket.numero_ticket }}
+                                            </a>
+                                        </h6>
+                                        <p class="mb-1">{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                                            {{ ticket.priorita }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">{{ ticket.created_at.strftime('%d/%m %H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card-body text-center text-muted">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p>Nessun ticket trovato</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-badge"></i>
+                    I Miei Ticket Assegnati
+                </h5>
+                <a href="{{ url_for('tickets.my_tickets') }}" class="btn btn-sm btn-outline-primary">
+                    Vedi tutti
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if miei_tickets %}
+                    <div class="list-group list-group-flush">
+                        {% for ticket in miei_tickets %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
+                                               class="text-decoration-none">
+                                                {{ ticket.numero_ticket }}
+                                            </a>
+                                        </h6>
+                                        <p class="mb-1">{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' }}">
+                                            {{ ticket.stato }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">{{ ticket.giorni_apertura }} giorni</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card-body text-center text-muted">
+                        <i class="bi bi-check-circle fs-1"></i>
+                        <p>Nessun ticket assegnato</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts importanti -->
+{% if tickets_scaduti > 0 %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-warning d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                <strong>Attenzione!</strong> Ci sono {{ tickets_scaduti }} ticket scaduti che richiedono attenzione.
+                <a href="{{ url_for('tickets.list_tickets') }}?overdue=1" class="alert-link">Visualizza ticket scaduti</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configurazione Chart.js
+Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+
+// Grafico distribuzione stati
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ chart_data.stati.labels | safe }},
+        datasets: [{
+            data: {{ chart_data.stati.data | safe }},
+            backgroundColor: [
+                '#dc3545', // Rosso per aperti
+                '#fd7e14', // Arancione per in lavorazione
+                '#198754', // Verde per risolti
+                '#6c757d'  // Grigio per chiusi
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Grafico top clienti
+const clientsCtx = document.getElementById('clientsChart').getContext('2d');
+new Chart(clientsCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_data.top_clienti.labels | safe }},
+        datasets: [{
+            label: 'Numero Ticket',
+            data: {{ chart_data.top_clienti.data | safe }},
+            backgroundColor: '#0d6efd',
+            borderColor: '#0b5ed7',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Auto-refresh statistiche ogni 5 minuti
+setInterval(function() {
+    fetch('{{ url_for("main.quick_stats") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Aggiorna le statistiche senza ricaricare la pagina
+            console.log('Statistiche aggiornate:', data);
+        })
+        .catch(error => {
+            console.error('Errore aggiornamento statistiche:', error);
+        });
+}, 300000); // 5 minuti
+</script>
+{% endblock %}

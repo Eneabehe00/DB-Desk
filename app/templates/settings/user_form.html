@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-person-circle"></i>
+                    {{ title }}
+                </h1>
+                <a href="{{ url_for('settings.users') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla lista
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-pencil"></i>
+                                Informazioni Utente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.username.label(class="form-label") }}
+                                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                                            {% if form.username.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.username.description %}
+                                                <div class="form-text">{{ form.username.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.email.label(class="form-label") }}
+                                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                                            {% if form.email.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.email.description %}
+                                                <div class="form-text">{{ form.email.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.first_name.label(class="form-label") }}
+                                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+                                            {% if form.first_name.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.first_name.description %}
+                                                <div class="form-text">{{ form.first_name.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.last_name.label(class="form-label") }}
+                                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+                                            {% if form.last_name.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.last_name.description %}
+                                                <div class="form-text">{{ form.last_name.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.password.label(class="form-label") }}
+                                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                                            {% if form.password.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.password.description %}
+                                                <div class="form-text">{{ form.password.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {% if form.password_confirm %}
+                                            {{ form.password_confirm.label(class="form-label") }}
+                                            {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else "")) }}
+                                            {% if form.password_confirm.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.password_confirm.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.password_confirm.description %}
+                                                <div class="form-text">{{ form.password_confirm.description }}</div>
+                                            {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.role_id.label(class="form-label") }}
+                                            {{ form.role_id(class="form-select" + (" is-invalid" if form.role_id.errors else "")) }}
+                                            {% if form.role_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.role_id.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.role_id.description %}
+                                                <div class="form-text">{{ form.role_id.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.department_id.label(class="form-label") }}
+                                            {{ form.department_id(class="form-select" + (" is-invalid" if form.department_id.errors else "")) }}
+                                            {% if form.department_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.department_id.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.department_id.description %}
+                                                <div class="form-text">{{ form.department_id.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_active(class="form-check-input" + (" is-invalid" if form.is_active.errors else "")) }}
+                                        {{ form.is_active.label(class="form-check-label") }}
+                                        {% if form.is_active.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if form.is_active.description %}
+                                            <div class="form-text">{{ form.is_active.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('settings.users') }}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annulla
+                                    </a>
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i> Guida
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h6><i class="bi bi-person"></i> Username</h6>
+                            <p class="text-muted small">
+                                Nome utente univoco per il login. Deve essere tra 3 e 80 caratteri.
+                            </p>
+                            
+                            <h6><i class="bi bi-envelope"></i> Email</h6>
+                            <p class="text-muted small">
+                                Indirizzo email univoco dell'utente. Utilizzato per le notifiche e il recupero password.
+                            </p>
+                            
+                            <h6><i class="bi bi-shield-check"></i> Ruolo</h6>
+                            <p class="text-muted small">
+                                <strong>Dipendente:</strong> Accesso limitato al proprio reparto<br>
+                                <strong>Amministratore:</strong> Accesso completo a tutti i reparti<br>
+                                <strong>Developer:</strong> Accesso completo + funzioni avanzate
+                            </p>
+                            
+                            <h6><i class="bi bi-building"></i> Reparto</h6>
+                            <p class="text-muted small">
+                                Reparto di appartenenza dell'utente. Determina quali dati può visualizzare e gestire.
+                            </p>
+                            
+                            <h6><i class="bi bi-key"></i> Password</h6>
+                            <p class="text-muted small">
+                                {% if user %}
+                                Lascia vuoto per mantenere la password attuale.
+                                {% else %}
+                                Password per l'accesso. Deve essere di almeno 6 caratteri.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if user %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bar-chart"></i> Statistiche
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="text-primary">
+                                        <i class="bi bi-plus-circle"></i>
+                                        <div class="fw-bold">{{ user.created_tickets.count() }}</div>
+                                        <small>Ticket Creati</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-success">
+                                        <i class="bi bi-person-check"></i>
+                                        <div class="fw-bold">{{ user.assigned_tickets.count() }}</div>
+                                        <small>Ticket Assegnati</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <strong>Ultimo accesso:</strong><br>
+                                    {% if user.last_login %}
+                                        {{ user.last_login.strftime('%d/%m/%Y alle %H:%M') }}
+                                    {% else %}
+                                        Mai effettuato
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

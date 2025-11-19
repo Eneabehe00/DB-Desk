@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Calendario Ticket - DB-Desk{% endblock %}
+{% block page_title %}
+    Calendario Ticket
+{% endblock %}
+
+{% block extra_head %}
+<link href="{{ url_for('static', filename='css/calendar.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar con lista ticket -->
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-task"></i>
+                        Ticket Disponibili
+                    </h5>
+                    <small class="text-muted">{{ open_tickets|length }} ticket</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ticket-list" id="ticket-list">
+                        {% for ticket in open_tickets %}
+                        <div class="ticket-item" 
+                             draggable="true" 
+                             data-ticket-id="{{ ticket.id }}"
+                             data-ticket-number="{{ ticket.numero_ticket }}"
+                             data-ticket-title="{{ ticket.titolo }}"
+                             data-ticket-priority="{{ ticket.priorita }}"
+                             data-ticket-status="{{ ticket.stato }}">
+                            <div class="ticket-header">
+                                <div class="ticket-number">{{ ticket.numero_ticket }}</div>
+                                <div class="priority-badge priority-{{ ticket.priorita|lower }}">
+                                    {{ ticket.priorita }}
+                                </div>
+                </div>
+                            <div class="ticket-title">{{ ticket.titolo }}</div>
+                            <div class="ticket-info">
+                                <small class="text-muted">
+                                    <i class="bi bi-building"></i>
+                                    {{ ticket.cliente.ragione_sociale }}
+                                </small>
+                                {% if ticket.assigned_to %}
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i>
+                                    {{ ticket.assigned_to.full_name }}
+                                </small>
+                                {% endif %}
+                    </div>
+                            <div class="ticket-status">
+                                <span class="badge status-{{ ticket.stato|lower|replace(' ', '-') }}">
+                                    {{ ticket.stato }}
+                                </span>
+                    </div>
+                </div>
+                        {% endfor %}
+                        
+                        {% if not open_tickets %}
+                        <div class="text-center p-4 text-muted">
+                            <i class="bi bi-check-circle-fill fs-1"></i>
+                            <p class="mt-2">Nessun ticket da programmare</p>
+                </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendario principale -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-today btn-sm me-3" onclick="goToToday()">
+                                    <i class="bi bi-calendar-day"></i>
+                                    Oggi
+                                </button>
+                                <button class="btn btn-nav btn-sm me-2" onclick="navigateMonth(-1)">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <h4 class="mb-0 me-2">{{ month_name }} {{ current_year }}</h4>
+                                <button class="btn btn-nav btn-sm" onclick="navigateMonth(1)">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="view-mode-buttons">
+                                <button class="btn view-mode-btn" data-mode="day">
+                                    Giorno
+                                </button>
+                                <button class="btn view-mode-btn" data-mode="week">
+                                    Settimana
+                                </button>
+                                <button class="btn view-mode-btn active" data-mode="month">
+                                    Mese
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+            <div class="calendar-container">
+                        <div class="calendar-grid">
+                            <!-- Header giorni settimana -->
+                            <div class="calendar-header">
+                                <div class="calendar-day-header">Lun</div>
+                                <div class="calendar-day-header">Mar</div>
+                                <div class="calendar-day-header">Mer</div>
+                                <div class="calendar-day-header">Gio</div>
+                                <div class="calendar-day-header">Ven</div>
+                                <div class="calendar-day-header">Sab</div>
+                                <div class="calendar-day-header">Dom</div>
+                            </div>
+                            
+                            <!-- Giorni del calendario -->
+                            <div class="calendar-body">
+                                {% for week in calendar_data %}
+                                {% for day in week %}
+                                <div class="calendar-day {% if day == 0 %}empty{% endif %}" 
+                                     {% if day != 0 %}
+                                     data-date="{{ current_year }}-{{ '%02d'|format(current_month) }}-{{ '%02d'|format(day) }}"
+                                     {% endif %}>
+                                    
+                                    {% if day != 0 %}
+                                    <div class="day-number">{{ day }}</div>
+                                    <div class="day-tickets" id="day-{{ day }}">
+                                        {% if day in tickets_data %}
+                                        {% for ticket in tickets_data[day] %}
+                                        <div class="calendar-ticket priority-{{ ticket.priorita|lower }}"
+                                             data-ticket-id="{{ ticket.id }}"
+                                             title="{{ ticket.numero_ticket }}: {{ ticket.titolo }}"
+                                             {% if loop.index > 2 %}style="display: none;"{% endif %}>
+                                            <div class="ticket-content">
+                                                <div class="ticket-number">{{ ticket.numero_ticket }}</div>
+                                                <div class="ticket-title-short">{{ ticket.titolo[:30] }}{% if ticket.titolo|length > 30 %}...{% endif %}</div>
+                                                <div class="ticket-status-small">
+                                                    <span class="badge status-{{ ticket.stato|lower|replace(' ', '-') }}">
+                                                        {{ ticket.stato }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        {% if tickets_data[day]|length > 2 %}
+                                        <div class="tickets-overflow" data-total-tickets="{{ tickets_data[day]|length }}">
+                                            +{{ tickets_data[day]|length - 2 }} altri
+                                        </div>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per dettagli ticket -->
+<div class="modal fade" id="ticketModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Contenuto dinamico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast per notifiche -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="notification-toast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto">Notifica</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+        <div class="toast-body" id="toast-message">
+            <!-- Messaggio dinamico -->
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+
+<script>
+// Dati globali per JavaScript
+window.calendarData = {
+    currentYear: {{ current_year }},
+    currentMonth: {{ current_month }},
+    prevYear: {{ prev_year }},
+    prevMonth: {{ prev_month }},
+    nextYear: {{ next_year }},
+    nextMonth: {{ next_month }}
+};
+
+// Funzioni di navigazione
+function navigateMonth(direction) {
+    let year, month;
+    if (direction === 1) {
+        year = window.calendarData.nextYear;
+        month = window.calendarData.nextMonth;
+                } else {
+        year = window.calendarData.prevYear;
+        month = window.calendarData.prevMonth;
+    }
+    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${year}&month=${month}`;
+}
+
+function goToToday() {
+            const today = new Date();
+    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${today.getFullYear()}&month=${today.getMonth() + 1}`;
+}
+</script>
+{% endblock %}

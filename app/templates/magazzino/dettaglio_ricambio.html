@@ -1,0 +1,835 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ricambio.codice }} - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}Dettaglio Ricambio: {{ ricambio.codice }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .info-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .quantita-display {
+        text-align: center;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .quantita-disponibile {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+    }
+    .quantita-prenotata {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+    }
+    .quantita-effettiva {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+    }
+    
+    .movimento-item {
+        border-left: 4px solid #e5e7eb;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: #f9fafb;
+        border-radius: 0 0.5rem 0.5rem 0;
+        transition: all 0.2s ease;
+    }
+    .movimento-item:hover {
+        background: #f3f4f6;
+        transform: translateX(2px);
+    }
+    .movimento-carico {
+        border-left-color: #10b981;
+    }
+    .movimento-scarico {
+        border-left-color: #ef4444;
+    }
+    .movimento-rettifica {
+        border-left-color: #f59e0b;
+    }
+    
+    .prenotazione-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #ffffff;
+        transition: all 0.2s ease;
+    }
+    .prenotazione-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    .prenotazione-attiva {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    }
+    .prenotazione-scaduta {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+    }
+    
+    .foto-ricambio-large {
+        max-width: 300px;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 1rem;
+        border: 3px solid #e5e7eb;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stato-badge-large {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('magazzino.index') }}">Magazzino</a></li>
+            <li class="breadcrumb-item active">{{ ricambio.codice }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Colonna principale -->
+        <div class="col-lg-8">
+            <!-- Informazioni principali -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam text-primary"></i>
+                        Informazioni Ricambio
+                    </h5>
+                    <div>
+                        <span class="stato-badge-large stato-{{ ricambio.stato_disponibilita.lower().replace(' ', '-') }}">
+                            {{ ricambio.stato_disponibilita }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="text-primary mb-3">{{ ricambio.codice }}</h4>
+                            <p class="lead mb-3">{{ ricambio.descrizione }}</p>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <strong>Ubicazione:</strong>
+                                    {% if ricambio.ubicazione %}
+                                        <span class="badge bg-secondary">{{ ricambio.ubicazione }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Non specificata</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Fornitore:</strong>
+                                    {% if ricambio.fornitore %}
+                                        {{ ricambio.fornitore }}
+                                    {% else %}
+                                        <span class="text-muted">Non specificato</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if ricambio.prezzo_unitario %}
+                            <div class="mb-3">
+                                <strong>Prezzo Unitario:</strong>
+                                <span class="text-success fw-bold">€ {{ "%.2f"|format(ricambio.prezzo_unitario) }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ricambio.note %}
+                            <div class="mb-3">
+                                <strong>Note:</strong>
+                                <p class="text-muted">{{ ricambio.note }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-center">
+                            {% if ricambio.foto_filename %}
+                                <img src="{{ url_for('magazzino.foto_ricambio', filename=ricambio.foto_filename) }}" 
+                                     alt="Foto {{ ricambio.codice }}" class="foto-ricambio-large img-fluid">
+                            {% else %}
+                                <div class="foto-ricambio-large d-flex align-items-center justify-content-center bg-light mx-auto">
+                                    <div class="text-center">
+                                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                        <p class="text-muted mt-2">Nessuna foto</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sezione con Tab per Movimenti e Prenotazioni -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="detailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="movimenti-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#movimenti-pane" type="button" role="tab">
+                                <i class="bi bi-arrow-left-right text-info"></i>
+                                Movimenti
+                                {% if movimenti %}
+                                    <span class="badge bg-info ms-1">{{ movimenti|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="prenotazioni-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#prenotazioni-pane" type="button" role="tab">
+                                <i class="bi bi-bookmark text-warning"></i>
+                                Prenotazioni
+                                {% if prenotazioni %}
+                                    <span class="badge bg-warning ms-1">{{ prenotazioni|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="statistiche-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#statistiche-pane" type="button" role="tab">
+                                <i class="bi bi-graph-up text-success"></i>
+                                Statistiche
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="detailTabsContent">
+                        <!-- Tab Movimenti -->
+                        <div class="tab-pane fade show active" id="movimenti-pane" role="tabpanel">
+                            {% if movimenti %}
+                                <div class="row">
+                                    {% for movimento in movimenti %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="movimento-item movimento-{{ movimento.tipo_movimento.lower() }}">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        {% if movimento.tipo_movimento == 'Carico' %}
+                                                            <i class="bi bi-arrow-up-circle text-success me-2"></i>
+                                                        {% elif movimento.tipo_movimento == 'Scarico' %}
+                                                            <i class="bi bi-arrow-down-circle text-danger me-2"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-arrow-repeat text-warning me-2"></i>
+                                                        {% endif %}
+                                                        <strong>{{ movimento.tipo_movimento }}</strong>
+                                                        <span class="badge bg-primary ms-2">
+                                                            {{ '+' if movimento.quantita > 0 else '' }}{{ movimento.quantita }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="mb-1 small">{{ movimento.motivo }}</p>
+                                                    {% if movimento.ticket %}
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-ticket"></i> 
+                                                        <a href="{{ url_for('tickets.view_ticket', id=movimento.ticket.id) }}">
+                                                            {{ movimento.ticket.numero_ticket }}
+                                                        </a>
+                                                    </small>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-end">
+                                                    <small class="text-muted">
+                                                        {{ movimento.created_at.strftime('%d/%m %H:%M') }}
+                                                    </small>
+                                                    {% if movimento.user %}
+                                                    <br><small class="text-muted">
+                                                        {{ movimento.user.full_name }}
+                                                    </small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <a href="{{ url_for('magazzino.movimenti', ricambio_id=ricambio.id) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-list"></i> Vedi tutti i movimenti
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2">Nessun movimento registrato</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Tab Prenotazioni -->
+                        <div class="tab-pane fade" id="prenotazioni-pane" role="tabpanel">
+                            {% if prenotazioni %}
+                                <div class="row">
+                                    {% for prenotazione in prenotazioni %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="prenotazione-item {% if prenotazione.is_scaduta %}prenotazione-scaduta{% else %}prenotazione-attiva{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-bookmark-fill text-warning me-2"></i>
+                                                        <strong>{{ prenotazione.quantita }} pz</strong>
+                                                        {% if prenotazione.is_scaduta %}
+                                                            <span class="badge bg-danger ms-2">Scaduta</span>
+                                                        {% elif prenotazione.giorni_alla_scadenza is not none and prenotazione.giorni_alla_scadenza <= 3 %}
+                                                            <span class="badge bg-warning ms-2">In scadenza</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    {% if prenotazione.ticket %}
+                                                    <p class="mb-1 small">
+                                                        <i class="bi bi-ticket"></i>
+                                                        <a href="{{ url_for('tickets.view_ticket', id=prenotazione.ticket.id) }}">
+                                                            {{ prenotazione.ticket.numero_ticket }}
+                                                        </a>
+                                                    </p>
+                                                    {% endif %}
+                                                    
+                                                    <small class="text-muted">
+                                                        {{ prenotazione.data_prenotazione.strftime('%d/%m/%Y %H:%M') }}
+                                                        {% if prenotazione.user %}
+                                                            - {{ prenotazione.user.full_name }}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-success" 
+                                                                onclick="utilizzaPrenotazione({{ prenotazione.id }}, {{ prenotazione.quantita }})"
+                                                                title="Utilizza">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger" 
+                                                                onclick="annullaPrenotazione({{ prenotazione.id }})"
+                                                                title="Annulla">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-bookmark text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2">Nessuna prenotazione attiva</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Tab Statistiche -->
+                        <div class="tab-pane fade" id="statistiche-pane" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-arrow-up-circle text-success" style="font-size: 2rem;"></i>
+                                            <h4 class="text-success mt-2">
+                                                {% set carichi = movimenti|selectattr('tipo_movimento', 'equalto', 'Carico')|list %}
+                                                {{ carichi|sum(attribute='quantita') or 0 }}
+                                            </h4>
+                                            <small class="text-muted">Totale Carichi</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-arrow-down-circle text-danger" style="font-size: 2rem;"></i>
+                                            <h4 class="text-danger mt-2">
+                                                {% set scarichi = movimenti|selectattr('tipo_movimento', 'equalto', 'Scarico')|list %}
+                                                {{ (scarichi|sum(attribute='quantita') or 0)|abs }}
+                                            </h4>
+                                            <small class="text-muted">Totale Scarichi</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h5 class="text-primary">{{ movimenti|length }}</h5>
+                                        <small class="text-muted">Movimenti Totali</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h5 class="text-warning">{{ prenotazioni|length }}</h5>
+                                        <small class="text-muted">Prenotazioni Attive</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h5 class="text-info">
+                                            {% if ricambio.prezzo_unitario and ricambio.quantita_effettiva > 0 %}
+                                                €{{ "%.0f"|format(ricambio.prezzo_unitario * ricambio.quantita_effettiva) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </h5>
+                                        <small class="text-muted">Valore Stock</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantità -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart text-success"></i>
+                        Quantità e Stock
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="quantita-display quantita-disponibile">
+                                <h3 class="mb-1">{{ ricambio.quantita_disponibile }}</h3>
+                                <small>Disponibili in magazzino</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="quantita-display quantita-prenotata">
+                                <h3 class="mb-1">{{ ricambio.quantita_prenotata }}</h3>
+                                <small>Prenotati per ticket</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="quantita-display quantita-effettiva">
+                                <h3 class="mb-1">{{ ricambio.quantita_effettiva }}</h3>
+                                <small>Effettivamente disponibili</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Soglia minima:</strong> {{ ricambio.quantita_minima }} pz
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if ricambio.prezzo_unitario %}
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-currency-euro"></i>
+                                    <strong>Valore totale:</strong>
+                                    <span class="text-success fw-bold">
+                                        €{{ "%.2f"|format(ricambio.prezzo_unitario * ricambio.quantita_effettiva) }}
+                                    </span>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if ricambio.is_sotto_scorta %}
+                    <div class="alert alert-warning mt-3 py-2" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Attenzione:</strong> Ricambio sotto la soglia minima di {{ ricambio.quantita_minima }} pezzi!
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Azioni rapide -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning text-primary"></i>
+                        Azioni Rapide
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if ricambio.quantita_effettiva > 0 %}
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#prenotaModal">
+                            <i class="bi bi-bookmark"></i> Prenota per Ticket
+                        </button>
+                        {% endif %}
+                        
+                        {% if ricambio.quantita_disponibile > 0 %}
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scaricaModal">
+                            <i class="bi bi-arrow-down"></i> Scarica dal Magazzino
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#caricaModal">
+                            <i class="bi bi-arrow-up"></i> Carica in Magazzino
+                        </button>
+                        
+                        <hr>
+                        
+                        <a href="{{ url_for('magazzino.modifica_ricambio', id=ricambio.id) }}" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Modifica Ricambio
+                        </a>
+                        
+                        <button class="btn btn-outline-danger" onclick="confermaEliminazione()">
+                            <i class="bi bi-trash"></i> Elimina Ricambio
+                        </button>
+                        
+                        <a href="{{ url_for('magazzino.movimenti', ricambio_id=ricambio.id) }}" 
+                           class="btn btn-outline-info">
+                            <i class="bi bi-list"></i> Storico Completo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informazioni aggiuntive -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle text-info"></i>
+                        Informazioni
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        <strong>Creato:</strong><br>
+                        {{ ricambio.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </small>
+                    
+                    {% if ricambio.updated_at != ricambio.created_at %}
+                    <br><br>
+                    <small class="text-muted">
+                        <strong>Ultima modifica:</strong><br>
+                        {{ ricambio.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                    </small>
+                    {% endif %}
+                    
+                    {% if ricambio.prezzo_unitario and ricambio.quantita_disponibile > 0 %}
+                    <hr>
+                    <small class="text-muted">
+                        <strong>Valore magazzino:</strong><br>
+                        <span class="text-success fw-bold">
+                            € {{ "%.2f"|format(ricambio.prezzo_unitario * ricambio.quantita_effettiva) }}
+                        </span>
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal prenotazione -->
+<div class="modal fade" id="prenotaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prenota {{ ricambio.codice }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('magazzino.prenota_ricambio', id=ricambio.id) }}">
+                {{ prenotazione_form.hidden_tag() }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ prenotazione_form.quantita.label(class="form-label") }}
+                        {{ prenotazione_form.quantita(class="form-control", max=ricambio.quantita_effettiva) }}
+                        <div class="form-text">Disponibili: {{ ricambio.quantita_effettiva }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ prenotazione_form.ticket_id.label(class="form-label") }}
+                        {{ prenotazione_form.ticket_id(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ prenotazione_form.data_scadenza.label(class="form-label") }}
+                        {{ prenotazione_form.data_scadenza(class="form-control") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ prenotazione_form.note.label(class="form-label") }}
+                        {{ prenotazione_form.note(class="form-control") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Prenota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal scarico -->
+<div class="modal fade" id="scaricaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scarica {{ ricambio.codice }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('magazzino.scarica_ricambio', id=ricambio.id) }}">
+                {{ scarico_form.hidden_tag() }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ scarico_form.quantita.label(class="form-label") }}
+                        {{ scarico_form.quantita(class="form-control", max=ricambio.quantita_disponibile) }}
+                        <div class="form-text">Disponibili: {{ ricambio.quantita_disponibile }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ scarico_form.motivo.label(class="form-label") }}
+                        {{ scarico_form.motivo(class="form-control") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ scarico_form.ticket_id.label(class="form-label") }}
+                        {{ scarico_form.ticket_id(class="form-select") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-warning">Scarica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal carico -->
+<div class="modal fade" id="caricaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Carica {{ ricambio.codice }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('magazzino.carica_ricambio', id=ricambio.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="ricambio_id" value="{{ ricambio.id }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="carica_quantita" class="form-label">Quantità da Caricare</label>
+                        <input type="number" class="form-control" name="quantita" id="carica_quantita" min="1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carica_motivo" class="form-label">Motivo Carico</label>
+                        <input type="text" class="form-control" name="motivo" id="carica_motivo" 
+                               placeholder="Es: Nuovo arrivo fornitore..." value="Carico manuale" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carica_ticket_id" class="form-label">Ticket Collegato (opzionale)</label>
+                        <select class="form-select" name="ticket_id" id="carica_ticket_id">
+                            <option value="">Nessun ticket collegato</option>
+                            <!-- Popolato via JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-success">Carica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal conferma eliminazione -->
+<div class="modal fade" id="eliminaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Conferma Eliminazione
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <strong><i class="bi bi-exclamation-triangle"></i> Attenzione!</strong>
+                    Stai per eliminare definitivamente il ricambio <strong>{{ ricambio.codice }}</strong>.
+                </div>
+                
+                <p>Questa operazione eliminerà anche:</p>
+                <ul class="text-muted">
+                    <li><i class="bi bi-arrow-left-right"></i> Tutti i movimenti di magazzino associati ({{ movimenti|length }} movimenti)</li>
+                    <li><i class="bi bi-bookmark"></i> Tutte le prenotazioni attive ({{ prenotazioni|length }} prenotazioni)</li>
+                    {% if ricambio.foto_filename %}
+                    <li><i class="bi bi-image"></i> La foto del ricambio</li>
+                    {% endif %}
+                    <li><i class="bi bi-ticket"></i> I collegamenti con i ticket</li>
+                </ul>
+                
+                {% if ricambio.quantita_disponibile > 0 %}
+                <div class="alert alert-warning" role="alert">
+                    <strong>Nota:</strong> Il ricambio ha ancora <strong>{{ ricambio.quantita_disponibile }} pezzi</strong> in magazzino.
+                </div>
+                {% endif %}
+                
+                {% if ricambio.quantita_prenotata > 0 %}
+                <div class="alert alert-warning" role="alert">
+                    <strong>Nota:</strong> Il ricambio ha <strong>{{ ricambio.quantita_prenotata }} pezzi prenotati</strong> per ticket attivi.
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-danger" role="alert">
+                    <strong>Questa operazione non può essere annullata!</strong>
+                </div>
+                
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confermaEliminazione">
+                    <label class="form-check-label" for="confermaEliminazione">
+                        Confermo di voler eliminare definitivamente questo ricambio
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Annulla
+                </button>
+                <form method="POST" action="{{ url_for('magazzino.elimina_ricambio', id=ricambio.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger" id="btnEliminaDefinitivo" disabled>
+                        <i class="bi bi-trash"></i> Elimina Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ticketsData = [];
+
+// Carica i ticket all'avvio
+document.addEventListener('DOMContentLoaded', function() {
+    loadTickets();
+    
+    // Gestione apertura modal carico
+    const caricaModal = document.getElementById('caricaModal');
+    if (caricaModal) {
+        caricaModal.addEventListener('show.bs.modal', function() {
+            // Popola select ticket
+            const select = document.getElementById('carica_ticket_id');
+            select.innerHTML = '<option value="">Nessun ticket collegato</option>';
+            ticketsData.forEach(ticket => {
+                const option = document.createElement('option');
+                option.value = ticket.id;
+                option.textContent = `${ticket.numero} - ${ticket.titolo}`;
+                select.appendChild(option);
+            });
+            
+            // Reset campi
+            document.getElementById('carica_quantita').value = 1;
+            document.getElementById('carica_motivo').value = 'Carico manuale';
+        });
+    }
+});
+
+function loadTickets() {
+    // Carica i ticket reali tramite API
+    fetch('/tickets/api/active')
+        .then(response => response.json())
+        .then(data => {
+            ticketsData = data;
+        })
+        .catch(error => {
+            console.error('Errore caricamento ticket:', error);
+            // Fallback con dati statici
+            ticketsData = [
+                {id: 1, numero: 'TK202501001', titolo: 'Riparazione bilancia cliente A'},
+                {id: 2, numero: 'TK202501002', titolo: 'Manutenzione preventiva'},
+                {id: 3, numero: 'TK202501003', titolo: 'Sostituzione display LCD'}
+            ];
+        });
+}
+
+function utilizzaPrenotazione(prenotazioneId, quantita) {
+    if (confirm(`Confermi di voler utilizzare completamente questa prenotazione (${quantita} pezzi)?`)) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+            body: 'azione=utilizza_totale'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+
+function annullaPrenotazione(prenotazioneId) {
+    if (confirm('Confermi di voler annullare questa prenotazione?')) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+            body: 'azione=annulla'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+
+function confermaEliminazione() {
+    new bootstrap.Modal(document.getElementById('eliminaModal')).show();
+}
+
+// Gestione checkbox conferma eliminazione
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confermaEliminazione');
+    const btnElimina = document.getElementById('btnEliminaDefinitivo');
+    
+    if (checkbox && btnElimina) {
+        checkbox.addEventListener('change', function() {
+            btnElimina.disabled = !this.checked;
+        });
+    }
+});
+</script>
+{% endblock %}

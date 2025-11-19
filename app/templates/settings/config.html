@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}Configurazione - DB-Desk{% endblock %}
+{% block page_title %}Configurazione Sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Avviso importante -->
+        <div class="alert alert-warning">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle fs-4 me-2"></i>
+                <div>
+                    <strong>Attenzione!</strong> Modifica queste impostazioni solo se sai cosa stai facendo. 
+                    Alcune modifiche richiedono il riavvio dell'applicazione.
+                </div>
+            </div>
+        </div>
+
+        <!-- Configurazioni Generali -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Configurazioni Generali
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="general-config">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ticket per pagina</label>
+                            <input type="number" class="form-control" id="tickets_per_page" 
+                                   value="{{ config_options.tickets_per_page }}" min="5" max="100">
+                            <div class="form-text">Numero di ticket mostrati per pagina nelle liste</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Clienti per pagina</label>
+                            <input type="number" class="form-control" id="clients_per_page" 
+                                   value="{{ config_options.clients_per_page }}" min="5" max="100">
+                            <div class="form-text">Numero di clienti mostrati per pagina nelle liste</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Timeout sessione (minuti)</label>
+                            <input type="number" class="form-control" id="session_timeout" 
+                                   value="{{ config_options.session_timeout }}" min="5" max="480">
+                            <div class="form-text">Durata massima di inattività prima del logout automatico</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Priorità predefinita ticket</label>
+                            <select class="form-select" id="default_ticket_priority">
+                                <option value="Bassa" {{ 'selected' if config_options.default_ticket_priority == 'Bassa' }}>Bassa</option>
+                                <option value="Media" {{ 'selected' if config_options.default_ticket_priority == 'Media' }}>Media</option>
+                                <option value="Alta" {{ 'selected' if config_options.default_ticket_priority == 'Alta' }}>Alta</option>
+                                <option value="Critica" {{ 'selected' if config_options.default_ticket_priority == 'Critica' }}>Critica</option>
+                            </select>
+                            <div class="form-text">Priorità assegnata di default ai nuovi ticket</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i>
+                        Salva Configurazioni Generali
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Configurazioni Avanzate -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cpu"></i>
+                    Configurazioni Avanzate
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="advanced-config">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="auto_assign_tickets" 
+                                       {{ 'checked' if config_options.auto_assign_tickets }}>
+                                <label class="form-check-label" for="auto_assign_tickets">
+                                    Assegnazione automatica ticket
+                                </label>
+                            </div>
+                            <div class="form-text">Assegna automaticamente i nuovi ticket agli operatori disponibili</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" 
+                                       {{ 'checked' if config_options.email_notifications }}>
+                                <label class="form-check-label" for="email_notifications">
+                                    Notifiche email
+                                </label>
+                            </div>
+                            <div class="form-text">Invia notifiche email per eventi importanti</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giorni di conservazione backup</label>
+                            <input type="number" class="form-control" id="backup_retention_days" 
+                                   value="{{ config_options.backup_retention_days }}" min="1" max="365">
+                            <div class="form-text">Numero di giorni per mantenere i backup automatici</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="maintenance_mode" 
+                                       {{ 'checked' if config_options.maintenance_mode }}>
+                                <label class="form-check-label" for="maintenance_mode">
+                                    Modalità manutenzione
+                                </label>
+                            </div>
+                            <div class="form-text text-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Impedisce l'accesso agli utenti non amministratori
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-gear"></i>
+                        Salva Configurazioni Avanzate
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Configurazioni Sicurezza -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-check"></i>
+                    Sicurezza
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Password Policy</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="require_strong_passwords" checked>
+                            <label class="form-check-label">
+                                Richiedi password complesse
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="password_expiration">
+                            <label class="form-check-label">
+                                Scadenza password (90 giorni)
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="two_factor_auth">
+                            <label class="form-check-label">
+                                Autenticazione a due fattori
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Sessioni</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="secure_cookies" checked>
+                            <label class="form-check-label">
+                                Cookie sicuri (HTTPS)
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="session_ip_check">
+                            <label class="form-check-label">
+                                Controllo IP sessione
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="login_attempts_limit" checked>
+                            <label class="form-check-label">
+                                Limite tentativi di login (5)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-danger" onclick="saveSecurityConfig()">
+                    <i class="bi bi-shield"></i>
+                    Salva Configurazioni Sicurezza
+                </button>
+            </div>
+        </div>
+
+        <!-- Reset e Backup Configurazioni -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reset e Backup
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Backup Configurazione</h6>
+                        <p class="text-muted">Salva le configurazioni attuali in un file</p>
+                        <button class="btn btn-outline-primary" onclick="backupConfig()">
+                            <i class="bi bi-download"></i>
+                            Esporta Configurazione
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Reset Configurazione</h6>
+                        <p class="text-muted">Ripristina tutte le impostazioni ai valori predefiniti</p>
+                        <button class="btn btn-outline-danger" onclick="resetConfig()">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Reset alle Impostazioni Predefinite
+                        </button>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Importa Configurazione</h6>
+                        <p class="text-muted">Carica configurazioni da un file di backup</p>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="config-file" accept=".json">
+                            <button class="btn btn-outline-secondary" onclick="importConfig()">
+                                <i class="bi bi-upload"></i>
+                                Importa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Salva configurazioni generali
+document.getElementById('general-config').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const config = {
+        tickets_per_page: document.getElementById('tickets_per_page').value,
+        clients_per_page: document.getElementById('clients_per_page').value,
+        session_timeout: document.getElementById('session_timeout').value,
+        default_ticket_priority: document.getElementById('default_ticket_priority').value
+    };
+    
+    // Simula salvataggio
+    showToast('Configurazioni generali salvate', 'success');
+    console.log('Configurazioni generali:', config);
+});
+
+// Salva configurazioni avanzate
+document.getElementById('advanced-config').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const config = {
+        auto_assign_tickets: document.getElementById('auto_assign_tickets').checked,
+        email_notifications: document.getElementById('email_notifications').checked,
+        backup_retention_days: document.getElementById('backup_retention_days').value,
+        maintenance_mode: document.getElementById('maintenance_mode').checked
+    };
+    
+    // Avviso per modalità manutenzione
+    if (config.maintenance_mode) {
+        if (!confirm('Attivare la modalità manutenzione impedirà l\'accesso agli utenti non amministratori. Continuare?')) {
+            document.getElementById('maintenance_mode').checked = false;
+            return;
+        }
+    }
+    
+    showToast('Configurazioni avanzate salvate', 'success');
+    console.log('Configurazioni avanzate:', config);
+});
+
+// Salva configurazioni sicurezza
+function saveSecurityConfig() {
+    const config = {
+        require_strong_passwords: document.getElementById('require_strong_passwords').checked,
+        password_expiration: document.getElementById('password_expiration').checked,
+        two_factor_auth: document.getElementById('two_factor_auth').checked,
+        secure_cookies: document.getElementById('secure_cookies').checked,
+        session_ip_check: document.getElementById('session_ip_check').checked,
+        login_attempts_limit: document.getElementById('login_attempts_limit').checked
+    };
+    
+    showToast('Configurazioni di sicurezza salvate', 'success');
+    console.log('Configurazioni sicurezza:', config);
+}
+
+// Backup configurazione
+function backupConfig() {
+    const config = {
+        general: {
+            tickets_per_page: document.getElementById('tickets_per_page').value,
+            clients_per_page: document.getElementById('clients_per_page').value,
+            session_timeout: document.getElementById('session_timeout').value,
+            default_ticket_priority: document.getElementById('default_ticket_priority').value
+        },
+        advanced: {
+            auto_assign_tickets: document.getElementById('auto_assign_tickets').checked,
+            email_notifications: document.getElementById('email_notifications').checked,
+            backup_retention_days: document.getElementById('backup_retention_days').value,
+            maintenance_mode: document.getElementById('maintenance_mode').checked
+        },
+        security: {
+            require_strong_passwords: document.getElementById('require_strong_passwords').checked,
+            password_expiration: document.getElementById('password_expiration').checked,
+            two_factor_auth: document.getElementById('two_factor_auth').checked,
+            secure_cookies: document.getElementById('secure_cookies').checked,
+            session_ip_check: document.getElementById('session_ip_check').checked,
+            login_attempts_limit: document.getElementById('login_attempts_limit').checked
+        },
+        export_date: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `db-desk-config-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showToast('Configurazione esportata', 'success');
+}
+
+// Reset configurazione
+function resetConfig() {
+    if (confirm('Sei sicuro di voler ripristinare tutte le impostazioni ai valori predefiniti? Questa azione non può essere annullata.')) {
+        // Reset ai valori di default
+        document.getElementById('tickets_per_page').value = 20;
+        document.getElementById('clients_per_page').value = 20;
+        document.getElementById('session_timeout').value = 30;
+        document.getElementById('default_ticket_priority').value = 'Media';
+        
+        document.getElementById('auto_assign_tickets').checked = false;
+        document.getElementById('email_notifications').checked = true;
+        document.getElementById('backup_retention_days').value = 30;
+        document.getElementById('maintenance_mode').checked = false;
+        
+        document.getElementById('require_strong_passwords').checked = true;
+        document.getElementById('password_expiration').checked = false;
+        document.getElementById('two_factor_auth').checked = false;
+        document.getElementById('secure_cookies').checked = true;
+        document.getElementById('session_ip_check').checked = false;
+        document.getElementById('login_attempts_limit').checked = true;
+        
+        showToast('Configurazione ripristinata ai valori predefiniti', 'success');
+    }
+}
+
+// Importa configurazione
+function importConfig() {
+    const fileInput = document.getElementById('config-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showToast('Seleziona un file di configurazione', 'warning');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const config = JSON.parse(e.target.result);
+            
+            // Applica le configurazioni importate
+            if (config.general) {
+                document.getElementById('tickets_per_page').value = config.general.tickets_per_page || 20;
+                document.getElementById('clients_per_page').value = config.general.clients_per_page || 20;
+                document.getElementById('session_timeout').value = config.general.session_timeout || 30;
+                document.getElementById('default_ticket_priority').value = config.general.default_ticket_priority || 'Media';
+            }
+            
+            if (config.advanced) {
+                document.getElementById('auto_assign_tickets').checked = config.advanced.auto_assign_tickets || false;
+                document.getElementById('email_notifications').checked = config.advanced.email_notifications !== false;
+                document.getElementById('backup_retention_days').value = config.advanced.backup_retention_days || 30;
+                document.getElementById('maintenance_mode').checked = config.advanced.maintenance_mode || false;
+            }
+            
+            if (config.security) {
+                document.getElementById('require_strong_passwords').checked = config.security.require_strong_passwords !== false;
+                document.getElementById('password_expiration').checked = config.security.password_expiration || false;
+                document.getElementById('two_factor_auth').checked = config.security.two_factor_auth || false;
+                document.getElementById('secure_cookies').checked = config.security.secure_cookies !== false;
+                document.getElementById('session_ip_check').checked = config.security.session_ip_check || false;
+                document.getElementById('login_attempts_limit').checked = config.security.login_attempts_limit !== false;
+            }
+            
+            showToast('Configurazione importata con successo', 'success');
+            fileInput.value = '';
+            
+        } catch (error) {
+            showToast('Errore nel file di configurazione', 'danger');
+            console.error('Errore parsing JSON:', error);
+        }
+    };
+    
+    reader.readAsText(file);
+}
+</script>
+{% endblock %}

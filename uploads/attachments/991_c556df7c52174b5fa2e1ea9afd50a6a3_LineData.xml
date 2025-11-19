@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GeneralConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>1.1.2.16</version>
+  <iniTime>0001-01-01T00:00:00</iniTime>
+  <endTime>0001-01-01T00:00:00</endTime>
+  <completedFileCycle>0</completedFileCycle>
+  <importSelectedScales>0</importSelectedScales>
+  <registersByMaster>0</registersByMaster>
+  <lstFileConfig>
+    <FileConfig>
+      <sRenamedDirectory>Processed files</sRenamedDirectory>
+      <sRenamedFileNameDateFormat>yyyyMMddHHmm</sRenamedFileNameDateFormat>
+      <PATH_FILE>C:\Users\CS1200\Desktop\LILLO\202308171058_lillo.txt</PATH_FILE>
+      <importName>Ingredienti</importName>
+      <regularFile>202308171058_lillo.txt</regularFile>
+      <initialLine>0</initialLine>
+      <typeFile>ARTICLES</typeFile>
+      <operation>COMBINE</operation>
+      <separator />
+      <codePage>1252</codePage>
+      <xmlLevel>2</xmlLevel>
+      <typeImage>ARTICLE</typeImage>
+      <sectionPlusCode>0</sectionPlusCode>
+      <processedFolder>C:\SW1100\RGI\Processed files</processedFolder>
+      <processedFile>yyyyMMddHHmmss_*.*</processedFile>
+      <processedDefault>1</processedDefault>
+      <listFields>
+        <Field>
+          <name>IdArticulo</name>
+          <initialLocation>0</initialLocation>
+          <initialField />
+          <lenght>3</lenght>
+          <type>INTEGER</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Texto20</name>
+          <initialLocation>4</initialLocation>
+          <initialField />
+          <lenght>121</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+      </listFields>
+      <transformationsConfig>
+        <listFields />
+      </transformationsConfig>
+      <sFieldsNoInsert />
+    </FileConfig>
+    <FileConfig>
+      <sRenamedDirectory>Processed files</sRenamedDirectory>
+      <sRenamedFileNameDateFormat>yyyyMMddHHmm</sRenamedFileNameDateFormat>
+      <PATH_FILE>C:\Users\CS1200\Desktop\coalvi\classe bovino coalvi.txt</PATH_FILE>
+      <importName>classe coalvi</importName>
+      <regularFile>classe bovino coalvi.txt</regularFile>
+      <initialLine>0</initialLine>
+      <typeFile>TRACEABILITY_CLASSES</typeFile>
+      <operation>COMBINE</operation>
+      <separator>;</separator>
+      <codePage>1252</codePage>
+      <xmlLevel>2</xmlLevel>
+      <typeImage>ARTICLE</typeImage>
+      <sectionPlusCode>0</sectionPlusCode>
+      <processedFolder>C:\Users\CS1200\Desktop\coalvi</processedFolder>
+      <processedFile>yyyyMMddHHmmss_*.*</processedFile>
+      <processedDefault>1</processedDefault>
+      <listFields>
+        <Field>
+          <name>IdClase</name>
+          <initialLocation>0</initialLocation>
+          <initialField />
+          <lenght>1</lenght>
+          <type>INTEGER</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>NombreClase</name>
+          <initialLocation>1</initialLocation>
+          <initialField />
+          <lenght>13</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta01</name>
+          <initialLocation>2</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta02</name>
+          <initialLocation>3</initialLocation>
+          <initialField />
+          <lenght>23</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta03</name>
+          <initialLocation>4</initialLocation>
+          <initialField />
+          <lenght>23</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta04</name>
+          <initialLocation>5</initialLocation>
+          <initialField />
+          <lenght>23</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta05</name>
+          <initialLocation>6</initialLocation>
+          <initialField />
+          <lenght>23</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta06</name>
+          <initialLocation>7</initialLocation>
+          <initialField />
+          <lenght>35</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta07</name>
+          <initialLocation>8</initialLocation>
+          <initialField />
+          <lenght>17</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta08</name>
+          <initialLocation>9</initialLocation>
+          <initialField />
+          <lenght>18</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta09</name>
+          <initialLocation>10</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta10</name>
+          <initialLocation>11</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta11</name>
+          <initialLocation>12</initialLocation>
+          <initialField />
+          <lenght>17</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta12</name>
+          <initialLocation>13</initialLocation>
+          <initialField />
+          <lenght>16</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta13</name>
+          <initialLocation>14</initialLocation>
+          <initialField />
+          <lenght>20</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta14</name>
+          <initialLocation>15</initialLocation>
+          <initialField />
+          <lenght>23</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta15</name>
+          <initialLocation>16</initialLocation>
+          <initialField />
+          <lenght>33</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta16</name>
+          <initialLocation>17</initialLocation>
+          <initialField />
+          <lenght>13</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta17</name>
+          <initialLocation>18</initialLocation>
+          <initialField />
+          <lenght>13</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta18</name>
+          <initialLocation>19</initialLocation>
+          <initialField />
+          <lenght>25</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta19</name>
+          <initialLocation>20</initialLocation>
+          <initialField />
+          <lenght>21</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Pregunta20</name>
+          <initialLocation>21</initialLocation>
+          <initialField />
+          <lenght>18</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+      </listFields>
+      <transformationsConfig>
+        <listFields />
+      </transformationsConfig>
+      <sFieldsNoInsert />
+    </FileConfig>
+    <FileConfig>
+      <sRenamedDirectory>Processed files</sRenamedDirectory>
+      <sRenamedFileNameDateFormat>yyyyMMddHHmm</sRenamedFileNameDateFormat>
+      <PATH_FILE>G:\Il mio Drive\Lillo Settimo\COALVI.txt</PATH_FILE>
+      <importName>animali</importName>
+      <regularFile>*COALVI*.txt</regularFile>
+      <initialLine>0</initialLine>
+      <typeFile>BATCHES</typeFile>
+      <operation>COMBINE</operation>
+      <separator />
+      <codePage>1252</codePage>
+      <xmlLevel>2</xmlLevel>
+      <typeImage>ARTICLE</typeImage>
+      <sectionPlusCode>0</sectionPlusCode>
+      <processedFolder>G:\Il mio Drive\Lillo Settimo\Backup</processedFolder>
+      <processedFile>yyyyMMddHHmmss_*.*</processedFile>
+      <processedDefault>1</processedDefault>
+      <listFields>
+        <Field>
+          <name>Respuesta01</name>
+          <initialLocation>0</initialLocation>
+          <initialField />
+          <lenght>42</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta02</name>
+          <initialLocation>42</initialLocation>
+          <initialField />
+          <lenght>16</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta03</name>
+          <initialLocation>58</initialLocation>
+          <initialField />
+          <lenght>14</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta04</name>
+          <initialLocation>72</initialLocation>
+          <initialField />
+          <lenght>12</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta06</name>
+          <initialLocation>84</initialLocation>
+          <initialField />
+          <lenght>10</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta07</name>
+          <initialLocation>94</initialLocation>
+          <initialField />
+          <lenght>14</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>NombreElemAsociado</name>
+          <initialLocation>94</initialLocation>
+          <initialField />
+          <lenght>14</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta08</name>
+          <initialLocation>108</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta09</name>
+          <initialLocation>114</initialLocation>
+          <initialField />
+          <lenght>10</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta10</name>
+          <initialLocation>124</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta11</name>
+          <initialLocation>130</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta12</name>
+          <initialLocation>136</initialLocation>
+          <initialField />
+          <lenght>20</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta13</name>
+          <initialLocation>156</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta14</name>
+          <initialLocation>162</initialLocation>
+          <initialField />
+          <lenght>10</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta15</name>
+          <initialLocation>187</initialLocation>
+          <initialField />
+          <lenght>15</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta16</name>
+          <initialLocation>202</initialLocation>
+          <initialField />
+          <lenght>10</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta17</name>
+          <initialLocation>212</initialLocation>
+          <initialField />
+          <lenght>3</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta18</name>
+          <initialLocation>215</initialLocation>
+          <initialField />
+          <lenght>50</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta19</name>
+          <initialLocation>265</initialLocation>
+          <initialField />
+          <lenght>30</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Peso</name>
+          <initialLocation>295</initialLocation>
+          <initialField />
+          <lenght>6</lenght>
+          <type>DECIMAL_3</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta05</name>
+          <initialLocation>301</initialLocation>
+          <initialField />
+          <lenght>21</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>Respuesta20</name>
+          <initialLocation>322</initialLocation>
+          <initialField />
+          <lenght>7</lenght>
+          <type>STRING</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+        <Field>
+          <name>IdClase</name>
+          <initialLocation>329</initialLocation>
+          <initialField />
+          <lenght>1</lenght>
+          <type>INTEGER</type>
+          <initialLocationParent />
+          <initialFieldParent />
+        </Field>
+      </listFields>
+      <transformationsConfig>
+        <listFields>
+          <FieldTransformation>
+            <name>IdClase</name>
+            <Transformations>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">A0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">A2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">A3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">A4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">B0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">B4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">B2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">B3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">C0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">C2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">C3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">C4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">D0</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">D4</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">D2</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">D3</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">A</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">B</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">C</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">D</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+            </Transformations>
+          </FieldTransformation>
+          <FieldTransformation>
+            <name>IdElemAsociado</name>
+            <Transformations>
+              <Transformation>
+                <originalvalue xsi:type="xsd:string">E</originalvalue>
+                <transformationvalue xsi:type="xsd:string">1</transformationvalue>
+              </Transformation>
+            </Transformations>
+          </FieldTransformation>
+        </listFields>
+      </transformationsConfig>
+      <sFieldsNoInsert />
+    </FileConfig>
+  </lstFileConfig>
+</GeneralConfig>

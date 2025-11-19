@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Documenti - DB-Desk{% endblock %}
+{% block page_title %}Documenti{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h5 class="mb-0 text-muted">Gestione Documentazione</h5>
+  </div>
+  <div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+      <i class="bi bi-upload"></i> Carica documento
+    </button>
+  </div>
+  </div>
+
+<div class="row">
+  <!-- Sidebar filtri -->
+  <div class="col-md-3">
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="bi bi-bookmark"></i> Argomenti
+      </div>
+      <div class="list-group list-group-flush">
+        {% for c in categories %}
+        <a class="list-group-item list-group-item-action {% if c == category %}active{% endif %}"
+           href="{{ url_for('docs.index', category=c, q=q) }}">
+          {{ c|capitalize }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-search"></i> Ricerca
+      </div>
+      <div class="card-body">
+        <form method="get" action="{{ url_for('docs.index') }}">
+          <input type="hidden" name="category" value="{{ category }}" />
+          <div class="input-group">
+            <input class="form-control" type="text" name="q" placeholder="Cerca per nome file" value="{{ q }}" />
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenuto principale -->
+  <div class="col-md-9">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-muted">Argomento selezionato:</span>
+          <span class="badge bg-info text-dark text-uppercase">{{ category }}</span>
+        </div>
+        <small class="text-muted">Formati supportati: {{ ', '.join(allowed_exts) }}</small>
+      </div>
+      <div class="card-body">
+        {% if files %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 48px;"></th>
+                <th>Nome file</th>
+                <th style="width: 220px;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in files %}
+              <tr class="clickable-row" onclick="window.open('{{ url_for('docs.view', category=category, filename=f) }}', '_blank')">
+                <td><i class="bi bi-file-earmark"></i></td>
+                <td class="fw-medium">{{ f }}</td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('docs.view', category=category, filename=f) }}" target="_blank" onclick="event.stopPropagation();">
+                      <i class="bi bi-box-arrow-up-right"></i> Apri
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-filename="{{ f }}" data-category="{{ category }}" onclick="event.stopPropagation();">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#moveModal" data-filename="{{ f }}" data-source-category="{{ category }}" onclick="event.stopPropagation();">
+                      <i class="bi bi-arrows-move"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-folder2-open fs-1 d-block mb-2"></i>
+          Nessun documento nell'argomento selezionato.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal caricamento documento -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('docs.upload') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadModalLabel"><i class="bi bi-upload"></i> Carica documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Argomento</label>
+            <select class="form-select" name="category" required>
+              {% for c in categories %}
+              <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">File</label>
+            <input type="file" name="file" class="form-control" required />
+            <div class="form-text">Formati supportati: {{ ', '.join(allowed_exts) }}</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> Carica</button>
+        </div>
+      </form>
+    </div>
+  </div>
+ </div>
+
+<!-- Modal elimina documento -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('docs.delete') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-trash"></i> Elimina documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="category" id="delete-category" />
+          <input type="hidden" name="filename" id="delete-filename" />
+          <p>Sei sicuro di voler eliminare il documento <strong id="delete-file-label"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Elimina</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal sposta documento -->
+<div class="modal fade" id="moveModal" tabindex="-1" aria-labelledby="moveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('docs.move') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="moveModalLabel"><i class="bi bi-arrows-move"></i> Sposta documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="source_category" id="move-source-category" />
+          <input type="hidden" name="filename" id="move-filename" />
+          <div class="mb-3">
+            <label class="form-label">Nuovo argomento</label>
+            <select class="form-select" name="target_category" id="move-target-category" required>
+              {% for c in categories %}
+              <option value="{{ c }}">{{ c|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Sposta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteModal = document.getElementById('deleteModal');
+  deleteModal.addEventListener('show.bs.modal', (event) => {
+    const button = event.relatedTarget;
+    const filename = button.getAttribute('data-filename');
+    const category = button.getAttribute('data-category');
+    document.getElementById('delete-filename').value = filename;
+    document.getElementById('delete-category').value = category;
+    document.getElementById('delete-file-label').textContent = filename;
+  });
+
+  const moveModal = document.getElementById('moveModal');
+  moveModal.addEventListener('show.bs.modal', (event) => {
+    const button = event.relatedTarget;
+    const filename = button.getAttribute('data-filename');
+    const sourceCategory = button.getAttribute('data-source-category');
+    document.getElementById('move-filename').value = filename;
+    document.getElementById('move-source-category').value = sourceCategory;
+    const select = document.getElementById('move-target-category');
+    // Pre-seleziona una categoria diversa dalla sorgente
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].value !== sourceCategory) {
+        select.selectedIndex = i;
+        break;
+      }
+    }
+  });
+</script>
+{% endblock %}
+

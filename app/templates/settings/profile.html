@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Il Mio Profilo - DB-Desk{% endblock %}
+{% block page_title %}Il Mio Profilo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Informazioni profilo -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i>
+                    Informazioni Profilo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-person fs-1"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <dl class="row">
+                            <dt class="col-sm-3">Nome completo:</dt>
+                            <dd class="col-sm-9">{{ user.full_name }}</dd>
+                            
+                            <dt class="col-sm-3">Username:</dt>
+                            <dd class="col-sm-9"><code>{{ user.username }}</code></dd>
+                            
+                            <dt class="col-sm-3">Email:</dt>
+                            <dd class="col-sm-9">
+                                <a href="mailto:{{ user.email }}" class="text-decoration-none">
+                                    {{ user.email }}
+                                </a>
+                            </dd>
+                            
+                            <dt class="col-sm-3">Ruolo:</dt>
+                            <dd class="col-sm-9">
+                                {% if user.is_admin %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-shield-fill"></i> Amministratore
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-person-fill"></i> Utente
+                                    </span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-3">Stato:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">
+                                    {{ 'Attivo' if user.is_active else 'Inattivo' }}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cambio password -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-key"></i>
+                    Cambia Password
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.current_password.label(class="form-label") }}
+                        {{ form.current_password(class="form-control" + (" is-invalid" if form.current_password.errors else "")) }}
+                        {% if form.current_password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.current_password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Inserisci la tua password attuale per confermare l'identità</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.new_password.label(class="form-label") }}
+                                {{ form.new_password(class="form-control" + (" is-invalid" if form.new_password.errors else ""), id="newPassword") }}
+                                {% if form.new_password.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.new_password.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <!-- Indicatore forza password -->
+                                <div class="mt-2">
+                                    <div class="progress" style="height: 5px;">
+                                        <div id="passwordStrength" class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                    <small id="passwordStrengthText" class="text-muted">Sicurezza password</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.new_password2.label(class="form-label") }}
+                                {{ form.new_password2(class="form-control" + (" is-invalid" if form.new_password2.errors else ""), id="confirmPassword") }}
+                                {% if form.new_password2.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.new_password2.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div id="passwordMatch" class="form-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('settings.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Torna alle impostazioni
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar con statistiche -->
+    <div class="col-lg-4">
+        <!-- Statistiche attività -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Le Tue Statistiche
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-0">{{ user.created_tickets.count() }}</h4>
+                            <small class="text-muted">Ticket Creati</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-info mb-0">{{ user.assigned_tickets.count() }}</h4>
+                        <small class="text-muted">Ticket Assegnati</small>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h5 class="text-success mb-0">{{ user.assigned_tickets.filter_by(stato='Risolto').count() }}</h5>
+                            <small class="text-muted">Risolti</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-warning mb-0">{{ (user.assigned_tickets.filter_by(stato='Aperto').count() + user.assigned_tickets.filter_by(stato='In Lavorazione').count()) }}</h5>
+                        <small class="text-muted">In Corso</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informazioni account -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informazioni Account
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Registrato:</dt>
+                    <dd class="col-sm-6">{{ user.created_at.strftime('%d/%m/%Y') }}</dd>
+                    
+                    <dt class="col-sm-6">Ultimo accesso:</dt>
+                    <dd class="col-sm-6">
+                        {% if user.last_login %}
+                            {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            <span class="text-muted">Mai</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-6">Sessioni attive:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-success">1</span>
+                        <small class="text-muted">(questa)</small>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Sicurezza account -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-shield-check"></i>
+                    Sicurezza Account
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small">Password sicura</span>
+                    <i class="bi bi-check-circle text-success"></i>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small">Account attivo</span>
+                    <i class="bi bi-check-circle text-success"></i>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="small">Accesso recente</span>
+                    <i class="bi bi-check-circle text-success"></i>
+                </div>
+                
+                <hr>
+                
+                <div class="d-grid">
+                    <button class="btn btn-outline-warning btn-sm" onclick="logoutAllSessions()">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Disconnetti altre sessioni
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Azioni rapide -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i>
+                    Azioni Rapide
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('tickets.my_tickets') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-ticket-detailed"></i>
+                        I Miei Ticket
+                    </a>
+                    <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo Ticket
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Controllo forza password
+document.getElementById('newPassword').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('passwordStrengthText');
+    
+    let strength = 0;
+    let text = '';
+    let color = '';
+    
+    if (password.length >= 6) strength += 1;
+    if (password.match(/[a-z]/)) strength += 1;
+    if (password.match(/[A-Z]/)) strength += 1;
+    if (password.match(/[0-9]/)) strength += 1;
+    if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+    
+    switch(strength) {
+        case 0:
+        case 1:
+            text = 'Molto debole';
+            color = 'bg-danger';
+            break;
+        case 2:
+            text = 'Debole';
+            color = 'bg-warning';
+            break;
+        case 3:
+            text = 'Media';
+            color = 'bg-info';
+            break;
+        case 4:
+            text = 'Forte';
+            color = 'bg-success';
+            break;
+        case 5:
+            text = 'Molto forte';
+            color = 'bg-success';
+            break;
+    }
+    
+    strengthBar.className = `progress-bar ${color}`;
+    strengthBar.style.width = `${(strength / 5) * 100}%`;
+    strengthText.textContent = text;
+});
+
+// Controllo corrispondenza password
+document.getElementById('confirmPassword').addEventListener('input', function() {
+    const password = document.getElementById('newPassword').value;
+    const confirm = this.value;
+    const matchText = document.getElementById('passwordMatch');
+    
+    if (confirm === '') {
+        matchText.textContent = '';
+        this.classList.remove('is-valid', 'is-invalid');
+    } else if (password === confirm) {
+        matchText.textContent = 'Le password corrispondono';
+        matchText.className = 'form-text text-success';
+        this.classList.remove('is-invalid');
+        this.classList.add('is-valid');
+    } else {
+        matchText.textContent = 'Le password non corrispondono';
+        matchText.className = 'form-text text-danger';
+        this.classList.remove('is-valid');
+        this.classList.add('is-invalid');
+    }
+});
+
+// Disconnetti altre sessioni
+function logoutAllSessions() {
+    if (confirm('Sei sicuro di voler disconnettere tutte le altre sessioni attive?')) {
+        // Qui potresti implementare la chiamata AJAX
+        showToast('Tutte le altre sessioni sono state disconnesse', 'success');
+    }
+}
+
+// Focus sul primo campo
+document.getElementById('current_password').focus();
+
+// Mostra/nascondi password
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
+    field.setAttribute('type', type);
+}
+
+// Aggiungi icone toggle password
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordFields = ['current_password', 'newPassword', 'confirmPassword'];
+    
+    passwordFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'input-group';
+            
+            field.parentNode.insertBefore(wrapper, field);
+            wrapper.appendChild(field);
+            
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-secondary';
+            button.type = 'button';
+            button.innerHTML = '<i class="bi bi-eye"></i>';
+            button.onclick = function() {
+                togglePasswordVisibility(fieldId);
+                const icon = this.querySelector('i');
+                icon.className = field.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            };
+            
+            wrapper.appendChild(button);
+        }
+    });
+});
+</script>
+{% endblock %}

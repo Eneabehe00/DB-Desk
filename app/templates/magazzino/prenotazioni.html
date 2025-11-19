@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Prenotazioni - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}Prenotazioni Ricambi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Filtri -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Stato</label>
+                    <select name="stato" class="form-select">
+                        <option value="attive" {% if stato_filtro == 'attive' %}selected{% endif %}>Solo Attive</option>
+                        <option value="scadute" {% if stato_filtro == 'scadute' %}selected{% endif %}>Solo Scadute</option>
+                        <option value="tutte" {% if stato_filtro == 'tutte' %}selected{% endif %}>Tutte</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ricambio</label>
+                    <input type="text" name="ricambio" class="form-control" placeholder="Codice ricambio...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ticket</label>
+                    <input type="text" name="ticket" class="form-control" placeholder="Numero ticket...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Filtra
+                        </button>
+                        <a href="{{ url_for('magazzino.prenotazioni') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Elenco prenotazioni -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-bookmark text-warning"></i>
+                Prenotazioni ({{ prenotazioni.total }} totali)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if prenotazioni.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ricambio</th>
+                                <th>Quantità</th>
+                                <th>Ticket</th>
+                                <th>Data Prenotazione</th>
+                                <th>Scadenza</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prenotazione in prenotazioni.items %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ prenotazione.ricambio.codice }}</strong><br>
+                                        <small class="text-muted">{{ prenotazione.ricambio.descrizione[:50] }}{% if prenotazione.ricambio.descrizione|length > 50 %}...{% endif %}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary fs-6">{{ prenotazione.quantita }} pz</span>
+                                </td>
+                                <td>
+                                    {% if prenotazione.ticket %}
+                                        <a href="{{ url_for('tickets.view_ticket', id=prenotazione.ticket.id) }}">
+                                            {{ prenotazione.ticket.numero_ticket }}
+                                        </a><br>
+                                        <small class="text-muted">{{ prenotazione.ticket.titolo[:30] }}{% if prenotazione.ticket.titolo|length > 30 %}...{% endif %}</small>
+                                    {% else %}
+                                        <span class="text-muted">Nessun ticket</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ prenotazione.data_prenotazione.strftime('%d/%m/%Y %H:%M') }}<br>
+                                    {% if prenotazione.user %}
+                                        <small class="text-muted">da {{ prenotazione.user.full_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if prenotazione.data_scadenza %}
+                                        {{ prenotazione.data_scadenza.strftime('%d/%m/%Y %H:%M') }}
+                                        {% if prenotazione.is_scaduta %}
+                                            <br><span class="badge bg-danger">Scaduta</span>
+                                        {% elif prenotazione.giorni_alla_scadenza is not none and prenotazione.giorni_alla_scadenza <= 3 %}
+                                            <br><span class="badge bg-warning">In scadenza</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Nessuna scadenza</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if prenotazione.stato == 'Attiva' %}
+                                        <span class="badge bg-success">{{ prenotazione.stato }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ prenotazione.stato }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if prenotazione.stato == 'Attiva' %}
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-success" onclick="utilizzaPrenotazione({{ prenotazione.id }})">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button class="btn btn-danger" onclick="annullaPrenotazione({{ prenotazione.id }})">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginazione -->
+                {% if prenotazioni.pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="Paginazione prenotazioni">
+                        <ul class="pagination justify-content-center mb-0">
+                            <!-- Pulsante Precedente -->
+                            {% if prenotazioni.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ prenotazioni.prev_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-left"></i> Precedente
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="bi bi-chevron-left"></i> Precedente
+                                    </span>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Numeri di pagina -->
+                            {% for page_num in prenotazioni.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    {% if page_num != prenotazioni.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">…</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Pulsante Successivo -->
+                            {% if prenotazioni.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ prenotazioni.next_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        Successivo <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Successivo <i class="bi bi-chevron-right"></i>
+                                    </span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-bookmark text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">Nessuna prenotazione trovata</h5>
+                    <p class="text-muted">Non ci sono prenotazioni che corrispondono ai filtri selezionati.</p>
+                    <a href="{{ url_for('magazzino.index') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Crea Nuova Prenotazione
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function utilizzaPrenotazione(prenotazioneId) {
+    if (confirm('Confermi di voler utilizzare completamente questa prenotazione?')) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+            body: 'azione=utilizza_totale'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+
+function annullaPrenotazione(prenotazioneId) {
+    if (confirm('Confermi di voler annullare questa prenotazione?')) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+            body: 'azione=annulla'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

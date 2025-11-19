@@ -1,0 +1,815 @@
+/* Calendario Ticket - CSS Personalizzato */
+
+:root {
+    --calendar-border: #e2e8f0;
+    --calendar-bg: #ffffff;
+    --calendar-hover: #f8fafc;
+    --priority-critica: #ef4444;
+    --priority-alta: #f59e0b;
+    --priority-media: #06b6d4;
+    --priority-bassa: #10b981;
+    --drag-highlight: #3b82f6;
+    --drag-hover: rgba(59, 130, 246, 0.1);
+}
+
+/* Lista Ticket Sidebar */
+.ticket-list {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+    border-radius: 0.5rem;
+}
+
+.ticket-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--calendar-border);
+    cursor: grab;
+    transition: all 0.2s ease;
+    background: white;
+    position: relative;
+    overflow: hidden; /* Fix per la scrollbar orizzontale */
+}
+
+.ticket-item:hover {
+    background-color: var(--calendar-hover);
+    transform: none; /* Rimuovo translateX per evitare overflow */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-item:active,
+.ticket-item.dragging {
+    cursor: grabbing;
+    transform: rotate(2deg);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0.9;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.ticket-number {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+}
+
+.priority-badge {
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+}
+
+.priority-badge.priority-critica {
+    background-color: var(--priority-critica);
+}
+
+.priority-badge.priority-alta {
+    background-color: var(--priority-alta);
+}
+
+.priority-badge.priority-media {
+    background-color: var(--priority-media);
+}
+
+.priority-badge.priority-bassa {
+    background-color: var(--priority-bassa);
+}
+
+.ticket-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    color: #1e293b;
+    word-wrap: break-word;
+}
+
+.ticket-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.ticket-info small {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.ticket-status {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Status badges 
+   Nota: Logica stati semplificata - "Aperto" include tutti gli stati attivi 
+   (Aperto, In Lavorazione, In Attesa Cliente, Risolto) */
+.status-aperto {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-in-lavorazione {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-in-attesa-cliente {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-risolto {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-chiuso {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Calendario Grid */
+.calendar-container {
+    background: white;
+    border-radius: 0.5rem;
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid var(--calendar-border);
+}
+
+.calendar-day-header {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    color: var(--dark-color);
+    border-right: 1px solid var(--calendar-border);
+}
+
+.calendar-day-header:last-child {
+    border-right: none;
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day {
+    min-height: 120px;
+    border: 1px solid var(--calendar-border);
+    border-top: none;
+    position: relative;
+    background: white;
+    transition: all 0.2s ease;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background-color: var(--calendar-hover);
+}
+
+.calendar-day.empty {
+    background-color: #f8fafc;
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* Drop zone minimal - solo bordo colorato */
+.calendar-day.drag-over {
+    background-color: var(--drag-hover);
+    border-color: var(--drag-highlight);
+    border-width: 2px;
+    border-style: dashed;
+}
+
+.day-number {
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 1;
+}
+
+.day-tickets {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow: hidden; /* Nasconde i ticket in eccesso */
+}
+
+/* Ticket nel calendario */
+.calendar-ticket {
+    background: white;
+    border-radius: 0.4rem;
+    padding: 0.4rem;
+    font-size: 0.75rem;
+    border-left: 3px solid;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.calendar-ticket:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-ticket.priority-critica {
+    border-left-color: var(--priority-critica);
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.calendar-ticket.priority-alta {
+    border-left-color: var(--priority-alta);
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.calendar-ticket.priority-media {
+    border-left-color: var(--priority-media);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.calendar-ticket.priority-bassa {
+    border-left-color: var(--priority-bassa);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.ticket-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ticket-title-short {
+    font-weight: 500;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+.ticket-number {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.ticket-status-small .badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+}
+
+/* Indicatore ticket nascosti */
+.tickets-overflow {
+    padding: 0.2rem 0.4rem;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border-radius: 0.3rem;
+    font-size: 0.7rem;
+    color: #64748b;
+    text-align: center;
+    margin-top: 0.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tickets-overflow:hover {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #475569;
+}
+
+/* Drag and Drop States */
+.drag-ghost {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+/* Rimuovo il ::after per il testo "Rilascia qui" */
+.drop-zone-active {
+    background: linear-gradient(135deg, var(--drag-hover), rgba(59, 130, 246, 0.05));
+    border: 2px dashed var(--drag-highlight);
+}
+
+/* View Mode Buttons */
+.view-mode-buttons {
+    display: flex;
+    gap: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.view-mode-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    color: #64748b;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+    min-width: 80px;
+    text-align: center;
+}
+
+.view-mode-btn:not(:last-child) {
+    border-right: none;
+}
+
+.view-mode-btn:hover:not(.active) {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #475569;
+    transform: translateY(-1px);
+}
+
+.view-mode-btn.active {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+    z-index: 1;
+}
+
+.view-mode-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Oggi Button Styling */
+.btn-today {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-today:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    color: white;
+}
+
+.btn-today:active {
+    transform: translateY(0);
+}
+
+/* Navigation Buttons */
+.btn-nav {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-nav:hover {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Week View Styles */
+.week-view .calendar-grid {
+    display: block;
+}
+
+.week-header {
+    display: grid;
+    grid-template-columns: 100px repeat(7, 1fr);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid var(--calendar-border);
+}
+
+.week-time-header {
+    padding: 1rem;
+    border-right: 1px solid var(--calendar-border);
+    background: #f1f5f9;
+}
+
+.week-day-header {
+    padding: 1rem;
+    text-align: center;
+    border-right: 1px solid var(--calendar-border);
+}
+
+.week-day-name {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.25rem;
+}
+
+.week-day-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.week-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.week-time-row {
+    display: grid;
+    grid-template-columns: 100px repeat(7, 1fr);
+    min-height: 60px;
+}
+
+.week-time-slot {
+    padding: 0.5rem;
+    border-right: 1px solid var(--calendar-border);
+    border-bottom: 1px solid var(--calendar-border);
+    font-size: 0.8rem;
+    color: #64748b;
+    background: #f8fafc;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.week-day-column {
+    border-right: 1px solid var(--calendar-border);
+    border-bottom: 1px solid var(--calendar-border);
+    position: relative;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.week-day-column:hover {
+    background-color: var(--calendar-hover);
+}
+
+.week-day-column.drag-over {
+    background-color: var(--drag-hover);
+    border-color: var(--drag-highlight);
+    border-width: 2px;
+    border-style: dashed;
+}
+
+/* Day View Styles */
+.day-view .calendar-grid {
+    display: block;
+}
+
+.day-view-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid var(--calendar-border);
+    text-align: center;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.day-view-header h3 {
+    margin: 0;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.day-view-content {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    min-height: 700px;
+}
+
+.day-time-slots {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-right: 2px solid var(--calendar-border);
+}
+
+.day-time-slot {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--calendar-border);
+    font-size: 0.85rem;
+    color: #64748b;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 100%);
+}
+
+.day-events-container {
+    position: relative;
+    background: white;
+}
+
+.day-hour-line {
+    height: 80px;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.day-hour-line:hover {
+    background-color: var(--calendar-hover);
+}
+
+.day-hour-line.drag-over {
+    background-color: var(--drag-hover);
+    border-color: var(--drag-highlight);
+    border-width: 2px;
+    border-style: dashed;
+}
+
+/* Month View - Default state */
+.month-view .calendar-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Week Ticket Styles */
+.week-ticket {
+    background: white;
+    border-radius: 0.3rem;
+    padding: 0.3rem;
+    margin: 0.2rem;
+    font-size: 0.7rem;
+    border-left: 3px solid;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: absolute;
+    top: 5px;
+    left: 2px;
+    right: 2px;
+    z-index: 2;
+}
+
+.week-ticket:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.week-ticket.priority-critica {
+    border-left-color: var(--priority-critica);
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.week-ticket.priority-alta {
+    border-left-color: var(--priority-alta);
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.week-ticket.priority-media {
+    border-left-color: var(--priority-media);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.week-ticket.priority-bassa {
+    border-left-color: var(--priority-bassa);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.week-ticket .ticket-number {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.1rem;
+}
+
+.week-ticket .ticket-title-short {
+    font-weight: 500;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+/* Week Overflow Indicator */
+.week-overflow {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    right: 2px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    color: #64748b;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.week-overflow:hover {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #475569;
+}
+
+/* Day Ticket Styles */
+.day-ticket {
+    background: white;
+    border-radius: 0.4rem;
+    padding: 0.5rem;
+    margin: 0.3rem;
+    font-size: 0.8rem;
+    border-left: 4px solid;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    z-index: 2;
+}
+
+.day-ticket:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.day-ticket.priority-critica {
+    border-left-color: var(--priority-critica);
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.day-ticket.priority-alta {
+    border-left-color: var(--priority-alta);
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.day-ticket.priority-media {
+    border-left-color: var(--priority-media);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.day-ticket.priority-bassa {
+    border-left-color: var(--priority-bassa);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.day-ticket .ticket-number {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.2rem;
+}
+
+.day-ticket .ticket-title {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.day-ticket .ticket-client {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .calendar-day {
+        min-height: 80px;
+        padding: 0.3rem;
+    }
+    
+    .day-number {
+        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .calendar-ticket {
+        padding: 0.3rem;
+        font-size: 0.65rem;
+    }
+    
+    .ticket-item {
+        padding: 0.8rem;
+    }
+    
+    .ticket-list {
+        max-height: 300px;
+    }
+    
+    .view-mode-buttons {
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+    
+    .view-mode-btn {
+        border-radius: 0.375rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-body {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    
+    .calendar-day {
+        min-height: 60px;
+        padding: 0.2rem;
+    }
+    
+    .calendar-day-header {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animazioni */
+@keyframes ticketDrop {
+    0% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.ticket-dropped {
+    animation: ticketDrop 0.3s ease-out;
+}
+
+/* Scrollbar personalizzata */
+.ticket-list::-webkit-scrollbar,
+.day-tickets::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ticket-list::-webkit-scrollbar-track,
+.day-tickets::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb,
+.day-tickets::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb:hover,
+.day-tickets::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Toast personalizzato */
+.toast {
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.toast-success .toast-header {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    border-bottom: none;
+}
+
+.toast-error .toast-header {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-bottom: none;
+}
+
+/* Indicatori visivi */
+.today {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.today .day-number {
+    color: var(--primary-color);
+    font-weight: 700;
+}

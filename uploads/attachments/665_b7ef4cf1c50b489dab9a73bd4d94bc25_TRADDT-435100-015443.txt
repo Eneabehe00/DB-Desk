@@ -1,0 +1,2 @@
+Classe|Descrizione Articolo|Categoria Animale|Lotto|Peso|Nascita|Allevamento|Macellazione|Sezionamento
+11|MEZZENA BOVINO ADULTO S/V|Bovini|735964|202350|Francia|Francia Italia|Italia 1697M|Italia C302C

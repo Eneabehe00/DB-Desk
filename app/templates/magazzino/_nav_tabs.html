@@ -1,0 +1,149 @@
+<!-- Navigation tabs per la sezione Magazzino -->
+<div class="magazzino-nav-tabs mb-4">
+    <div class="card">
+        <div class="card-body py-2">
+            <ul class="nav nav-pills nav-fill" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if active_tab == 'index' %}active{% endif %}" 
+                       href="{{ url_for('magazzino.index') }}" 
+                       role="tab">
+                        <i class="bi bi-box-seam"></i>
+                        <span class="d-none d-md-inline ms-1">Ricambi</span>
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if active_tab == 'movimenti' %}active{% endif %}" 
+                       href="{{ url_for('magazzino.movimenti') }}" 
+                       role="tab">
+                        <i class="bi bi-arrow-left-right"></i>
+                        <span class="d-none d-md-inline ms-1">Movimenti</span>
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if active_tab == 'prenotazioni' %}active{% endif %}" 
+                       href="{{ url_for('magazzino.prenotazioni') }}" 
+                       role="tab">
+                        <i class="bi bi-bookmark"></i>
+                        <span class="d-none d-md-inline ms-1">Prenotazioni</span>
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if active_tab == 'calendario' %}active{% endif %}" 
+                       href="{{ url_for('magazzino.calendario') }}" 
+                       role="tab">
+                        <i class="bi bi-calendar3"></i>
+                        <span class="d-none d-md-inline ms-1">Calendario</span>
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if active_tab == 'reports' %}active{% endif %}" 
+                       href="{{ url_for('magazzino.reports') }}" 
+                       role="tab">
+                        <i class="bi bi-bar-chart"></i>
+                        <span class="d-none d-md-inline ms-1">Report</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.magazzino-nav-tabs .nav-pills .nav-link {
+    color: #6c757d;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.magazzino-nav-tabs .nav-pills .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+    transform: translateY(-1px);
+}
+
+.magazzino-nav-tabs .nav-pills .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.25);
+}
+
+.magazzino-nav-tabs .nav-pills .nav-link.active:hover {
+    background-color: #0b5ed7;
+    color: white;
+}
+
+.magazzino-nav-tabs .nav-pills .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .magazzino-nav-tabs .nav-pills .nav-link {
+        padding: 0.5rem 0.75rem;
+        flex-direction: column;
+        font-size: 0.875rem;
+    }
+    
+    .magazzino-nav-tabs .nav-pills .nav-link i {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+}
+
+@media (min-width: 769px) {
+    .magazzino-nav-tabs .nav-pills .nav-link {
+        flex-direction: row;
+    }
+}
+
+/* Sticky navigation on scroll - sempre attiva */
+.magazzino-nav-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background: white;
+    transition: box-shadow 0.2s ease;
+}
+
+.magazzino-nav-tabs.scrolled {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+// Add shadow when scrolling
+document.addEventListener('DOMContentLoaded', function() {
+    const navTabs = document.querySelector('.magazzino-nav-tabs');
+    if (navTabs) {
+        let ticking = false;
+        
+        function updateNavShadow() {
+            if (window.scrollY > 10) {
+                navTabs.classList.add('scrolled');
+            } else {
+                navTabs.classList.remove('scrolled');
+            }
+            ticking = false;
+        }
+        
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateNavShadow);
+                ticking = true;
+            }
+        }
+        
+        window.addEventListener('scroll', requestTick);
+        
+        // Initial check
+        updateNavShadow();
+    }
+});
+</script>

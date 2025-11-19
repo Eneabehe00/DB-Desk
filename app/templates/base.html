@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% if current_user.is_authenticated %}
+    <meta name="user-name" content="{{ current_user.full_name }}">
+    {% endif %}
+    <title>{% block title %}DB-Desk - Sistema Gestione Ticket{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--dark-color) 0%, #334155 100%);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar .nav-link {
+            color: #cbd5e1;
+            padding: 0.875rem 1.25rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0.5rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateX(4px);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+        .sidebar .nav-link i {
+            width: 1.5rem;
+            text-align: center;
+            margin-right: 0.5rem;
+        }
+        .main-content {
+            margin-left: 0;
+            background-color: var(--light-color);
+            min-height: 100vh;
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 250px;
+            }
+        }
+        
+        /* Cards styling */
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 0.75rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+            padding: 1.25rem;
+        }
+        
+        /* Table improvements */
+        .table {
+            margin-bottom: 0;
+        }
+        .table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+            transform: scale(1.001);
+        }
+        .table th {
+            background-color: #f8fafc;
+            border-top: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 1rem 0.75rem;
+        }
+        .table td {
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+        }
+        
+        /* Priority styling */
+        .priority-critica { border-left: 5px solid var(--danger-color); }
+        .priority-alta { border-left: 5px solid var(--warning-color); }
+        .priority-media { border-left: 5px solid var(--info-color); }
+        .priority-bassa { border-left: 5px solid var(--success-color); }
+        
+        /* Status styling */
+        .status-aperto { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+        .status-in-lavorazione { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+        .status-risolto { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+        .status-chiuso { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border: none;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Forms */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+        
+        /* Login page centering */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        }
+        
+        /* Utilities */
+        .clickable-row {
+            cursor: pointer !important;
+        }
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        
+        /* Animation for notifications */
+        @keyframes slideInFromRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .alert {
+            animation: slideInFromRight 0.3s ease-out;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            {% if current_user.is_authenticated %}
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebarMenu">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">
+                            <i class="bi bi-pc-display text-white"></i>
+                            DB-Desk
+                        </h4>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <!-- Sezione Principale -->
+                        <li class="nav-item">
+                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Principale</small>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
+                               href="{{ url_for('main.dashboard') }}">
+                                <i class="bi bi-house-door"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('tickets.') and not request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
+                               href="{{ url_for('tickets.list_tickets') }}">
+                                <i class="bi bi-ticket-detailed"></i>
+                                Gestione Ticket
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('fogli_tecnici.') %}active{% endif %}" 
+                               href="{{ url_for('fogli_tecnici.list_fogli') }}">
+                                <i class="bi bi-file-earmark-text"></i>
+                                Fogli Tecnici
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
+                               href="{{ url_for('tickets.calendar_view') }}">
+                                <i class="bi bi-calendar3"></i>
+                                Calendario
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('clients.') %}active{% endif %}" 
+                               href="{{ url_for('clients.list_clients') }}">
+                                <i class="bi bi-building"></i>
+                                Gestione Clienti
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('magazzino.') %}active{% endif %}"
+                               href="{{ url_for('magazzino.index') }}">
+                                <i class="bi bi-box-seam"></i>
+                                Magazzino Ricambi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('macchine.') %}active{% endif %}"
+                               href="{{ url_for('macchine.index') }}">
+                                <i class="bi bi-gear"></i>
+                                Gestione Macchine
+                            </a>
+                        </li>
+                         <li class="nav-item">
+                             <a class="nav-link {% if request.endpoint.startswith('docs.') %}active{% endif %}"
+                                href="{{ url_for('docs.index') }}">
+                                 <i class="bi bi-folder"></i>
+                                 Docs
+                             </a>
+                         </li>
+                        
+                        <!-- Sezione Analisi -->
+                        <li class="nav-item mt-3">
+                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Analisi</small>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('reports.') %}active{% endif %}" 
+                               href="{{ url_for('reports.index') }}">
+                                <i class="bi bi-bar-chart"></i>
+                                Report & Analytics
+                            </a>
+                        </li>
+                        
+                        <!-- Sezione Personale -->
+                        <li class="nav-item mt-3">
+                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Personale</small>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('tickets.my_tickets') }}">
+                                <i class="bi bi-person-workspace"></i>
+                                I Miei Ticket
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}">
+                                <i class="bi bi-person-circle"></i>
+                                Il Mio Profilo
+                            </a>
+                        </li>
+                        
+                        <!-- Sezione Amministrazione -->
+                        {% if current_user.has_permission('can_manage_users') or current_user.has_permission('can_manage_departments') or current_user.has_permission('can_manage_system') %}
+                        <li class="nav-item mt-3">
+                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Amministrazione</small>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint.startswith('settings.') and request.endpoint != 'settings.profile' %}active{% endif %}" 
+                               href="{{ url_for('settings.index') }}">
+                                <i class="bi bi-gear-wide-connected"></i>
+                                Sistema & Configurazioni
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Logout -->
+                        <li class="nav-item mt-4 pt-3 border-top border-secondary">
+                            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Disconnetti
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            {% endif %}
+            
+            <!-- Main content -->
+            <main class="{% if current_user.is_authenticated %}col-md-9 ms-sm-auto col-lg-10 px-md-4{% else %}col-12{% endif %} main-content">
+                {% if current_user.is_authenticated %}
+                <!-- Top navbar -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-outline-secondary d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <h1 class="h2">{% block page_title %}{% endblock %}</h1>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i>
+                                {{ current_user.full_name }}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('settings.profile') }}">
+                                    <i class="bi bi-person"></i> Profilo
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Page content -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Utility functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'});
+        }
+        
+        function showToast(message, type = 'success') {
+            // Simple toast notification
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

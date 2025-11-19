@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Impostazioni - DB-Desk{% endblock %}
+{% block page_title %}Impostazioni{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h2 class="display-6 text-primary">
+                    <i class="bi bi-gear"></i>
+                    Impostazioni Sistema
+                </h2>
+                <p class="lead text-muted">
+                    Configura e gestisci il tuo sistema DB-Desk
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Profilo Utente -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i>
+                    Il Mio Profilo
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Gestisci le tue informazioni personali, cambia password e 
+                    configura le preferenze del tuo account.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Informazioni personali</li>
+                    <li><i class="bi bi-check text-success"></i> Cambio password</li>
+                    <li><i class="bi bi-check text-success"></i> Preferenze account</li>
+                </ul>
+                <div class="mt-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <div>
+                            <strong>{{ current_user.full_name }}</strong><br>
+                            <small class="text-muted">{{ current_user.email }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.profile') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Gestisci Profilo
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gestione Utenti -->
+    {% if current_user.has_permission('can_manage_users') %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i>
+                    Gestione Utenti
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Gestisci gli utenti del sistema: attiva/disattiva account,
+                    assegna ruoli e reparti, monitora l'attività.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Lista utenti</li>
+                    <li><i class="bi bi-check text-success"></i> Gestione ruoli</li>
+                    <li><i class="bi bi-check text-success"></i> Assegnazione reparti</li>
+                    <li><i class="bi bi-check text-success"></i> Statistiche accessi</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.users') }}" class="btn btn-warning w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Gestisci Utenti
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Gestione Reparti -->
+    {% if current_user.has_permission('can_manage_departments') %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-building"></i>
+                    Gestione Reparti
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Configura i reparti aziendali, assegna manager e 
+                    monitora le attività per reparto.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Crea/modifica reparti</li>
+                    <li><i class="bi bi-check text-success"></i> Assegna manager</li>
+                    <li><i class="bi bi-check text-success"></i> Statistiche per reparto</li>
+                    <li><i class="bi bi-check text-success"></i> Separazione dati</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.departments') }}" class="btn btn-info w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Gestisci Reparti
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Database e Backup (solo admin) -->
+    {% if current_user.is_admin %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-database"></i>
+                    Database
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Monitora lo stato del database, esegui backup automatici
+                    e visualizza statistiche di utilizzo.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Stato database</li>
+                    <li><i class="bi bi-check text-success"></i> Backup automatico</li>
+                    <li><i class="bi bi-check text-success"></i> Statistiche utilizzo</li>
+                    <li><i class="bi bi-check text-success"></i> Informazioni connessione</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.database') }}" class="btn btn-danger w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Gestisci Database
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Informazioni Sistema -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informazioni Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Visualizza informazioni tecniche del sistema, versioni software
+                    e stato delle risorse del server.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Versione applicazione</li>
+                    <li><i class="bi bi-check text-success"></i> Stato sistema</li>
+                    <li><i class="bi bi-check text-success"></i> Utilizzo risorse</li>
+                    <li><i class="bi bi-check text-success"></i> Informazioni server</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.system') }}" class="btn btn-info w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Info Sistema
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Sistema (solo admin) -->
+    {% if current_user.is_admin %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-secondary">
+            <div class="card-header bg-secondary text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-file-text"></i>
+                    Log Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Monitora i log dell'applicazione per diagnosticare problemi
+                    e analizzare l'attività del sistema.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Log applicazione</li>
+                    <li><i class="bi bi-check text-success"></i> Log errori</li>
+                    <li><i class="bi bi-check text-success"></i> Log accessi</li>
+                    <li><i class="bi bi-check text-success"></i> Filtri e ricerca</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.logs') }}" class="btn btn-secondary w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Visualizza Log
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Configurazioni (solo admin) -->
+    {% if current_user.is_admin %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-sliders"></i>
+                    Configurazioni
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Configura parametri avanzati dell'applicazione, impostazioni
+                    di sicurezza e comportamenti di default.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Parametri generali</li>
+                    <li><i class="bi bi-check text-success"></i> Impostazioni sicurezza</li>
+                    <li><i class="bi bi-check text-success"></i> Valori di default</li>
+                    <li><i class="bi bi-check text-success"></i> Modalità manutenzione</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.config') }}" class="btn btn-success w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Configurazioni
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Import Email (solo admin) -->
+    {% if current_user.is_admin %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-envelope-arrow-down"></i>
+                    Import Email
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Configura l'importazione automatica di ticket dalle email IMAP.
+                    Gestisci filtri, mittenti permessi e conversioni manuali.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Configurazione IMAP</li>
+                    <li><i class="bi bi-check text-success"></i> Filtri email</li>
+                    <li><i class="bi bi-check text-success"></i> Conversione manuale</li>
+                    <li><i class="bi bi-check text-success"></i> Statistiche import</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.email_import') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-right"></i>
+                    Import Email
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Statistiche rapide -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer"></i>
+                    Stato Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-clock fs-2 text-primary"></i>
+                            <h6 class="mt-2 mb-1">Online</h6>
+                            <p class="text-muted mb-0 small">Sistema attivo</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-database fs-2 text-success"></i>
+                            <h6 class="mt-2 mb-1">Connesso</h6>
+                            <p class="text-muted mb-0 small">Database MySQL</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-shield-check fs-2 text-info"></i>
+                            <h6 class="mt-2 mb-1">Sicuro</h6>
+                            <p class="text-muted mb-0 small">Connessione protetta</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-speedometer2 fs-2 text-warning"></i>
+                            <h6 class="mt-2 mb-1">Ottimale</h6>
+                            <p class="text-muted mb-0 small">Performance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informazioni rapide -->
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-person"></i>
+                    Il Tuo Account
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-person fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">{{ current_user.full_name }}</h6>
+                        <p class="text-muted mb-1">{{ current_user.email }}</p>
+                        <small class="text-muted">
+                            {% if current_user.is_admin %}
+                                <i class="bi bi-shield-fill text-warning"></i> Amministratore
+                            {% else %}
+                                <i class="bi bi-person-fill text-info"></i> Utente
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <small class="text-muted">Ultimo accesso</small>
+                        <div class="fw-bold">
+                            {% if current_user.last_login %}
+                                {{ current_user.last_login.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                Mai
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Registrato</small>
+                        <div class="fw-bold">{{ current_user.created_at.strftime('%d/%m/%Y') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informazioni Applicazione
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Versione:</dt>
+                    <dd class="col-sm-8">DB-Desk v1.0</dd>
+                    
+                    <dt class="col-sm-4">Framework:</dt>
+                    <dd class="col-sm-8">Flask + MySQL</dd>
+                    
+                    <dt class="col-sm-4">Modalità:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'warning' if config.get('DEBUG') else 'success' }}">
+                            {{ 'Sviluppo' if config.get('DEBUG') else 'Produzione' }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Host:</dt>
+                    <dd class="col-sm-8"><code>{{ request.host }}</code></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Aggiorna stato sistema ogni 30 secondi
+setInterval(function() {
+    // Qui potresti fare una chiamata AJAX per aggiornare lo stato
+    console.log('Checking system status...');
+}, 30000);
+
+// Mostra tooltip per le icone di stato
+document.addEventListener('DOMContentLoaded', function() {
+    // Inizializza tooltip Bootstrap se necessario
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

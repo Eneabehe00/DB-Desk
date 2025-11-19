@@ -1,0 +1,3 @@
+Classe|Descrizione Articolo|Categoria Animale|Lotto|Peso|Nascita|Allevamento|Macellazione|Sezionamento
+11|FRATTAGLIE BOVINO ADULTO MACE||723598|15000||||
+11|TESTINA + LINGUA B.A. MACELLA||723599|14000||||

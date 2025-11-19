@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Ticket - DB-Desk{% endblock %}
+{% block page_title %}Gestione Ticket{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* Cursore pointer solo per gli header ordinabili */
+.sortable-header {
+    cursor:pointer !important;
+    user-select: pointer !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.sortable-header * {
+    cursor: pointer !important;
+    user-select: pointer !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+.sortable-header:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sort-indicator {
+    margin-left: 8px;
+    font-size: 0.9em;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+}
+
+.sortable-header:hover .sort-indicator {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.sortable-header .sort-indicator i {
+    transition: color 0.2s ease;
+}
+
+.sortable-header:hover .sort-indicator i.text-muted {
+    color: #0d6efd !important;
+}
+
+/* Effetto di feedback visivo per indicare che è cliccabile */
+.sortable-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #0d6efd;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.sortable-header:hover::after {
+    width: 80%;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filtri e azioni -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-funnel"></i>
+                Filtri
+            </h5>
+            <div>
+                <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Nuovo Ticket
+                </a>
+                <a href="{{ url_for('tickets.export_tickets') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-download"></i>
+                    Esporta CSV
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3" id="filter-form">
+            
+            <div class="col-md-3">
+                {{ form.search.label(class="form-label") }}
+                {{ form.search(class="form-control", placeholder="Cerca ticket...", id="search-input") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.stato.label(class="form-label") }}
+                {{ form.stato(class="form-select filter-select", id="stato-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.priorita.label(class="form-label") }}
+                {{ form.priorita(class="form-select filter-select", id="priorita-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.categoria.label(class="form-label") }}
+                {{ form.categoria(class="form-select filter-select", id="categoria-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.cliente.label(class="form-label") }}
+                {{ form.cliente(class="form-select filter-select", id="cliente-filter") }}
+            </div>
+            
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-outline-secondary" id="reset-filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista ticket -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                Lista Ticket
+                <span class="badge bg-secondary">{{ tickets.total }} totali</span>
+            </h5>
+            <div class="btn-group btn-group-sm" role="group">
+                <input type="radio" class="btn-check" name="view" id="table-view" checked>
+                <label class="btn btn-outline-secondary" for="table-view">
+                    <i class="bi bi-table"></i>
+                </label>
+                <input type="radio" class="btn-check" name="view" id="card-view">
+                <label class="btn btn-outline-secondary" for="card-view">
+                    <i class="bi bi-grid"></i>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    {% if tickets.items %}
+    <!-- Vista tabella -->
+    <div id="table-view-content" class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="sortable-header" data-sort="numero">
+                        Numero
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'numero' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                    <th class="sortable-header" data-sort="titolo">
+                        Titolo
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'titolo' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                    <th class="sortable-header" data-sort="cliente">
+                        Cliente
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'cliente' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                    <th class="sortable-header" data-sort="stato">
+                        Stato
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'stato' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                    <th class="sortable-header" data-sort="priorita">
+                        Priorità
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'priorita' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                    <th>
+                        Assegnato a
+                    </th>
+                    <th class="sortable-header" data-sort="created_at">
+                        Data Creazione
+                        <span class="sort-indicator">
+                            {% if current_sort_by == 'created_at' %}
+                                {% if current_sort_order == 'asc' %}
+                                    <i class="bi bi-caret-up-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-caret-down-fill"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="bi bi-caret-up-down text-muted"></i>
+                            {% endif %}
+                        </span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets.items %}
+                <tr class="priority-{{ ticket.priorita.lower() }} clickable-row" 
+                    onclick="window.location.href='{{ url_for('tickets.view_ticket', id=ticket.id) }}'">
+                    <td>
+                        <strong>{{ ticket.numero_ticket }}</strong>
+                    </td>
+                    <td>
+                        <div class="fw-medium text-dark">
+                            {{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}
+                        </div>
+                        {% if ticket.is_scaduto %}
+                            <i class="bi bi-exclamation-triangle text-danger" title="Ticket scaduto"></i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="text-secondary fw-medium">{{ ticket.cliente.ragione_sociale }}</span>
+                    </td>
+                    <td onclick="event.stopPropagation();">
+                        <select class="form-select form-select-sm status-select" 
+                                data-ticket-id="{{ ticket.id }}" 
+                                data-current-status="{{ ticket.stato }}">
+                            <option value="Aperto" {% if ticket.stato == 'Aperto' %}selected{% endif %}>Aperto</option>
+                            <option value="In Lavorazione" {% if ticket.stato == 'In Lavorazione' %}selected{% endif %}>In Lavorazione</option>
+                            <option value="In Attesa Cliente" {% if ticket.stato == 'In Attesa Cliente' %}selected{% endif %}>In Attesa Cliente</option>
+                            <option value="Risolto" {% if ticket.stato == 'Risolto' %}selected{% endif %}>Risolto</option>
+                            <option value="Chiuso" {% if ticket.stato == 'Chiuso' %}selected{% endif %}>Chiuso</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                            {{ ticket.priorita }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if ticket.assigned_to %}
+                            <span class="text-secondary">{{ ticket.assigned_to.full_name }}</span>
+                        {% else %}
+                            <span class="text-muted">Non assegnato</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="text-secondary">
+                            {{ ticket.created_at.strftime('%d/%m/%Y') }}<br>
+                            <small class="text-muted">{{ ticket.giorni_apertura }} giorni fa</small>
+                        </div>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Vista card (nascosta di default) -->
+    <div id="card-view-content" class="d-none">
+        <div class="row g-3 p-3">
+        {% for ticket in tickets.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 priority-{{ ticket.priorita.lower() }}">
+                <div class="card-header d-flex justify-content-between align-items-center py-2">
+                    <small class="text-muted">{{ ticket.numero_ticket }}</small>
+                    <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                        {{ ticket.priorita }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
+                           class="text-decoration-none">
+                            {{ ticket.titolo[:40] }}{% if ticket.titolo|length > 40 %}...{% endif %}
+                        </a>
+                    </h6>
+                    <p class="card-text small text-muted">
+                        <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
+                    </p>
+                    <p class="card-text small">
+                        {{ ticket.descrizione[:80] }}{% if ticket.descrizione|length > 80 %}...{% endif %}
+                    </p>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ ticket.created_at.strftime('%d/%m/%Y') }}</small>
+                    <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' }}">
+                        {{ ticket.stato }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Paginazione -->
+    {% if tickets.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Paginazione ticket">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+                {% if tickets.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.prev_num) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in tickets.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != tickets.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('tickets.list_tickets', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if tickets.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.next_num) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card-body text-center">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <h5 class="text-muted">Nessun ticket trovato</h5>
+        <p class="text-muted">Prova a modificare i filtri di ricerca.</p>
+        <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Crea il primo ticket
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare il ticket <strong id="ticketNumber"></strong>?
+                <br><br>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa azione non può essere annullata.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtri automatici
+let searchTimeout;
+const filterForm = document.getElementById('filter-form');
+
+// Filtri automatici per select
+document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', function() {
+        applyFilters();
+    });
+});
+
+// Ricerca con debounce
+document.getElementById('search-input').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 500); // 500ms di debounce
+});
+
+// Reset filtri
+document.getElementById('reset-filters').addEventListener('click', function() {
+    // Reset tutti i campi
+    document.getElementById('search-input').value = '';
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    // Applica filtri (vuoti)
+    applyFilters();
+});
+
+function applyFilters() {
+    const url = new URL(window.location.href);
+    url.search = ''; // Reset dei parametri
+    
+    // Aggiungi parametri filtri
+    const searchValue = document.getElementById('search-input').value.trim();
+    if (searchValue) {
+        url.searchParams.set('search', searchValue);
+    }
+    
+    document.querySelectorAll('.filter-select').forEach(select => {
+        if (select.value && select.value !== '') {
+            url.searchParams.set(select.name, select.value);
+        }
+    });
+    
+    // Reindirizza con i nuovi parametri
+    window.location.href = url.toString();
+}
+
+// Popola filtri dai parametri URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Popola campo ricerca
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+        document.getElementById('search-input').value = searchParam;
+    }
+    
+    // Popola select filters
+    document.querySelectorAll('.filter-select').forEach(select => {
+        const paramValue = urlParams.get(select.name);
+        if (paramValue) {
+            select.value = paramValue;
+        }
+    });
+});
+
+// Cambio vista tabella/card
+document.querySelectorAll('input[name="view"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const tableView = document.getElementById('table-view-content');
+        const cardView = document.getElementById('card-view-content');
+        
+        if (this.id === 'table-view') {
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+        } else {
+            tableView.classList.add('d-none');
+            cardView.classList.remove('d-none');
+        }
+    });
+});
+
+// Cambio stato ticket (AJAX)
+document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const ticketId = this.dataset.ticketId;
+        const newStatus = this.value;
+        const currentStatus = this.dataset.currentStatus;
+        
+        fetch(`{{ url_for('tickets.change_status', id=0) }}`.replace('0', ticketId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: newStatus,
+                csrf_token: document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                this.dataset.currentStatus = newStatus;
+            } else {
+                showToast(data.message, 'danger');
+                this.value = currentStatus; // Ripristina valore precedente
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            showToast('Errore durante l\'aggiornamento dello stato', 'danger');
+            this.value = currentStatus; // Ripristina valore precedente
+        });
+    });
+});
+
+// Eliminazione ticket
+document.querySelectorAll('.delete-ticket').forEach(button => {
+    button.addEventListener('click', function() {
+        const ticketId = this.dataset.ticketId;
+        const ticketNumber = this.dataset.ticketNumber;
+        
+        document.getElementById('ticketNumber').textContent = ticketNumber;
+        document.getElementById('deleteForm').action = `{{ url_for('tickets.delete_ticket', id=0) }}`.replace('0', ticketId);
+        
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+});
+
+// Ordinamento colonne
+document.querySelectorAll('.sortable-header').forEach(header => {
+    header.addEventListener('click', function() {
+        const sortBy = this.dataset.sort;
+        const currentSortBy = '{{ current_sort_by }}';
+        const currentSortOrder = '{{ current_sort_order }}';
+        
+        let newSortOrder;
+        
+        if (sortBy === currentSortBy) {
+            // Ciclo a 3 stati: asc -> desc -> none
+            if (currentSortOrder === 'asc') {
+                newSortOrder = 'desc';
+            } else if (currentSortOrder === 'desc') {
+                newSortOrder = '';  // Rimuovi ordinamento
+            } else {
+                newSortOrder = 'asc';
+            }
+        } else {
+            // Nuovo campo, inizia con asc
+            newSortOrder = 'asc';
+        }
+        
+        // Costruisci URL con parametri di ordinamento
+        const url = new URL(window.location.href);
+        
+        if (newSortOrder) {
+            url.searchParams.set('sort_by', sortBy);
+            url.searchParams.set('sort_order', newSortOrder);
+        } else {
+            // Rimuovi parametri di ordinamento
+            url.searchParams.delete('sort_by');
+            url.searchParams.delete('sort_order');
+        }
+        
+        // Reset della paginazione quando si cambia ordinamento
+        url.searchParams.delete('page');
+        
+        // Reindirizza con i nuovi parametri
+        window.location.href = url.toString();
+    });
+});
+</script>
+{% endblock %}

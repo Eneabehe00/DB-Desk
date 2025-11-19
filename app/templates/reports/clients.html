@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block title %}Report Clienti - DB-Desk{% endblock %}
+{% block page_title %}Report Clienti{% endblock %}
+
+{% block content %}
+<!-- Header con azioni -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people"></i>
+                        Analisi Base Clienti
+                    </h5>
+                    <a href="{{ url_for('reports.export_report', report_type='clients_summary') }}" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i>
+                        Esporta CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche Generali -->
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ total_clienti }}</h4>
+                        <p class="mb-0">Clienti Totali</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ clienti_attivi }}</h4>
+                        <p class="mb-0">Clienti Attivi</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ "%.1f"|format((clienti_attivi / total_clienti * 100) if total_clienti > 0 else 0) }}%</h4>
+                        <p class="mb-0">Tasso Attivazione</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-percent fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafici -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-geo-alt"></i>
+                    Distribuzione per Provincia
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="provinciaChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-building"></i>
+                    Distribuzione per Settore
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="settoreChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Nuovi Clienti per Mese (Ultimi 12 mesi)
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="nuoviClientiChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Clienti per Ticket -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-trophy"></i>
+                    Top 20 Clienti per Numero di Ticket
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Posizione</th>
+                                <th>Cliente</th>
+                                <th class="text-center">Ticket Totali</th>
+                                <th class="text-center">Ticket Aperti</th>
+                                <th class="text-center">Ticket Risolti</th>
+                                <th class="text-center">Tasso Risoluzione</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clienti_stats %}
+                            <tr>
+                                <td>
+                                    <span class="badge {% if loop.index <= 3 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        #{{ loop.index }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ cliente.ragione_sociale }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ cliente.ticket_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning">{{ cliente.tickets_aperti or 0 }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ cliente.tickets_risolti or 0 }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% set tasso = ((cliente.tickets_risolti or 0) / cliente.ticket_count * 100) if cliente.ticket_count and cliente.ticket_count > 0 else 0 %}
+                                    <span class="badge {% if tasso >= 80 %}bg-success{% elif tasso >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ "%.1f"|format(tasso) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('clients.detail', id=cliente.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                        Dettagli
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabelle Distribuzione -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    Dettaglio Distribuzione Province
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Provincia</th>
+                                <th class="text-end">Clienti</th>
+                                <th class="text-end">Percentuale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for provincia in clienti_per_provincia %}
+                            <tr>
+                                <td>
+                                    <strong>{{ provincia.provincia }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-info">{{ provincia.count }}</span>
+                                </td>
+                                <td class="text-end">
+                                    {% set percentage = (provincia.count / total_clienti * 100) if total_clienti > 0 else 0 %}
+                                    {{ "%.1f"|format(percentage) }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-building-fill"></i>
+                    Dettaglio Distribuzione Settori
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Settore</th>
+                                <th class="text-end">Clienti</th>
+                                <th class="text-end">Percentuale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for settore in clienti_per_settore %}
+                            <tr>
+                                <td>
+                                    <strong>{{ settore.settore or 'Non specificato' }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-success">{{ settore.count }}</span>
+                                </td>
+                                <td class="text-end">
+                                    {% set percentage = (settore.count / total_clienti * 100) if total_clienti > 0 else 0 %}
+                                    {{ "%.1f"|format(percentage) }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Crescita Clienti -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-calendar-plus"></i>
+                    Crescita Base Clienti - Dettaglio Mensile
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mese</th>
+                                <th class="text-center">Nuovi Clienti</th>
+                                <th class="text-center">Crescita %</th>
+                                <th class="text-center">Totale Progressivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set progressivo = 0 %}
+                            {% set prev_count = 0 %}
+                            {% for mese in nuovi_clienti_per_mese %}
+                            {% set progressivo = progressivo + mese.count %}
+                            <tr>
+                                <td>
+                                    <strong>{{ mese.month }}/{{ mese.year }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ mese.count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if prev_count > 0 %}
+                                        {% set crescita = ((mese.count - prev_count) / prev_count * 100) %}
+                                        <span class="badge {% if crescita > 0 %}bg-success{% elif crescita < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {% if crescita > 0 %}+{% endif %}{{ "%.1f"|format(crescita) }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">-</span>
+                                    {% endif %}
+                                    {% set prev_count = mese.count %}
+                                </td>
+                                <td class="text-center">
+                                    <strong>{{ progressivo }}</strong>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Grafico distribuzione province
+    const provinciaCtx = document.getElementById('provinciaChart').getContext('2d');
+    const provinciaData = [
+        {% for provincia in clienti_per_provincia[:10] %}
+        { label: '{{ provincia.provincia }}', value: {{ provincia.count }} },
+        {% endfor %}
+    ];
+    
+    new Chart(provinciaCtx, {
+        type: 'doughnut',
+        data: {
+            labels: provinciaData.map(d => d.label),
+            datasets: [{
+                data: provinciaData.map(d => d.value),
+                backgroundColor: [
+                    '#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1',
+                    '#20c997', '#ffc107', '#d63384', '#6c757d', '#0dcaf0'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Grafico distribuzione settori
+    const settoreCtx = document.getElementById('settoreChart').getContext('2d');
+    const settoreData = [
+        {% for settore in clienti_per_settore[:8] %}
+        { label: '{{ settore.settore or "Non specificato" }}', value: {{ settore.count }} },
+        {% endfor %}
+    ];
+    
+    new Chart(settoreCtx, {
+        type: 'bar',
+        data: {
+            labels: settoreData.map(d => d.label),
+            datasets: [{
+                label: 'Numero Clienti',
+                data: settoreData.map(d => d.value),
+                backgroundColor: '#198754',
+                borderColor: '#146c43',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Grafico nuovi clienti per mese
+    const nuoviClientiCtx = document.getElementById('nuoviClientiChart').getContext('2d');
+    const nuoviClientiData = [
+        {% for mese in nuovi_clienti_per_mese %}
+        { 
+            label: '{{ mese.month }}/{{ mese.year }}', 
+            value: {{ mese.count }},
+            month: {{ mese.month }},
+            year: {{ mese.year }}
+        },
+        {% endfor %}
+    ];
+    
+    // Ordina per data
+    nuoviClientiData.sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+    });
+    
+    new Chart(nuoviClientiCtx, {
+        type: 'line',
+        data: {
+            labels: nuoviClientiData.map(d => d.label),
+            datasets: [{
+                label: 'Nuovi Clienti',
+                data: nuoviClientiData.map(d => d.value),
+                borderColor: '#0d6efd',
+                backgroundColor: '#0d6efd20',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#0d6efd',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

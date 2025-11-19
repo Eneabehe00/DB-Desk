@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Movimenti {{ macchina.codice }} - DB-Desk{% endblock %}
+{% block page_title %}Storico Movimenti - {{ macchina.codice }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--primary-color);
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        padding-left: 30px;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -23px;
+        top: 8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--primary-color);
+    }
+
+    .timeline-content {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .timeline-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .timeline-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .movement-type {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .movement-type.Assegnazione { background: #dbeafe; color: #1e40af; }
+    .movement-type.Rientro { background: #dcfce7; color: #166534; }
+    .movement-type.Riparazione { background: #fef3c7; color: #92400e; }
+    .movement-type.Fine\\ Riparazione { background: #dbeafe; color: #1e40af; }
+    .movement-type.Vendita { background: #fee2e2; color: #dc2626; }
+    .movement-type.Manutenzione { background: #e0f2fe; color: #0c4a6e; }
+    .movement-type.Altro { background: #f3f4f6; color: #374151; }
+
+    .status-change {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-from { background: #fef2f2; color: #dc2626; }
+    .status-to { background: #f0fdf4; color: #16a34a; }
+
+    .arrow-icon {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{{ url_for('macchine.index') }}">Macchine</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}">{{ macchina.codice }}</a></li>
+                        <li class="breadcrumb-item active">Movimenti</li>
+                    </ol>
+                </nav>
+                <h4 class="mb-0">Storico Movimenti</h4>
+                <small class="text-muted">{{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}</small>
+            </div>
+            <div>
+                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla Macchina
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if movimenti %}
+            <div class="timeline">
+                {% for movimento in movimenti %}
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <h6 class="timeline-title">
+                                <span class="movement-type {{ movimento.tipo_movimento }}">{{ movimento.tipo_movimento }}</span>
+                            </h6>
+                            <small class="text-muted">
+                                {{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            </small>
+                        </div>
+
+                        <div class="timeline-meta">
+                            {% if movimento.stato_precedente and movimento.stato_nuovo %}
+                            <div class="meta-item">
+                                <i class="bi bi-arrow-left-right"></i>
+                                <span class="status-change status-from">{{ movimento.stato_precedente }}</span>
+                                <i class="bi bi-arrow-right arrow-icon"></i>
+                                <span class="status-change status-to">{{ movimento.stato_nuovo }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if movimento.cliente %}
+                            <div class="meta-item">
+                                <i class="bi bi-person"></i>
+                                Cliente: {{ movimento.cliente.ragione_sociale }}
+                            </div>
+                            {% endif %}
+
+                            {% if movimento.ticket %}
+                            <div class="meta-item">
+                                <i class="bi bi-ticket"></i>
+                                Ticket: <a href="{{ url_for('tickets.view_ticket', id=movimento.ticket.id) }}" class="text-decoration-none">{{ movimento.ticket.numero_ticket }}</a>
+                            </div>
+                            {% endif %}
+
+                            {% if movimento.foglio %}
+                            <div class="meta-item">
+                                <i class="bi bi-file-earmark-text"></i>
+                                Foglio Tecnico: <a href="{{ url_for('fogli_tecnici.view', id=movimento.foglio.id) }}" class="text-decoration-none">{{ movimento.foglio.numero_foglio }}</a>
+                            </div>
+                            {% endif %}
+
+                            {% if movimento.user %}
+                            <div class="meta-item">
+                                <i class="bi bi-person-circle"></i>
+                                Operatore: {{ movimento.user.full_name }}
+                            </div>
+                            {% endif %}
+
+                            {% if movimento.costo %}
+                            <div class="meta-item">
+                                <i class="bi bi-currency-euro"></i>
+                                Costo: €{{ "%.2f"|format(movimento.costo) }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if movimento.note %}
+                        <div class="mt-2">
+                            <strong>Note:</strong>
+                            <p class="mb-0 text-muted">{{ movimento.note }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginazione -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Paginazione movimenti">
+                <ul class="pagination justify-content-center mt-4">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id, page=pagination.prev_num) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id, page=pagination.next_num) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-clock-history"></i>
+                <h4 class="text-muted">Nessun movimento registrato</h4>
+                <p class="text-muted">Questa macchina non ha ancora effettuato alcun movimento nel sistema.</p>
+                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-primary">
+                    <i class="bi bi-gear"></i> Gestisci Macchina
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

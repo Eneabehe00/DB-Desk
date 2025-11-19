@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-section {
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .form-section h6 {
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .foto-preview {
+        max-width: 200px;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        border: 2px solid #e5e7eb;
+        margin-top: 0.5rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: bold;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .input-group-text {
+        background-color: #f3f4f6;
+        border-color: #d1d5db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('magazzino.index') }}">Magazzino</a></li>
+            {% if ricambio %}
+                <li class="breadcrumb-item"><a href="{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}">{{ ricambio.codice }}</a></li>
+                <li class="breadcrumb-item active">Modifica</li>
+            {% else %}
+                <li class="breadcrumb-item active">Nuovo Ricambio</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <!-- Informazioni principali -->
+                <div class="form-section">
+                    <h6><i class="bi bi-info-circle text-primary"></i> Informazioni Principali</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.codice.label(class="form-label required-field") }}
+                                {{ form.codice(class="form-control" + (" is-invalid" if form.codice.errors else "")) }}
+                                {% if form.codice.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.codice.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Codice univoco del ricambio (es: DIBAL-LCD-001)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fornitore.label(class="form-label") }}
+                                {{ form.fornitore(class="form-control" + (" is-invalid" if form.fornitore.errors else "")) }}
+                                {% if form.fornitore.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.fornitore.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.descrizione.label(class="form-label required-field") }}
+                        {{ form.descrizione(class="form-control" + (" is-invalid" if form.descrizione.errors else "")) }}
+                        {% if form.descrizione.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.descrizione.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="help-text">
+                            Descrizione dettagliata del ricambio
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.department_id.label(class="form-label required-field") }}
+                        {{ form.department_id(class="form-control" + (" is-invalid" if form.department_id.errors else "")) }}
+                        {% if form.department_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.department_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="help-text">
+                            Reparto di appartenenza del ricambio
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.note.label(class="form-label") }}
+                        {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else "")) }}
+                        {% if form.note.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.note.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="help-text">
+                            Note aggiuntive, specifiche tecniche, compatibilità, ecc.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantità e magazzino -->
+                <div class="form-section">
+                    <h6><i class="bi bi-box text-success"></i> Quantità e Magazzino</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.quantita_disponibile.label(class="form-label required-field") }}
+                                <div class="input-group">
+                                    {{ form.quantita_disponibile(class="form-control" + (" is-invalid" if form.quantita_disponibile.errors else "")) }}
+                                    <span class="input-group-text">pz</span>
+                                </div>
+                                {% if form.quantita_disponibile.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantita_disponibile.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Quantità attualmente in magazzino
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.quantita_minima.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.quantita_minima(class="form-control" + (" is-invalid" if form.quantita_minima.errors else ""), id="quantita_minima") }}
+                                    <span class="input-group-text">pz</span>
+                                    {% if ricambio %}
+                                    <button type="button" class="btn btn-outline-info" onclick="suggerisciSoglia()" 
+                                            title="Suggerimento basato sull'utilizzo storico">
+                                        <i class="bi bi-lightbulb"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                {% if form.quantita_minima.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantita_minima.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    <i class="bi bi-info-circle text-info"></i>
+                                    Soglia minima per avviso sotto scorta (opzionale)
+                                    <br><small class="text-muted">
+                                        Lascia 0 o vuoto per disabilitare il controllo scorta
+                                        {% if ricambio %}
+                                        | <i class="bi bi-lightbulb"></i> Clicca la lampadina per un suggerimento intelligente
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div id="scorta-status" class="mt-2" style="display: none;">
+                                    <div class="alert alert-warning alert-sm mb-0" role="alert">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        <strong>Attenzione:</strong> Ricambio sotto scorta!
+                                    </div>
+                                </div>
+                                <div id="suggerimento-status" class="mt-2" style="display: none;">
+                                    <div class="alert alert-info alert-sm mb-0" role="alert">
+                                        <div id="suggerimento-content"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.ubicazione.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                    {{ form.ubicazione(class="form-control" + (" is-invalid" if form.ubicazione.errors else "")) }}
+                                </div>
+                                {% if form.ubicazione.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.ubicazione.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Posizione fisica in magazzino
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prezzo e foto -->
+                <div class="form-section">
+                    <h6><i class="bi bi-currency-euro text-warning"></i> Prezzo e Immagine</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.prezzo_unitario.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    {{ form.prezzo_unitario(class="form-control" + (" is-invalid" if form.prezzo_unitario.errors else "")) }}
+                                </div>
+                                {% if form.prezzo_unitario.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.prezzo_unitario.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Prezzo unitario per calcolo valore magazzino
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.foto.label(class="form-label") }}
+                                {{ form.foto(class="form-control" + (" is-invalid" if form.foto.errors else ""), accept="image/*", onchange="previewImage(this)") }}
+                                {% if form.foto.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.foto.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Foto del ricambio (JPG, PNG, GIF - max 5MB)
+                                </div>
+                                
+                                <!-- Preview foto esistente -->
+                                {% if ricambio and ricambio.foto_filename %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Foto attuale:</small><br>
+                                    <img src="{{ url_for('magazzino.foto_ricambio', filename=ricambio.foto_filename) }}" 
+                                         alt="Foto attuale" class="foto-preview" id="current-photo">
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Preview nuova foto -->
+                                <div class="mt-2" id="photo-preview" style="display: none;">
+                                    <small class="text-muted">Nuova foto:</small><br>
+                                    <img id="preview-image" class="foto-preview">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pulsanti azione -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% if ricambio %}{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}{% else %}{{ url_for('magazzino.index') }}{% endif %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {% if ricambio %}
+                        <button type="button" class="btn btn-outline-danger" onclick="confermaEliminazione()">
+                            <i class="bi bi-trash"></i> Elimina
+                        </button>
+                        {% endif %}
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i>
+                            {% if ricambio %}Aggiorna Ricambio{% else %}Crea Ricambio{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal conferma eliminazione -->
+{% if ricambio %}
+<div class="modal fade" id="eliminaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Conferma Eliminazione
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare il ricambio <strong>{{ ricambio.codice }}</strong>?</p>
+                <p class="text-muted">
+                    Questa operazione eliminerà anche:
+                </p>
+                <ul class="text-muted">
+                    <li>Tutti i movimenti di magazzino associati</li>
+                    <li>Tutte le prenotazioni attive</li>
+                    <li>La foto del ricambio (se presente)</li>
+                </ul>
+                <div class="alert alert-danger" role="alert">
+                    <strong>Attenzione:</strong> Questa operazione non può essere annullata!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form method="POST" action="{{ url_for('magazzino.elimina_ricambio', id=ricambio.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Elimina Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('preview-image');
+    const previewContainer = document.getElementById('photo-preview');
+    const currentPhoto = document.getElementById('current-photo');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+            
+            // Nascondi la foto attuale se presente
+            if (currentPhoto) {
+                currentPhoto.style.opacity = '0.5';
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        previewContainer.style.display = 'none';
+        
+        // Ripristina la foto attuale se presente
+        if (currentPhoto) {
+            currentPhoto.style.opacity = '1';
+        }
+    }
+}
+
+function confermaEliminazione() {
+    new bootstrap.Modal(document.getElementById('eliminaModal')).show();
+}
+
+// Validazione client-side
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const codiceInput = document.getElementById('codice');
+    const descrizioneInput = document.getElementById('descrizione');
+    const quantitaInput = document.getElementById('quantita_disponibile');
+    const quantitaMinimaInput = document.getElementById('quantita_minima');
+    
+    // Converte il codice in maiuscolo mentre si digita
+    if (codiceInput) {
+        codiceInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+    
+    // Validazione quantità e controllo soglia scorta
+    if (quantitaInput && quantitaMinimaInput) {
+        const scortaStatus = document.getElementById('scorta-status');
+        
+        function validateQuantities() {
+            const quantita = parseInt(quantitaInput.value) || 0;
+            const quantitaMinima = parseInt(quantitaMinimaInput.value) || 0;
+            
+            // Mostra/nascondi avviso sotto scorta solo se è stata impostata una soglia minima
+            if (quantitaMinima > 0 && quantita <= quantitaMinima) {
+                scortaStatus.style.display = 'block';
+                quantitaInput.classList.add('border-warning');
+            } else {
+                scortaStatus.style.display = 'none';
+                quantitaInput.classList.remove('border-warning');
+            }
+            
+            // Validazione form
+            quantitaInput.setCustomValidity('');
+        }
+        
+        quantitaInput.addEventListener('input', validateQuantities);
+        quantitaMinimaInput.addEventListener('input', validateQuantities);
+        
+        // Controlla al caricamento della pagina
+        validateQuantities();
+    }
+    
+    // Validazione form prima dell'invio
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Controlla campi obbligatori
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            showToast('Compila tutti i campi obbligatori', 'danger');
+            
+            // Scorri al primo campo con errore
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+});
+
+// Auto-save bozza (opzionale)
+let autoSaveTimer;
+function autoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        const formData = new FormData(document.querySelector('form'));
+        const data = Object.fromEntries(formData);
+        
+        // Salva in localStorage come bozza
+        localStorage.setItem('ricambio_draft', JSON.stringify(data));
+        
+        // Mostra indicatore di salvataggio
+        const indicator = document.createElement('div');
+        indicator.className = 'position-fixed top-0 end-0 m-3 alert alert-info alert-dismissible fade show';
+        indicator.innerHTML = '<small><i class="bi bi-cloud-check"></i> Bozza salvata automaticamente</small>';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            if (indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        }, 2000);
+    }, 2000);
+}
+
+// Attiva auto-save sui campi principali
+document.addEventListener('DOMContentLoaded', function() {
+    const mainFields = ['codice', 'descrizione', 'quantita_disponibile', 'quantita_minima'];
+    mainFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('input', autoSave);
+        }
+    });
+});
+
+// Funzione per suggerimento intelligente soglia scorta
+function suggerisciSoglia() {
+    {% if ricambio %}
+    const ricambioId = {{ ricambio.id }};
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    
+    // Mostra loading
+    button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    button.disabled = true;
+    
+    fetch(`/magazzino/api/suggerisci-soglia/${ricambioId}`)
+        .then(response => response.json())
+        .then(data => {
+            const suggerimentoStatus = document.getElementById('suggerimento-status');
+            const suggerimentoContent = document.getElementById('suggerimento-content');
+            
+            suggerimentoContent.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong><i class="bi bi-lightbulb-fill"></i> Suggerimento: ${data.suggerimento} pezzi</strong>
+                        <br><small class="text-muted">${data.motivo}</small>
+                        <br><small class="text-info">${data.dettagli.raccomandazione}</small>
+                        ${data.dettagli.utilizzo_medio_mensile > 0 ? `
+                        <br><small class="text-muted">
+                            Utilizzo medio: ${data.dettagli.utilizzo_medio_mensile}/mese | 
+                            Copertura attuale: ${data.dettagli.giorni_copertura_attuale} giorni
+                        </small>` : ''}
+                    </div>
+                    <div class="ms-2">
+                        <button type="button" class="btn btn-sm btn-success" onclick="applicaSuggerimento(${data.suggerimento})">
+                            <i class="bi bi-check"></i> Applica
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            suggerimentoStatus.style.display = 'block';
+            
+            // Scroll al suggerimento
+            suggerimentoStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento del suggerimento:', error);
+            showToast('Errore nel caricamento del suggerimento', 'danger');
+        })
+        .finally(() => {
+            // Ripristina il pulsante
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        });
+    {% endif %}
+}
+
+function applicaSuggerimento(valore) {
+    const quantitaMinimaInput = document.getElementById('quantita_minima');
+    const suggerimentoStatus = document.getElementById('suggerimento-status');
+    
+    quantitaMinimaInput.value = valore;
+    quantitaMinimaInput.focus();
+    
+    // Nascondi il suggerimento
+    suggerimentoStatus.style.display = 'none';
+    
+    // Trigger validation
+    quantitaMinimaInput.dispatchEvent(new Event('input'));
+    
+    showToast(`Soglia impostata a ${valore} pezzi`, 'success');
+}
+</script>
+{% endblock %}

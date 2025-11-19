@@ -1,0 +1,607 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Stili ottimizzati per tablet */
+    .tablet-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .step-header {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .step {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0.5rem;
+        font-weight: bold;
+        position: relative;
+        background-color: #28a745;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .step.active {
+        background-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    }
+    
+    .step::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        width: 30px;
+        height: 3px;
+        background-color: #28a745;
+        margin-top: -1.5px;
+    }
+    
+    .step:last-child::after {
+        display: none;
+    }
+    
+    .signature-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .signature-section {
+        margin-bottom: 3rem;
+    }
+    
+    .signature-section h4 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .signature-canvas-container {
+        border: 3px solid #e9ecef;
+        border-radius: 15px;
+        background: #fafafa;
+        padding: 1rem;
+        margin: 1rem 0;
+        position: relative;
+    }
+    
+    .signature-canvas-container.active {
+        border-color: #007bff;
+        background: white;
+    }
+    
+    .signature-canvas {
+        border: 2px dashed #007bff;
+        border-radius: 10px;
+        background: white;
+        cursor: crosshair;
+        display: block;
+        width: 100%;
+        touch-action: none; /* Previene scroll durante la firma */
+    }
+    
+    .signature-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #6c757d;
+        font-size: 1.1rem;
+        pointer-events: none;
+        text-align: center;
+    }
+    
+    .signature-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .signature-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-signature {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .form-field {
+        margin-bottom: 2rem;
+    }
+    
+    .form-label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .form-control {
+        font-size: 1.1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .btn-step {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        min-width: 150px;
+    }
+    
+    .signature-status {
+        display: flex;
+        align-items: center;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .signature-status.signed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .signature-status.unsigned {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .tablet-container {
+            padding: 0.5rem;
+        }
+        
+        .signature-container {
+            padding: 1.5rem;
+        }
+        
+        .signature-canvas {
+            height: 200px;
+        }
+        
+        .signature-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .signature-actions {
+            justify-content: center;
+        }
+        
+        .navigation-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-step {
+            min-width: unset;
+        }
+    }
+    
+    /* Desktop optimizations */
+    @media (min-width: 768px) {
+        .signature-canvas {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tablet-container">
+    <!-- Header del step -->
+    <div class="step-header">
+        <h2 class="mb-3">
+            <i class="bi bi-pen me-2"></i>
+            Raccolta Firme
+        </h2>
+        <p class="mb-0 fs-5">Raccogli le firme del tecnico e del cliente per completare il foglio</p>
+    </div>
+    
+    <!-- Progress indicator -->
+    <div class="progress-steps">
+        <div class="step">1</div>
+        <div class="step">2</div>
+        <div class="step">3</div>
+        <div class="step">4</div>
+        <div class="step active">5</div>
+    </div>
+    
+    <!-- Form -->
+    <form method="POST" id="step5Form">
+        {{ form.hidden_tag() }}
+        
+        <div class="signature-container">
+            <!-- Nome firmatario cliente -->
+            <div class="form-field">
+                {{ form.nome_firmatario_cliente.label(class="form-label") }}
+                {{ form.nome_firmatario_cliente(class="form-control" + (" is-invalid" if form.nome_firmatario_cliente.errors else ""), placeholder="Nome e cognome del cliente") }}
+                {% if form.nome_firmatario_cliente.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.nome_firmatario_cliente.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Firma Tecnico -->
+            <div class="signature-section">
+                <h4>
+                    <i class="bi bi-person-workspace me-2"></i>
+                    Firma del Tecnico
+                </h4>
+                <p class="text-muted mb-3">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</p>
+                
+                <div class="signature-canvas-container" id="tecnicoCanvasContainer">
+                    <canvas id="tecnicoCanvas" class="signature-canvas" width="600" height="200"></canvas>
+                    <div class="signature-placeholder" id="tecnicoPlaceholder">
+                        <i class="bi bi-pen d-block mb-2" style="font-size: 2rem;"></i>
+                        Tocca e trascina per firmare
+                    </div>
+                </div>
+                
+                <div class="signature-controls">
+                    <div class="signature-status unsigned" id="tecnicoStatus">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Firma non presente
+                    </div>
+                    <div class="signature-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-signature" id="clearTecnico">
+                            <i class="bi bi-eraser me-1"></i>
+                            Cancella
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Firma Cliente -->
+            <div class="signature-section">
+                <h4>
+                    <i class="bi bi-person-check me-2"></i>
+                    Firma del Cliente
+                </h4>
+                <p class="text-muted mb-3">Il cliente conferma la presa in carico dell'intervento</p>
+                
+                <div class="signature-canvas-container" id="clienteCanvasContainer">
+                    <canvas id="clienteCanvas" class="signature-canvas" width="600" height="200"></canvas>
+                    <div class="signature-placeholder" id="clientePlaceholder">
+                        <i class="bi bi-pen d-block mb-2" style="font-size: 2rem;"></i>
+                        Il cliente deve firmare qui
+                    </div>
+                </div>
+                
+                <div class="signature-controls">
+                    <div class="signature-status unsigned" id="clienteStatus">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Firma non presente
+                    </div>
+                    <div class="signature-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-signature" id="clearCliente">
+                            <i class="bi bi-eraser me-1"></i>
+                            Cancella
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden fields per le firme -->
+        {{ form.firma_tecnico_data() }}
+        {{ form.firma_cliente_data() }}
+        
+        <!-- Navigazione -->
+        <div class="navigation-buttons">
+            <a href="{{ url_for('fogli_tecnici.step4', id=foglio.id) }}" class="btn btn-outline-secondary btn-step">
+                <i class="bi bi-arrow-left me-2"></i>
+                Indietro
+            </a>
+            
+            <button type="submit" class="btn btn-success btn-step" id="saveButton" disabled>
+                <i class="bi bi-check-circle me-2"></i>
+                Salva Firme
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript per gestione firme -->
+<script>
+class SignaturePad {
+    constructor(canvasId, options = {}) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.isDrawing = false;
+        this.hasSignature = false;
+        
+        // Opzioni
+        this.options = {
+            strokeStyle: options.strokeStyle || '#000000',
+            lineWidth: options.lineWidth || 3,
+            lineCap: options.lineCap || 'round',
+            lineJoin: options.lineJoin || 'round',
+            ...options
+        };
+        
+        // Callback
+        this.onSignatureChange = options.onSignatureChange || (() => {});
+        
+        this.init();
+    }
+    
+    init() {
+        // Imposta dimensioni canvas responsive
+        this.resizeCanvas();
+        
+        // Event listeners per mouse
+        this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
+        this.canvas.addEventListener('mousemove', this.draw.bind(this));
+        this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
+        this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
+        
+        // Event listeners per touch (tablet)
+        this.canvas.addEventListener('touchstart', this.handleTouch.bind(this));
+        this.canvas.addEventListener('touchmove', this.handleTouch.bind(this));
+        this.canvas.addEventListener('touchend', this.stopDrawing.bind(this));
+        
+        // Resize listener
+        window.addEventListener('resize', this.resizeCanvas.bind(this));
+        
+        // Configura stile canvas
+        this.ctx.strokeStyle = this.options.strokeStyle;
+        this.ctx.lineWidth = this.options.lineWidth;
+        this.ctx.lineCap = this.options.lineCap;
+        this.ctx.lineJoin = this.options.lineJoin;
+    }
+    
+    resizeCanvas() {
+        const container = this.canvas.parentElement;
+        const containerWidth = container.clientWidth - 32; // Padding
+        
+        // Mantieni aspect ratio 3:1
+        const canvasWidth = Math.min(containerWidth, 600);
+        const canvasHeight = canvasWidth / 3;
+        
+        // Salva il contenuto se presente
+        const imageData = this.hasSignature ? this.canvas.toDataURL() : null;
+        
+        // Ridimensiona
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        this.canvas.style.width = canvasWidth + 'px';
+        this.canvas.style.height = canvasHeight + 'px';
+        
+        // Ripristina configurazione
+        this.ctx.strokeStyle = this.options.strokeStyle;
+        this.ctx.lineWidth = this.options.lineWidth;
+        this.ctx.lineCap = this.options.lineCap;
+        this.ctx.lineJoin = this.options.lineJoin;
+        
+        // Ripristina contenuto se presente
+        if (imageData) {
+            const img = new Image();
+            img.onload = () => {
+                this.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+            };
+            img.src = imageData;
+        }
+    }
+    
+    getMousePos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+    
+    getTouchPos(e) {
+        const touch = e.touches[0];
+        return this.getMousePos(touch);
+    }
+    
+    startDrawing(e) {
+        this.isDrawing = true;
+        const pos = this.getMousePos(e);
+        this.ctx.beginPath();
+        this.ctx.moveTo(pos.x, pos.y);
+    }
+    
+    draw(e) {
+        if (!this.isDrawing) return;
+        
+        const pos = this.getMousePos(e);
+        this.ctx.lineTo(pos.x, pos.y);
+        this.ctx.stroke();
+        
+        this.hasSignature = true;
+        this.onSignatureChange(true);
+    }
+    
+    stopDrawing() {
+        if (this.isDrawing) {
+            this.isDrawing = false;
+            this.ctx.beginPath();
+        }
+    }
+    
+    handleTouch(e) {
+        e.preventDefault(); // Previene scroll
+        
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        
+        this.canvas.dispatchEvent(mouseEvent);
+    }
+    
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.hasSignature = false;
+        this.onSignatureChange(false);
+    }
+    
+    getSignatureData() {
+        if (!this.hasSignature) return null;
+        return this.canvas.toDataURL('image/png');
+    }
+    
+    isEmpty() {
+        return !this.hasSignature;
+    }
+}
+
+// Inizializzazione quando la pagina è caricata
+document.addEventListener('DOMContentLoaded', function() {
+    const saveButton = document.getElementById('saveButton');
+    const nomeField = document.getElementById('nome_firmatario_cliente');
+    
+    // Inizializza signature pads
+    const tecnicoPad = new SignaturePad('tecnicoCanvas', {
+        onSignatureChange: (hasSig) => updateSignatureStatus('tecnico', hasSig)
+    });
+    
+    const clientePad = new SignaturePad('clienteCanvas', {
+        onSignatureChange: (hasSig) => updateSignatureStatus('cliente', hasSig)
+    });
+    
+    // Gestori per i bottoni di cancellazione
+    document.getElementById('clearTecnico').addEventListener('click', () => {
+        tecnicoPad.clear();
+        updateSignatureStatus('tecnico', false);
+    });
+    
+    document.getElementById('clearCliente').addEventListener('click', () => {
+        clientePad.clear();
+        updateSignatureStatus('cliente', false);
+    });
+    
+    // Validazione form
+    function validateForm() {
+        const hasNome = nomeField.value.trim().length >= 2;
+        const hasTecnicoSignature = !tecnicoPad.isEmpty();
+        const hasClienteSignature = !clientePad.isEmpty();
+        
+        const isValid = hasNome && hasTecnicoSignature && hasClienteSignature;
+        
+        saveButton.disabled = !isValid;
+        saveButton.classList.toggle('btn-success', isValid);
+        saveButton.classList.toggle('btn-outline-success', !isValid);
+    }
+    
+    // Event listeners per validazione
+    nomeField.addEventListener('input', validateForm);
+    
+    function updateSignatureStatus(tipo, hasSig) {
+        const statusEl = document.getElementById(`${tipo}Status`);
+        const containerEl = document.getElementById(`${tipo}CanvasContainer`);
+        const placeholderEl = document.getElementById(`${tipo}Placeholder`);
+        
+        if (hasSig) {
+            statusEl.className = 'signature-status signed';
+            statusEl.innerHTML = '<i class="bi bi-check-circle me-2"></i>Firma presente';
+            containerEl.classList.add('active');
+            placeholderEl.style.display = 'none';
+        } else {
+            statusEl.className = 'signature-status unsigned';
+            statusEl.innerHTML = '<i class="bi bi-x-circle me-2"></i>Firma non presente';
+            containerEl.classList.remove('active');
+            placeholderEl.style.display = 'block';
+        }
+        
+        validateForm();
+    }
+    
+    // Submit form - salva le firme nei campi hidden
+    document.getElementById('step5Form').addEventListener('submit', function(e) {
+        const tecnicoData = tecnicoPad.getSignatureData();
+        const clienteData = clientePad.getSignatureData();
+        
+        if (tecnicoData) {
+            document.getElementById('firma_tecnico_data').value = tecnicoData;
+        }
+        
+        if (clienteData) {
+            document.getElementById('firma_cliente_data').value = clienteData;
+        }
+        
+        // Mostra loading
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Salvando...';
+    });
+    
+    // Carica firme esistenti se presenti
+    {% if foglio.firma_tecnico_path %}
+    {% endif %}
+    
+    {% if foglio.firma_cliente_path %}
+    {% endif %}
+    
+    // Validazione iniziale
+    validateForm();
+});
+
+// Previeni zoom accidentale su mobile durante la firma
+document.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.signature-canvas')) {
+        e.preventDefault();
+    }
+}, { passive: false });
+</script>
+{% endblock %}

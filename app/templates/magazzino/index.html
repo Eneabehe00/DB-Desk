@@ -1,0 +1,1106 @@
+{% extends "base.html" %}
+
+{% block title %}Magazzino Ricambi - DB-Desk{% endblock %}
+{% block page_title %}Magazzino Ricambi{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Stili per le statistiche */
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .stats-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .stats-card p {
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    /* Tabella ricambi migliorata */
+    .ricambi-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+    }
+    
+    /* Contenitore tabella */
+    .table-responsive {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Previene scroll orizzontale indesiderato */
+    .card-body {
+        overflow-x: hidden;
+    }
+    
+    /* Assicura che il contenuto della tabella non causi overflow */
+    .ricambi-table td {
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .ricambi-table .col-descrizione {
+        white-space: normal;
+        max-width: none;
+    }
+    
+    .ricambi-table th {
+        background-color: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 2px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .ricambi-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    
+    .ricambi-table tbody tr {
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .ricambi-table tbody tr:hover {
+        background-color: #f8fafc;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    /* Colonne specifiche */
+    .ricambi-table .col-foto {
+        width: 60px;
+        text-align: center;
+        min-width: 60px;
+    }
+    
+    .ricambi-table .col-codice {
+        width: 150px;
+        min-width: 120px;
+    }
+    
+    .ricambi-table .col-descrizione {
+        width: auto;
+        min-width: 200px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .ricambi-table .col-disponibili,
+    .ricambi-table .col-prenotati {
+        width: 100px;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .ricambi-table .col-ubicazione {
+        width: 120px;
+        min-width: 100px;
+        word-wrap: break-word;
+    }
+    
+    .ricambi-table .col-azioni {
+        width: 120px;
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .ricambi-table .col-disponibili,
+        .ricambi-table .col-prenotati,
+        .ricambi-table .col-ubicazione,
+        .ricambi-table .col-azioni {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 991.98px) and (min-width: 768px) {
+        .ricambi-table .col-azioni {
+            display: none;
+        }
+    }
+    
+    /* Stili paginazione */
+    .pagination .page-link {
+        border-radius: 0.375rem;
+        margin: 0 0.125rem;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
+        transition: all 0.15s ease-in-out;
+    }
+    
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+        color: #495057;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+    
+    @media (max-width: 576px) {
+        .pagination .page-link {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .pagination .page-item:not(.active):not(:first-child):not(:last-child) {
+            display: none;
+        }
+    }
+    
+    /* Bottoni */
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Mobile responsive per tabella */
+    @media (max-width: 767.98px) {
+        .ricambi-table thead {
+            display: none;
+        }
+        
+        .ricambi-table tbody tr {
+            display: block;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        
+        .ricambi-table tbody td {
+            display: block;
+            border: none;
+            padding: 0.25rem 0;
+            text-align: left !important;
+        }
+        
+        .ricambi-table tbody td:before {
+            content: attr(data-label) ": ";
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .ricambi-table .col-foto:before {
+            content: "";
+        }
+        
+        .ricambi-table .col-foto {
+            text-align: center !important;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Statistiche rapide -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <h3>{{ stats.totale_ricambi }}</h3>
+                <p><i class="bi bi-box-seam"></i> Totale Ricambi</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" 
+                 onclick="window.location.href='{{ url_for('magazzino.index', filtro_stato='sotto_scorta') }}'" 
+                 style="cursor: pointer;">
+                <h3>{{ stats.sotto_scorta }}</h3>
+                <p><i class="bi bi-exclamation-triangle"></i> Sotto Scorta</p>
+                {% if stats.sotto_scorta > 0 %}
+                <small class="d-block mt-1 opacity-75">
+                    <i class="bi bi-arrow-right"></i> Clicca per visualizzare
+                </small>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                <h3>{{ stats.con_prenotazioni }}</h3>
+                <p><i class="bi bi-bookmark"></i> Con Prenotazioni</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <h3>{{ stats.esauriti }}</h3>
+                <p><i class="bi bi-x-circle"></i> Esauriti</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert per ricambi sotto scorta -->
+    {% if stats.sotto_scorta > 0 %}
+    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h6 class="alert-heading mb-1">
+                    <strong>{{ stats.sotto_scorta }}</strong> ricambi sotto scorta minima
+                </h6>
+                <p class="mb-2">
+                    Alcuni ricambi hanno raggiunto o superato la soglia di scorta minima. 
+                    È consigliabile procedere con il riordino per evitare interruzioni.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('magazzino.index', filtro_stato='sotto_scorta') }}" 
+                       class="btn btn-warning btn-sm">
+                        <i class="bi bi-list-ul"></i> Visualizza Ricambi
+                    </a>
+                    <a href="{{ url_for('magazzino.reports') }}" 
+                       class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-graph-up"></i> Report Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Barra di ricerca e filtri -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <input type="text" id="search-input" class="form-control" placeholder="Cerca per codice o descrizione..." value="{{ request.args.get('search', '') }}">
+                        <div id="search-loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display: none;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Caricamento...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select id="filtro-stato" class="form-select">
+                        <option value="">Tutti</option>
+                        <option value="disponibili" {{ 'selected' if request.args.get('filtro_stato') == 'disponibili' }}>Solo Disponibili</option>
+                        <option value="prenotati" {{ 'selected' if request.args.get('filtro_stato') == 'prenotati' }}>Con Prenotazioni</option>
+                        <option value="sotto_scorta" {{ 'selected' if request.args.get('filtro_stato') == 'sotto_scorta' }}>Sotto Scorta</option>
+                        <option value="esauriti" {{ 'selected' if request.args.get('filtro_stato') == 'esauriti' }}>Esauriti</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="ubicazione-input" class="form-control" placeholder="Ubicazione..." value="{{ request.args.get('ubicazione', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="fornitore-input" class="form-control" placeholder="Fornitore..." value="{{ request.args.get('fornitore', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="button" id="clear-filters" class="btn btn-outline-secondary" title="Pulisci filtri">
+                            <i class="bi bi-arrow-clockwise"></i> Reset
+                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-info btn-sm" id="export-results" title="Esporta risultati">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 
+                        I risultati si aggiornano automaticamente mentre digiti
+                        <span id="results-count" class="ms-2"></span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Azioni rapide -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('magazzino.nuovo_ricambio') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nuovo Ricambio
+            </a>
+        </div>
+        
+        <div class="btn-group" role="group">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-sort-down"></i> Ordina per {{ sort_by.title() }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?{{ request.query_string.decode() | replace('sort='+sort_by, '') | replace('dir='+sort_dir, '') }}&sort=codice&dir=asc">
+                        <i class="bi bi-sort-alpha-down"></i> Codice A-Z
+                    </a></li>
+                    <li><a class="dropdown-item" href="?{{ request.query_string.decode() | replace('sort='+sort_by, '') | replace('dir='+sort_dir, '') }}&sort=codice&dir=desc">
+                        <i class="bi bi-sort-alpha-up"></i> Codice Z-A
+                    </a></li>
+                    <li><a class="dropdown-item" href="?{{ request.query_string.decode() | replace('sort='+sort_by, '') | replace('dir='+sort_dir, '') }}&sort=quantita&dir=desc">
+                        <i class="bi bi-sort-numeric-down"></i> Quantità (Alta)
+                    </a></li>
+                    <li><a class="dropdown-item" href="?{{ request.query_string.decode() | replace('sort='+sort_by, '') | replace('dir='+sort_dir, '') }}&sort=quantita&dir=asc">
+                        <i class="bi bi-sort-numeric-up"></i> Quantità (Bassa)
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elenco ricambi - Vista Tabellare -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div id="results-container">
+                <div class="table-responsive">
+                    <table class="ricambi-table">
+                        <thead>
+                            <tr>
+                                <th class="col-foto"></th>
+                                <th class="col-codice">Codice</th>
+                                <th class="col-descrizione">Descrizione</th>
+                                <th class="col-disponibili">Disponibili</th>
+                                <th class="col-prenotati">Prenotati</th>
+                                <th class="col-ubicazione">Ubicazione</th>
+                                <th class="col-azioni">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ricambi-tbody">
+                            {% for ricambio in ricambi.items %}
+                            <tr onclick="window.location.href='{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}'">
+                                
+                                <!-- Foto -->
+                                <td class="col-foto" data-label="">
+                                    {% if ricambio.foto_filename %}
+                                        <img src="{{ url_for('magazzino.foto_ricambio', filename=ricambio.foto_filename) }}" 
+                                             alt="Foto {{ ricambio.codice }}" class="rounded" 
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- Codice -->
+                                <td class="col-codice" data-label="Codice">
+                                    <div class="fw-bold">{{ ricambio.codice }}</div>
+                                    {% if ricambio.fornitore %}
+                                        <small class="text-muted d-block">{{ ricambio.fornitore }}</small>
+                                    {% endif %}
+                                    {% if ricambio.is_sotto_scorta %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-triangle"></i> Sotto scorta
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- Descrizione -->
+                                <td class="col-descrizione" data-label="Descrizione">
+                                    <div title="{{ ricambio.descrizione }}">
+                                        {{ ricambio.descrizione }}
+                                    </div>
+                                </td>
+                                
+                                <!-- Disponibili -->
+                                <td class="col-disponibili" data-label="Disponibili">
+                                    <span class="badge bg-success">{{ ricambio.quantita_disponibile }}</span>
+                                </td>
+                                
+                                <!-- Prenotati -->
+                                <td class="col-prenotati" data-label="Prenotati">
+                                    {% if ricambio.quantita_prenotata > 0 %}
+                                        <span class="badge bg-warning">{{ ricambio.quantita_prenotata }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- Ubicazione -->
+                                <td class="col-ubicazione" data-label="Ubicazione">
+                                    {% if ricambio.ubicazione %}
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt"></i> {{ ricambio.ubicazione }}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- Azioni -->
+                                <td class="col-azioni" data-label="Azioni" onclick="event.stopPropagation();">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-success btn-sm" 
+                                                onclick="caricaRicambio({{ ricambio.id }}, '{{ ricambio.codice }}')"
+                                                title="Carica">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </button>
+                                        
+                                        {% if ricambio.quantita_disponibile > 0 %}
+                                        <button class="btn btn-outline-warning btn-sm" 
+                                                onclick="scaricaRicambio({{ ricambio.id }}, '{{ ricambio.codice }}', {{ ricambio.quantita_disponibile }})"
+                                                title="Scarica">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Loading indicator -->
+                <div id="loading-indicator" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Caricamento...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Caricamento ricambi...</p>
+                </div>
+                
+                <!-- No results -->
+                <div id="no-results" class="text-center py-5" style="display: none;">
+                    <div class="text-muted">
+                        <i class="bi bi-box-seam fs-1 mb-3 d-block"></i>
+                        <h5>Nessun ricambio trovato</h5>
+                        <p>Non ci sono ricambi che corrispondono ai criteri di ricerca.</p>
+                        <button type="button" id="clear-search" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Pulisci filtri
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginazione dinamica -->
+    <nav aria-label="Paginazione ricambi" class="mt-4" id="pagination-container">
+        <ul class="pagination justify-content-center" id="pagination-list">
+            <!-- Paginazione generata dinamicamente -->
+        </ul>
+        
+        <!-- Info paginazione -->
+        <div class="text-center text-muted mt-2" id="pagination-info">
+            <small id="pagination-text">
+                <!-- Info generata dinamicamente -->
+            </small>
+        </div>
+    </nav>
+</div>
+
+<!-- Modal per prenotazione rapida -->
+<div class="modal fade" id="prenotaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prenota Ricambio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="prenotaForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="ricambio_id" id="prenota_ricambio_id">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ricambio</label>
+                        <input type="text" class="form-control" id="prenota_ricambio_info" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="prenota_quantita" class="form-label">Quantità da Prenotare</label>
+                        <input type="number" class="form-control" name="quantita" id="prenota_quantita" min="1" required>
+                        <div class="form-text">Disponibili: <span id="prenota_disponibili"></span></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="prenota_ticket_id" class="form-label">Ticket</label>
+                        <select class="form-select" name="ticket_id" id="prenota_ticket_id" required>
+                            <option value="">Seleziona ticket...</option>
+                            <!-- Popolato via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="prenota_data_scadenza" class="form-label">Data Scadenza (opzionale)</label>
+                        <input type="datetime-local" class="form-control" name="data_scadenza" id="prenota_data_scadenza">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="prenota_note" class="form-label">Note</label>
+                        <textarea class="form-control" name="note" id="prenota_note" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Prenota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per carico rapido -->
+<div class="modal fade" id="caricaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Carica Ricambio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="caricaForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="ricambio_id" id="carica_ricambio_id">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ricambio</label>
+                        <input type="text" class="form-control" id="carica_ricambio_info" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carica_quantita" class="form-label">Quantità da Caricare</label>
+                        <input type="number" class="form-control" name="quantita" id="carica_quantita" min="1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carica_motivo" class="form-label">Motivo Carico</label>
+                        <input type="text" class="form-control" name="motivo" id="carica_motivo" 
+                               placeholder="Es: Nuovo arrivo fornitore..." value="Carico manuale" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carica_ticket_id" class="form-label">Ticket Collegato (opzionale)</label>
+                        <select class="form-select" name="ticket_id" id="carica_ticket_id">
+                            <option value="">Nessun ticket collegato</option>
+                            <!-- Popolato via JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-success">Carica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per scarico rapido -->
+<div class="modal fade" id="scaricaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scarica Ricambio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="scaricaForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="ricambio_id" id="scarica_ricambio_id">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ricambio</label>
+                        <input type="text" class="form-control" id="scarica_ricambio_info" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="scarica_quantita" class="form-label">Quantità da Scaricare</label>
+                        <input type="number" class="form-control" name="quantita" id="scarica_quantita" min="1" required>
+                        <div class="form-text">Disponibili: <span id="scarica_disponibili"></span></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="scarica_motivo" class="form-label">Motivo Scarico</label>
+                        <input type="text" class="form-control" name="motivo" id="scarica_motivo" 
+                               placeholder="Es: Utilizzo per riparazione..." required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="scarica_ticket_id" class="form-label">Ticket Collegato (opzionale)</label>
+                        <select class="form-select" name="ticket_id" id="scarica_ticket_id">
+                            <option value="">Nessun ticket collegato</option>
+                            <!-- Popolato via JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-warning">Scarica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ticketsData = [];
+
+// Carica i ticket all'avvio
+document.addEventListener('DOMContentLoaded', function() {
+    loadTickets();
+    
+    // Non serve più gestire i submit via AJAX, i form funzionano normalmente
+    // I CSRF token sono già inclusi nei form HTML
+});
+
+function loadTickets() {
+    // Carica i ticket reali tramite API
+    fetch('/tickets/api/active')
+        .then(response => response.json())
+        .then(data => {
+            ticketsData = data;
+        })
+        .catch(error => {
+            console.error('Errore caricamento ticket:', error);
+            // Fallback con dati statici
+            ticketsData = [
+                {id: 1, numero: 'TK202501001', titolo: 'Riparazione bilancia cliente A'},
+                {id: 2, numero: 'TK202501002', titolo: 'Manutenzione preventiva'},
+                {id: 3, numero: 'TK202501003', titolo: 'Sostituzione display LCD'}
+            ];
+        });
+}
+
+function prenotaRicambio(ricambioId, codice, quantitaDisponibile) {
+    document.getElementById('prenota_ricambio_id').value = ricambioId;
+    document.getElementById('prenota_ricambio_info').value = codice;
+    document.getElementById('prenota_disponibili').textContent = quantitaDisponibile;
+    document.getElementById('prenota_quantita').max = quantitaDisponibile;
+    document.getElementById('prenota_quantita').value = 1;
+    
+    // Imposta l'action del form
+    document.getElementById('prenotaForm').action = `/magazzino/ricambio/${ricambioId}/prenota`;
+    
+    // Popola select ticket
+    const select = document.getElementById('prenota_ticket_id');
+    select.innerHTML = '<option value="">Seleziona ticket...</option>';
+    ticketsData.forEach(ticket => {
+        const option = document.createElement('option');
+        option.value = ticket.id;
+        option.textContent = `${ticket.numero} - ${ticket.titolo}`;
+        select.appendChild(option);
+    });
+    
+    new bootstrap.Modal(document.getElementById('prenotaModal')).show();
+}
+
+function caricaRicambio(ricambioId, codice) {
+    document.getElementById('carica_ricambio_id').value = ricambioId;
+    document.getElementById('carica_ricambio_info').value = codice;
+    document.getElementById('carica_quantita').value = 1;
+    document.getElementById('carica_motivo').value = 'Carico manuale';
+    
+    // Imposta l'action del form
+    document.getElementById('caricaForm').action = `/magazzino/ricambio/${ricambioId}/carica`;
+    
+    // Popola select ticket
+    const select = document.getElementById('carica_ticket_id');
+    select.innerHTML = '<option value="">Nessun ticket collegato</option>';
+    ticketsData.forEach(ticket => {
+        const option = document.createElement('option');
+        option.value = ticket.id;
+        option.textContent = `${ticket.numero} - ${ticket.titolo}`;
+        select.appendChild(option);
+    });
+    
+    new bootstrap.Modal(document.getElementById('caricaModal')).show();
+}
+
+function scaricaRicambio(ricambioId, codice, quantitaDisponibile) {
+    document.getElementById('scarica_ricambio_id').value = ricambioId;
+    document.getElementById('scarica_ricambio_info').value = codice;
+    document.getElementById('scarica_disponibili').textContent = quantitaDisponibile;
+    document.getElementById('scarica_quantita').max = quantitaDisponibile;
+    document.getElementById('scarica_quantita').value = 1;
+    document.getElementById('scarica_motivo').value = '';
+    
+    // Imposta l'action del form
+    document.getElementById('scaricaForm').action = `/magazzino/ricambio/${ricambioId}/scarica`;
+    
+    // Popola select ticket
+    const select = document.getElementById('scarica_ticket_id');
+    select.innerHTML = '<option value="">Nessun ticket collegato</option>';
+    ticketsData.forEach(ticket => {
+        const option = document.createElement('option');
+        option.value = ticket.id;
+        option.textContent = `${ticket.numero} - ${ticket.titolo}`;
+        select.appendChild(option);
+    });
+    
+    new bootstrap.Modal(document.getElementById('scaricaModal')).show();
+}
+
+// === FILTRI IN TEMPO REALE ===
+let searchTimeout;
+let currentPage = 1;
+let currentFilters = {
+    search: '',
+    filtro_stato: '',
+    ubicazione: '',
+    fornitore: '',
+    sort: 'codice',
+    dir: 'asc'
+};
+
+// Inizializza filtri in tempo reale
+document.addEventListener('DOMContentLoaded', function() {
+    // Carica i valori iniziali dai parametri URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentFilters.search = urlParams.get('search') || '';
+    currentFilters.filtro_stato = urlParams.get('filtro_stato') || '';
+    currentFilters.ubicazione = urlParams.get('ubicazione') || '';
+    currentFilters.fornitore = urlParams.get('fornitore') || '';
+    currentPage = parseInt(urlParams.get('page')) || 1;
+    
+    // Carica i risultati iniziali
+    loadResults();
+    
+    // Event listeners per i filtri
+    const searchInput = document.getElementById('search-input');
+    const filtroStato = document.getElementById('filtro-stato');
+    const ubicazioneInput = document.getElementById('ubicazione-input');
+    const fornitoreInput = document.getElementById('fornitore-input');
+    const clearFilters = document.getElementById('clear-filters');
+    const clearSearch = document.getElementById('clear-search');
+    
+    // Ricerca con debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.search = this.value;
+            currentPage = 1;
+            loadResults();
+        }, 300);
+    });
+    
+    // Filtro stato (immediato)
+    filtroStato.addEventListener('change', function() {
+        currentFilters.filtro_stato = this.value;
+        currentPage = 1;
+        loadResults();
+    });
+    
+    // Ubicazione con debounce
+    ubicazioneInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.ubicazione = this.value;
+            currentPage = 1;
+            loadResults();
+        }, 500);
+    });
+    
+    // Fornitore con debounce
+    fornitoreInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.fornitore = this.value;
+            currentPage = 1;
+            loadResults();
+        }, 500);
+    });
+    
+    // Pulsante reset
+    clearFilters.addEventListener('click', clearAllFilters);
+    clearSearch.addEventListener('click', clearAllFilters);
+});
+
+function loadResults() {
+    showLoading(true);
+    
+    // Costruisci parametri query
+    const params = new URLSearchParams();
+    params.append('page', currentPage);
+    
+    if (currentFilters.search) params.append('search', currentFilters.search);
+    if (currentFilters.filtro_stato) params.append('filtro_stato', currentFilters.filtro_stato);
+    if (currentFilters.ubicazione) params.append('ubicazione', currentFilters.ubicazione);
+    if (currentFilters.fornitore) params.append('fornitore', currentFilters.fornitore);
+    if (currentFilters.sort) params.append('sort', currentFilters.sort);
+    if (currentFilters.dir) params.append('dir', currentFilters.dir);
+    
+    // Aggiorna URL senza ricaricare la pagina
+    const newUrl = window.location.pathname + '?' + params.toString();
+    window.history.replaceState({}, '', newUrl);
+    
+    // Chiamata AJAX
+    fetch('/magazzino/api/ricambi/filter?' + params.toString())
+        .then(response => response.json())
+        .then(data => {
+            renderResults(data.ricambi);
+            renderPagination(data.pagination);
+            updateResultsCount(data.pagination.total);
+            showLoading(false);
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento:', error);
+            showError('Errore nel caricamento dei risultati');
+            showLoading(false);
+        });
+}
+
+function renderResults(ricambi) {
+    const tbody = document.getElementById('ricambi-tbody');
+    const noResults = document.getElementById('no-results');
+    
+    if (ricambi.length === 0) {
+        tbody.style.display = 'none';
+        noResults.style.display = 'block';
+        return;
+    }
+    
+    tbody.style.display = '';
+    noResults.style.display = 'none';
+    
+    tbody.innerHTML = ricambi.map(ricambio => `
+        <tr onclick="window.location.href='/magazzino/ricambio/${ricambio.id}'">
+            <!-- Foto -->
+            <td class="col-foto" data-label="">
+                ${ricambio.foto_filename ? 
+                    `<img src="/magazzino/ricambi/foto/${ricambio.foto_filename}" 
+                         alt="Foto ${ricambio.codice}" class="rounded" 
+                         style="width: 40px; height: 40px; object-fit: cover;">` :
+                    `<div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">
+                        <i class="bi bi-image text-muted"></i>
+                     </div>`
+                }
+            </td>
+            
+            <!-- Codice -->
+            <td class="col-codice" data-label="Codice">
+                <div class="fw-bold">${ricambio.codice}</div>
+                ${ricambio.fornitore ? `<small class="text-muted d-block">${ricambio.fornitore}</small>` : ''}
+                ${ricambio.is_sotto_scorta ? 
+                    `<span class="badge bg-warning text-dark">
+                        <i class="bi bi-exclamation-triangle"></i> Sotto scorta
+                     </span>` : ''
+                }
+            </td>
+            
+            <!-- Descrizione -->
+            <td class="col-descrizione" data-label="Descrizione">
+                <div title="${ricambio.descrizione}">${ricambio.descrizione}</div>
+            </td>
+            
+            <!-- Disponibili -->
+            <td class="col-disponibili" data-label="Disponibili">
+                <span class="badge bg-success">${ricambio.quantita_disponibile}</span>
+            </td>
+            
+            <!-- Prenotati -->
+            <td class="col-prenotati" data-label="Prenotati">
+                ${ricambio.quantita_prenotata > 0 ? 
+                    `<span class="badge bg-warning">${ricambio.quantita_prenotata}</span>` :
+                    `<span class="text-muted">0</span>`
+                }
+            </td>
+            
+            <!-- Ubicazione -->
+            <td class="col-ubicazione" data-label="Ubicazione">
+                ${ricambio.ubicazione ? 
+                    `<small class="text-muted"><i class="bi bi-geo-alt"></i> ${ricambio.ubicazione}</small>` :
+                    `<small class="text-muted">-</small>`
+                }
+            </td>
+            
+            <!-- Azioni -->
+            <td class="col-azioni" data-label="Azioni" onclick="event.stopPropagation();">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-success btn-sm" 
+                            onclick="caricaRicambio(${ricambio.id}, '${ricambio.codice}')"
+                            title="Carica">
+                        <i class="bi bi-arrow-up"></i>
+                    </button>
+                    ${ricambio.quantita_disponibile > 0 ? 
+                        `<button class="btn btn-outline-warning btn-sm" 
+                                onclick="scaricaRicambio(${ricambio.id}, '${ricambio.codice}', ${ricambio.quantita_disponibile})"
+                                title="Scarica">
+                            <i class="bi bi-arrow-down"></i>
+                         </button>` : ''
+                    }
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(pagination) {
+    const paginationList = document.getElementById('pagination-list');
+    const paginationText = document.getElementById('pagination-text');
+    const paginationContainer = document.getElementById('pagination-container');
+    
+    // Aggiorna info paginazione
+    paginationText.textContent = `Pagina ${pagination.page} di ${pagination.pages} (${pagination.total} ricambi totali)`;
+    
+    if (pagination.pages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    
+    let paginationHTML = '';
+    
+    // Pulsante Precedente
+    if (pagination.has_prev) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${pagination.prev_num}); return false;">
+                    <i class="bi bi-chevron-left"></i> Precedente
+                </a>
+            </li>`;
+    } else {
+        paginationHTML += `
+            <li class="page-item disabled">
+                <span class="page-link">
+                    <i class="bi bi-chevron-left"></i> Precedente
+                </span>
+            </li>`;
+    }
+    
+    // Numeri di pagina (logica semplificata)
+    const startPage = Math.max(1, pagination.page - 2);
+    const endPage = Math.min(pagination.pages, pagination.page + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(1); return false;">1</a>
+            </li>`;
+        if (startPage > 2) {
+            paginationHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === pagination.page) {
+            paginationHTML += `
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">${i}</span>
+                </li>`;
+        } else {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
+                </li>`;
+        }
+    }
+    
+    if (endPage < pagination.pages) {
+        if (endPage < pagination.pages - 1) {
+            paginationHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+        }
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${pagination.pages}); return false;">${pagination.pages}</a>
+            </li>`;
+    }
+    
+    // Pulsante Successivo
+    if (pagination.has_next) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${pagination.next_num}); return false;">
+                    Successivo <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>`;
+    } else {
+        paginationHTML += `
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Successivo <i class="bi bi-chevron-right"></i>
+                </span>
+            </li>`;
+    }
+    
+    paginationList.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadResults();
+    // Scroll to top
+    document.querySelector('.container-fluid').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showLoading(show) {
+    const loading = document.getElementById('loading-indicator');
+    const searchLoading = document.getElementById('search-loading');
+    const tbody = document.getElementById('ricambi-tbody');
+    
+    if (show) {
+        loading.style.display = 'block';
+        searchLoading.style.display = 'block';
+        tbody.style.opacity = '0.5';
+    } else {
+        loading.style.display = 'none';
+        searchLoading.style.display = 'none';
+        tbody.style.opacity = '1';
+    }
+}
+
+function updateResultsCount(total) {
+    const resultsCount = document.getElementById('results-count');
+    resultsCount.textContent = `(${total} risultati)`;
+}
+
+function clearAllFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('filtro-stato').value = '';
+    document.getElementById('ubicazione-input').value = '';
+    document.getElementById('fornitore-input').value = '';
+    
+    currentFilters = {
+        search: '',
+        filtro_stato: '',
+        ubicazione: '',
+        fornitore: '',
+        sort: 'codice',
+        dir: 'asc'
+    };
+    currentPage = 1;
+    
+    loadResults();
+}
+
+function showError(message) {
+    // Puoi implementare un sistema di notifiche toast qui
+    console.error(message);
+}
+</script>
+{% endblock %}

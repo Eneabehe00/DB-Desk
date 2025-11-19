@@ -1,0 +1,803 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ticket.numero_ticket }} - {{ ticket.titolo }} - DB-Desk{% endblock %}
+{% block page_title %}Ticket {{ ticket.numero_ticket }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Tabella ricambi ticket migliorata */
+    .ricambi-ticket-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 0.375rem;
+        overflow: hidden;
+    }
+    
+    .ricambi-ticket-table th {
+        background-color: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .ricambi-ticket-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    
+    .ricambi-ticket-table tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .ricambi-ticket-table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: translateX(2px);
+    }
+    
+    .ricambi-ticket-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* Colonne specifiche */
+    .ricambi-ticket-table .col-codice {
+        width: 140px;
+        font-weight: 600;
+    }
+    
+    .ricambi-ticket-table .col-descrizione {
+        min-width: 200px;
+    }
+    
+    .ricambi-ticket-table .col-necessari,
+    .ricambi-ticket-table .col-utilizzati,
+    .ricambi-ticket-table .col-rimanenti,
+    .ricambi-ticket-table .col-stock {
+        width: 100px;
+        text-align: center;
+    }
+    
+    /* Badge con spaziatura migliore */
+    .ricambi-ticket-table .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.6rem;
+        min-width: 2rem;
+        text-align: center;
+    }
+    
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .ricambi-ticket-table .col-necessari,
+        .ricambi-ticket-table .col-utilizzati,
+        .ricambi-ticket-table .col-rimanenti,
+        .ricambi-ticket-table .col-stock {
+            display: none;
+        }
+    }
+    
+    /* Mobile responsive per tabella */
+    @media (max-width: 767.98px) {
+        .ricambi-ticket-table thead {
+            display: none;
+        }
+        
+        .ricambi-ticket-table tbody tr {
+            display: block;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        
+        .ricambi-ticket-table tbody td {
+            display: block;
+            border: none;
+            padding: 0.25rem 0;
+            text-align: left !important;
+        }
+        
+        .ricambi-ticket-table tbody td:before {
+            content: attr(data-label) ": ";
+            font-weight: 600;
+            color: #374151;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Intestazione ticket -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4 class="card-title mb-1">{{ ticket.titolo }}</h4>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-primary">{{ ticket.numero_ticket }}</span>
+                            <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                                {{ ticket.priorita }}
+                            </span>
+                            <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }}">
+                                {{ ticket.stato }}
+                            </span>
+                            <span class="badge bg-secondary">{{ ticket.categoria }}</span>
+                            {% if ticket.is_scaduto %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> Scaduto
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Badge di stato semplice -->
+                    <div>
+                        <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }} fs-6">
+                            {{ ticket.stato }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Cliente</h6>
+                        <p class="mb-0">
+                            <i class="bi bi-building"></i>
+                            <a href="{{ url_for('clients.view_client', id=ticket.cliente.id) }}" 
+                               class="text-decoration-none">
+                                {{ ticket.cliente.ragione_sociale }}
+                            </a>
+                        </p>
+                        {% if ticket.cliente.email %}
+                            <small class="text-muted">
+                                <i class="bi bi-envelope"></i> {{ ticket.cliente.email }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Assegnato a</h6>
+                        <div class="d-flex align-items-center">
+                            {% if ticket.assigned_to %}
+                                <i class="bi bi-person-circle me-2"></i>
+                                {{ ticket.assigned_to.full_name }}
+                            {% else %}
+                                <span class="text-muted">
+                                    <i class="bi bi-person-x me-2"></i>
+                                    Non assegnato
+                                </span>
+                                <button class="btn btn-sm btn-outline-primary ms-2" 
+                                        onclick="assignToMe()">
+                                    Assegna a me
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="text-muted">Descrizione</h6>
+                <div class="bg-light p-3 rounded">
+                    {{ ticket.descrizione | replace('\n', '<br>') | safe }}
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="mt-4">
+                    <ul class="nav nav-tabs" id="ticketDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="allegati-tab" data-bs-toggle="tab" data-bs-target="#allegati" type="button" role="tab">
+                                <i class="bi bi-paperclip"></i> Allegati
+                                {% if attachments %}
+                                    <span class="badge bg-primary ms-1">{{ attachments|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        {% if ricambi_associati %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ricambi-tab" data-bs-toggle="tab" data-bs-target="#ricambi" type="button" role="tab">
+                                <i class="bi bi-tools"></i> Ricambi
+                                <span class="badge bg-warning ms-1">{{ ricambi_associati|length }}</span>
+                            </button>
+                        </li>
+                        {% endif %}
+                        {% set macchine_list = ticket.macchine_collegate.all() %}
+                        {% if macchine_list %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="macchine-tab" data-bs-toggle="tab" data-bs-target="#macchine" type="button" role="tab">
+                                <i class="bi bi-gear"></i> Macchine
+                                <span class="badge bg-success ms-1">{{ macchine_list|length }}</span>
+                            </button>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist" type="button" role="tab">
+                                <i class="bi bi-check2-square"></i> Checklist
+                                {% if subtasks %}
+                                    <span class="badge bg-info ms-1">{{ subtasks|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="ticketDetailTabsContent">
+                        <!-- Tab Allegati -->
+                        <div class="tab-pane fade show active" id="allegati" role="tabpanel">
+                            <div class="p-3">
+                                <form class="d-flex align-items-center gap-2 mb-3" method="POST" action="{{ url_for('tickets.upload_attachment', id=ticket.id) }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="file" name="file" class="form-control" style="max-width: 320px;" required>
+                        <button class="btn btn-outline-primary btn-sm" type="submit">
+                            <i class="bi bi-paperclip"></i> Carica
+                        </button>
+                    </form>
+                    {% if attachments %}
+                                <ul class="list-group list-group-flush">
+                        {% for a in attachments %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-earmark"></i>
+                                <a href="{{ url_for('tickets.download_attachment', stored_filename=a.stored_filename) }}">{{ a.filename }}</a>
+                                <small class="text-muted ms-2">{{ a.uploaded_at.strftime('%d/%m/%Y %H:%M') }} · {{ a.uploaded_by.full_name }}</small>
+                            </div>
+                            <form method="POST" action="{{ url_for('tickets.delete_attachment', id=ticket.id, attachment_id=a.id) }}" onsubmit="return confirm('Eliminare allegato?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                                <div class="text-muted"><small>Nessun allegato</small></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Ricambi -->
+                        {% if ricambi_associati %}
+                        <div class="tab-pane fade" id="ricambi" role="tabpanel">
+                            <div class="p-3">
+                                <!-- Tabella ricambi -->
+                                <div class="table-responsive">
+                                    <table class="ricambi-ticket-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-codice">Codice</th>
+                                                <th class="col-descrizione">Descrizione</th>
+                                                <th class="col-necessari">Necessari</th>
+                                                <th class="col-utilizzati">Utilizzati</th>
+                                                <th class="col-rimanenti">Rimanenti</th>
+                                                <th class="col-stock">Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in ricambi_associati %}
+                                            <tr onclick="window.location.href='{{ url_for('magazzino.dettaglio_ricambio', id=item.ricambio.id) }}'">
+                                                
+                                                <!-- Codice -->
+                                                <td class="col-codice" data-label="Codice">
+                                                    <strong>{{ item.ricambio.codice }}</strong>
+                                                </td>
+                                                
+                                                <!-- Descrizione -->
+                                                <td class="col-descrizione" data-label="Descrizione">
+                                                    <div title="{{ item.ricambio.descrizione }}">
+                                                        {{ item.ricambio.descrizione }}
+                                                    </div>
+                                                </td>
+                                                
+                                                <!-- Necessari -->
+                                                <td class="col-necessari" data-label="Necessari">
+                                                    <span class="badge bg-info">{{ item.quantita_necessaria }}</span>
+                                                </td>
+                                                
+                                                <!-- Utilizzati -->
+                                                <td class="col-utilizzati" data-label="Utilizzati">
+                                                    {% if item.quantita_utilizzata > 0 %}
+                                                        <span class="badge bg-success">{{ item.quantita_utilizzata }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">0</span>
+                                                    {% endif %}
+                                                </td>
+                                                
+                                                <!-- Rimanenti -->
+                                                <td class="col-rimanenti" data-label="Rimanenti">
+                                                    {% if item.quantita_rimanente > 0 %}
+                                                        <span class="badge bg-warning">{{ item.quantita_rimanente }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">0</span>
+                                                    {% endif %}
+                                                </td>
+                                                
+                                                <!-- Stock -->
+                                                <td class="col-stock" data-label="Stock">
+                                                    {% if item.ricambio.quantita_disponibile > 0 %}
+                                                        <span class="badge bg-success">{{ item.ricambio.quantita_disponibile }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">0</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i>
+                                        I ricambi vengono automaticamente sottratti dal magazzino quando il ticket viene chiuso.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Tab Macchine -->
+                        {% if macchine_list %}
+                        <div class="tab-pane fade" id="macchine" role="tabpanel">
+                            <div class="p-3">
+                                <h6 class="mb-3">
+                                    <i class="bi bi-gear text-success"></i>
+                                    Macchine Associate al Ticket
+                                </h6>
+                                
+                                <div class="row">
+                                    {% for macchina in macchine_list %}
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-gear-fill text-success"></i>
+                                                        {{ macchina.codice }}
+                                                    </h6>
+                                                    <span class="badge bg-{{ 'success' if macchina.stato == 'Disponibile' else 'warning' if macchina.stato == 'In prestito' else 'danger' }}">
+                                                        {{ macchina.stato }}
+                                                    </span>
+                                                </div>
+                                                
+                                                <p class="card-text">
+                                                    <strong>{{ macchina.marca }} {{ macchina.modello }}</strong>
+                                                </p>
+                                                
+                                                {% if macchina.numero_serie %}
+                                                <p class="text-muted small mb-2">
+                                                    <i class="bi bi-hash"></i>
+                                                    S/N: {{ macchina.numero_serie }}
+                                                </p>
+                                                {% endif %}
+                                                
+                                                {% if macchina.ubicazione %}
+                                                <p class="text-muted small mb-2">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    {{ macchina.ubicazione }}
+                                                </p>
+                                                {% endif %}
+                                                
+                                                {% if macchina.anno_produzione %}
+                                                <p class="text-muted small mb-2">
+                                                    <i class="bi bi-calendar"></i>
+                                                    Anno: {{ macchina.anno_produzione }}
+                                                </p>
+                                                {% endif %}
+                                                
+                                                <div class="mt-auto">
+                                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i>
+                                                        Dettagli
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i>
+                                        Le macchine associate sono coinvolte in questo ticket per manutenzione, riparazione o supporto.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Tab Checklist -->
+                        <div class="tab-pane fade" id="checklist" role="tabpanel">
+                            <div class="p-3">
+                                <form class="d-flex gap-2 mb-3" method="POST" action="{{ url_for('tickets.add_subtask', id=ticket.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="text" name="title" class="form-control" placeholder="Aggiungi sotto-attività" required>
+                                    <button class="btn btn-primary" type="submit">Aggiungi</button>
+                                </form>
+                                {% if subtasks %}
+                                <ul class="list-group list-group-flush">
+                                    {% for s in subtasks %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <form method="POST" action="{{ url_for('tickets.toggle_subtask', id=ticket.id, subtask_id=s.id) }}" style="display:inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-sm {{ 'btn-success' if s.is_done else 'btn-outline-secondary' }}" type="submit">
+                                                    <i class="bi {{ 'bi-check-square' if s.is_done else 'bi-square' }}"></i>
+                                                </button>
+                                            </form>
+                                            <span class="ms-2 {{ 'text-decoration-line-through text-muted' if s.is_done }}">{{ s.title }}</span>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('tickets.delete_subtask', id=ticket.id, subtask_id=s.id) }}" onsubmit="return confirm('Eliminare la sotto-attività?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <div class="text-muted"><small>Nessuna sotto-attività</small></div>
+                    {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if ticket.tag_list %}
+                <div class="mt-3">
+                    <h6 class="text-muted">Tag</h6>
+                    {% for tag in ticket.tag_list %}
+                        <span class="badge bg-light text-dark me-1">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if ticket.note_interne %}
+                <div class="mt-3">
+                    <h6 class="text-muted">Note Interne</h6>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        {{ ticket.note_interne | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+
+        <!-- Timeline/Attività (placeholder) -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history"></i>
+                    Timeline Attività
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Ticket creato</h6>
+                            <p class="mb-1">da {{ ticket.created_by_user.full_name }}</p>
+                            <small class="text-muted">{{ ticket.created_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if ticket.assigned_to %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Ticket assegnato</h6>
+                            <p class="mb-1">a {{ ticket.assigned_to.full_name }}</p>
+                            <small class="text-muted">{{ ticket.updated_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if ticket.resolved_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Ticket risolto</h6>
+                            <small class="text-muted">{{ ticket.resolved_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if ticket.closed_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-secondary"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Ticket chiuso</h6>
+                            <small class="text-muted">{{ ticket.closed_at.strftime('%d/%m/%Y alle %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar con informazioni -->
+    <div class="col-lg-4">
+        <!-- Azioni rapide -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning text-primary"></i>
+                    Azioni Rapide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if ticket.stato != 'In Lavorazione' and ticket.stato != 'Risolto' and ticket.stato != 'Chiuso' %}
+                    <button class="btn btn-primary" onclick="changeStatus('In Lavorazione')">
+                        <i class="bi bi-play-circle"></i> Prendi in carico
+                    </button>
+                    {% endif %}
+                    
+                    {% if ticket.stato == 'In Lavorazione' or ticket.stato == 'In Attesa Cliente' or ticket.stato == 'Aperto' %}
+                    <button class="btn btn-success" onclick="changeStatus('Risolto')">
+                        <i class="bi bi-check-circle"></i> Segna come risolto
+                    </button>
+                    {% endif %}
+                    
+                    {% if ticket.stato == 'Risolto' %}
+                    <button class="btn btn-warning" onclick="changeStatus('Chiuso')">
+                        <i class="bi bi-x-circle"></i> Chiudi ticket
+                    </button>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <a href="{{ url_for('tickets.edit_ticket', id=ticket.id) }}" 
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Modifica Ticket
+                    </a>
+                    
+                    {% if current_user.is_admin or ticket.created_by_id == current_user.id %}
+                    <button class="btn btn-outline-danger delete-ticket" 
+                            data-ticket-id="{{ ticket.id }}" 
+                            data-ticket-number="{{ ticket.numero_ticket }}">
+                        <i class="bi bi-trash"></i> Elimina Ticket
+                    </button>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-info" onclick="printTicket()">
+                        <i class="bi bi-printer"></i> Stampa
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiche ticket -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Statistiche
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">Giorni apertura:</dt>
+                    <dd class="col-6">
+                        <span class="badge bg-{{ 'danger' if ticket.giorni_apertura > 30 else 'warning' if ticket.giorni_apertura > 7 else 'info' }}">
+                            {{ ticket.giorni_apertura }} giorni
+                        </span>
+                    </dd>
+                    
+                    {% if ticket.due_date %}
+                    <dt class="col-6">Scadenza:</dt>
+                    <dd class="col-6">
+                        <small class="{{ 'text-danger' if ticket.is_scaduto else '' }}">
+                            {{ ticket.due_date.strftime('%d/%m/%Y %H:%M') }}
+                        </small>
+                        {% if ticket.giorni_alla_scadenza is not none %}
+                            <br>
+                            <span class="badge bg-{{ 'danger' if ticket.giorni_alla_scadenza < 0 else 'warning' if ticket.giorni_alla_scadenza < 3 else 'info' }}">
+                                {% if ticket.giorni_alla_scadenza < 0 %}
+                                    {{ -ticket.giorni_alla_scadenza }} giorni fa
+                                {% else %}
+                                    {{ ticket.giorni_alla_scadenza }} giorni rimasti
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+                    
+                    {% if ticket.tempo_stimato %}
+                    <dt class="col-6">Tempo stimato:</dt>
+                    <dd class="col-6">{{ (ticket.tempo_stimato / 60) | round(1) }} ore</dd>
+                    {% endif %}
+                    
+                    {% if ticket.tempo_impiegato %}
+                    <dt class="col-6">Tempo impiegato:</dt>
+                    <dd class="col-6">{{ (ticket.tempo_impiegato / 60) | round(1) }} ore</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Navigazione -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Navigazione
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list"></i> Tutti i ticket
+                    </a>
+                    <a href="{{ url_for('clients.view_client', id=ticket.cliente.id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-building"></i> Scheda cliente
+                    </a>
+                    <a href="{{ url_for('tickets.list_tickets') }}?cliente={{ ticket.cliente.id }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-filter"></i> Altri ticket del cliente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare il ticket <strong>{{ ticket.numero_ticket }}</strong>?
+                <br><br>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa azione non può essere annullata.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form method="POST" action="{{ url_for('tickets.delete_ticket', id=ticket.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funzione per ottenere il CSRF token
+function getCSRFToken() {
+    return document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+}
+
+// Cambio stato ticket
+function changeStatus(newStatus) {
+    fetch(`{{ url_for('tickets.change_status', id=ticket.id) }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            status: newStatus,
+            csrf_token: getCSRFToken()
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message || 'Errore sconosciuto', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Errore completo:', error);
+        showToast(`Errore durante l'aggiornamento dello stato: ${error.message}`, 'danger');
+    });
+}
+
+// Assegna ticket all'utente corrente
+function assignToMe() {
+    fetch(`{{ url_for('tickets.assign_ticket', id=ticket.id) }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_id: {{ current_user.id }},
+            csrf_token: getCSRFToken()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        showToast('Errore durante l\'assegnazione del ticket', 'danger');
+    });
+}
+
+// Elimina ticket
+document.querySelectorAll('.delete-ticket').forEach(button => {
+    button.addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+});
+
+// Stampa ticket
+function printTicket() {
+    window.print();
+}
+
+// CSS per timeline
+const timelineCSS = `
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 3px solid #0d6efd;
+}
+`;
+
+// Aggiungi CSS per timeline
+const style = document.createElement('style');
+style.textContent = timelineCSS;
+document.head.appendChild(style);
+</script>
+{% endblock %}

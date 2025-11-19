@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-section {
+        background: #f8fafc;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear"></i> {{ title }}
+                    </h5>
+                    <div>
+                        <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Torna alla Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <form method="POST" action="{{ action_url }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-section">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.nome.id }}" class="form-label required-field">{{ form.nome.label.text }}</label>
+                                {{ form.nome(class="form-control") }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.nome.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nome univoco per identificare il tipo di macchina</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.descrizione.id }}" class="form-label">{{ form.descrizione.label.text }}</label>
+                                {{ form.descrizione(class="form-control", rows="4") }}
+                                {% if form.descrizione.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.descrizione.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Descrizione dettagliata del tipo di macchina (opzionale)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informazioni aggiuntive se in modifica -->
+                    {% if tipo %}
+                    <div class="form-section">
+                        <h6 class="mb-3"><i class="bi bi-info-circle"></i> Informazioni</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Macchine Associate</label>
+                                <div class="form-control-plaintext">
+                                    <strong>{{ tipo.macchine.count() }}</strong> macchine
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Data Creazione</label>
+                                <div class="form-control-plaintext">
+                                    {{ tipo.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if tipo.macchine.count() > 0 %}
+                        <div class="mt-3">
+                            <label class="form-label">Macchine di questo tipo:</label>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for macchina in tipo.macchine.limit(20) %}
+                                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" 
+                                   class="badge bg-secondary text-decoration-none">
+                                    {{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}
+                                </a>
+                                {% endfor %}
+                                {% if tipo.macchine.count() > 20 %}
+                                <span class="badge bg-light text-dark">+{{ tipo.macchine.count() - 20 }} altre</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Pulsanti -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Annulla
+                            </a>
+                        </div>
+                        <div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

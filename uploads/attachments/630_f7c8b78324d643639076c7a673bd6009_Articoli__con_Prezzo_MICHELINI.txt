@@ -1,0 +1,340 @@
+Articoli
+Descrizione                             	Prezzo con IVA
+FILETTO FEMMINA PIEMONTESE              	44,00
+PRIMO TAGLIO FEMMINA PIEMONTESE         	24,00
+NOCE FEMMINA PIEMONTESE                 	24,00
+INFUORI FEMMINA PIEMONTESE              	24,00
+ROTONDA FEMMINA PIEMONTESE              	24,00
+ALBESE FEMMINA PIEMONTESE               	24,00
+SCAMONE FEMMINA PIEMONTESE              	24,00
+SOTTOFILETTO FEMMINA PIEMONTESE         	25,00
+COSTATA FEMMINA PIEMONTESE              	22,00
+BRUTTO E BUONO FEMMINA PIEMONTESE       	18,00
+TENERONE FEMMINA PIEMONTESE             	20,00
+ARROSTO FIOCCO FEMMINA PIEMONTESE       	22,00
+ARROSTO VENA FEMMINA PIEMONTESE         	22,00
+ARROSTO GIRELLO FEMMINA PIEMONTESE      	22,00
+AROSTO BOCCIA FEMMINA PIEMONTESE        	22,00
+BOLLITO CON OSSO FEMMINA PIEMONTESE     	12,00
+MUSCOLO DI SPALLA FEMMINA PIEMONTESE    	20,00
+POLPA MAGRA PER CRUDA FEMMINA PIEMONTESE	24,00
+POLPA PER SUGO 0' PIEMONTESE            	14,00
+CODA FEMMINA PIEMONTESE                 	18,00
+FEGATO FEMMIN PIEMONTESE                	12,00
+TRIPPA de' MONCALE'                     	12,00
+MUSCOLO di COSCIA                       	20,00
+BRACIOLE di MAIALE                      	12,00
+CAPOCOLLO di MAIALE SENZA OSSO          	12,00
+COSTINE di MAIALE                       	12,00
+LONZA di MAIALE                         	12,00
+FILETTO di MAIALE                       	16,00
+SALSICCIA di MAIALE                     	12,00
+SALSICCIA al PREZZEMOLO                 	12,00
+SALAMELLE di MAIALE                     	12,00
+SALSICCIE di BRA'                       	21,00
+PANCETTA FRESCA                         	10,00
+SALSICCIA al FINOCCHIO                  	12,00
+COTENNA di MAIALE                       	8,00
+PIEDINI di MAIALE                       	5,00
+TRAMEZZINI di CARNE                     	16,00
+SFIZIOSE di VITELLA                     	18,00
+BRASILIANE di TACCHINELLA               	16,00
+GNOCCHETTI di CARNE                     	16,00
+HAMBURGER CLASSICO                      	16,00
+HAMBURGER SPINACI                       	16,00
+SPIEDINI                                	15,00
+BRIOCHES di SFOGLIA                     	16,00
+MILANESE DI POLLO                       	16,00
+MILANESE DI VITELLO                     	22,00
+POLPETTE DI CARNE                       	16,00
+QUADROTTI alla NOCCIOLA                 	16,00
+ROLATINE DI POLLO                       	16,00
+ROLATINE DI VITELLO                     	20,00
+PETTO di POLLO CAMPESE                  	16,00
+COSCIE di POLLO CAMPESE                 	10,00
+FUSELLI di POLLO CAMPESE                	12,00
+ALETTE DI POLLO CAMPESE                 	6,00
+FESA di TACCHINO di MONASTRELLO         	16,00
+CONIGLIO di MONASTRELLO                 	16,00
+PETTO di POLLO di MONASTRELLO           	12,00
+COSCE di POLLO di MONASTRELLO           	8,00
+ALETTE dI POLLO MONASTRELLO             	0,00
+ovoline                                 	4,00
+nodini                                  	4,00
+olive dolci condite                     	10,00
+olive piccanti                          	10,00
+olive dolci nere                        	10,00
+olive dolci schiacciate                 	10,00
+PARMIGGIANO REGGIANO                    	29,00
+GRANA PADANO                            	26,00
+BURRO brussino                          	3,50
+SALAME CACCIATORINO                     	22,00
+COTECHINO                               	16,00
+CASTELLANE di PROSCIUTTO FORMAGGIO      	15,00
+ROLATA di TACCHINELLA                   	16,00
+ROLATA di CONIGLIO                      	22,00
+ROLATINE di CONGLIO                     	22,00
+PANCETTA  ARROTOLATA                    	24,00
+PANCETTA COPPATA VILLANI                	24,00
+PROSCIUTTO COTTO LENTI                  	28,00
+PROSCIUTTO CRUDO DI PARMA               	44,00
+MORTADELLA PISTACCHIO VILLANI           	18,00
+SALAME MILANO                           	18,00
+BRESAOLA                                	44,00
+SALAME ALL'AGLIO VENETO                 	22,00
+LARDO ALLE ERBE                         	20,00
+GOLFETTA                                	22,00
+TACCHINO ARROSTO                        	22,00
+SPECK                                   	20,00
+GUANCIALE DOLCE                         	18,00
+GUANCIALE AFFUMICATO                    	18,00
+ALETTE IN SALSA                         	10,00
+rustichelle con salsa                   	14,00
+involtini di melanzane                  	16,00
+salame cotto                            	18,00
+primo sale naturale                     	15,00
+ossobuchi                               	18,00
+bistecchine agnello                     	28,00
+arrosticini di pollo                    	20,00
+barbera                                 	8,00
+passata di cerignola                    	2,50
+dolcetto                                	6,50
+pancetta coppata                        	22,00
+tritata di maiale                       	12,00
+pollo busto campese                     	12,00
+testina                                 	12,00
+coscia tacchinella                      	7,00
+tasca ripiena                           	20,00
+polpettone farcito                      	16,00
+stracchino                              	18,00
+culatello di maiale                     	10,00
+budella                                 	14,00
+pollo busto monasterolo                 	5,00
+hamburger vitello                       	20,00
+agnellino sardo                         	24,00
+arrosticini agnello                     	34,00
+lingua                                  	12,00
+spalla agnello                          	28,00
+coscia agnello                          	22,00
+bistecchine capretto                    	28,00
+capretto                                	21,90
+capretto                                	28,00
+faraona                                 	14,00
+formaggio a fette                       	12,00
+provola silana                          	19,00
+hamburger di pollo                      	16,00
+uova da 6                               	2,00
+uova da 4                               	2,50
+roast beef                              	32,00
+scamorza affumicata                     	17,00
+scamorza bianca                         	17,00
+taralli                                 	3,90
+salsiccia piccante                      	12,00
+gallina di monasterolo                  	12,00
+posteriore coniglio                     	18,00
+seppie di pollo                         	16,00
+straccetti di pollo                     	16,00
+valtellina                              	12,00
+straccetti di vitello                   	22,00
+pollo alla contadina                    	18,00
+lingua cotta                            	24,00
+valdostane                              	24,00
+salsiccia pollo                         	12,00
+lenticchie al pomodoro                  	3,00
+fagioli cannellini                      	2,40
+carciofi rustici                        	6,70
+rooatine primavera                      	13,00
+asparagine                              	15,00
+salame di fassona                       	28,00
+pasticcini di carne e carciofi          	14,00
+nodini sanato                           	21,00
+ravioli                                 	3,90
+plin                                    	4,90
+ravioli alle verdure                    	3,90
+gnocchetti                              	3,90
+ravioli alla zucca                      	4,90
+spalla capretto                         	18,00
+duroni di pollo e fegatini              	5,90
+anatra                                  	16,00
+acciughe al verde                       	44,00
+saltinbocca                             	22,00
+guajcia di vitello                      	22,00
+arrosto coscia                          	22,00
+bollito bue                             	22,00
+arrosto bue                             	26,00
+bue                                     	26,00
+fettine bue                             	28,00
+galletto valtellina                     	15,00
+cinghiale                               	19,00
+vitello tonnato                         	42,00
+olio olive taggiasche                   	13,50
+sofficini di carne                      	16,00
+bugie zuccherate                        	12,00
+bugie ripiene                           	14,00
+involtini di melanzane                  	16,00
+zampone venegoni                        	15,00
+stinco venegoni                         	9,00
+cotechino venegoni                      	9,00
+aglio olio peperoncino                  	3,70
+preparato soffritto                     	3,70
+noci moscate                            	3,00
+ariosto                                 	3,20
+grigliatissime                          	3,20
+origano                                 	2,20
+bauer carne                             	2,90
+bauer vegetale                          	2,90
+dado camoscio                           	7,20
+zafferano                               	1,80
+funghi porcini                          	3,80
+bagna caoda                             	9,50
+peperoncini ripieni                     	7,50
+caponatina                              	6,20
+bagnetto verde                          	3,90
+bagnetto rosso                          	3,90
+cipolline in agrodolce                  	4,30
+peperoni con tonno                      	6,70
+antipasto all´ortolana                  	6,30
+filetti di salmone                      	9,00
+filetti di acciughe                     	7,70
+filetti di tonno                        	7,90
+filetti di sgombro                      	8,80
+passata di pomodoro                     	3,00
+giardiniera                             	6,00
+olio extra vergine                      	15,00
+toma di lanzo                           	18,00
+primo sale pepato                       	18,00
+pecorino romano                         	27,00
+caciotta caprina                        	22,00
+quaglie                                 	18,00
+quaglie                                 	18,00
+ricotta pugliese                        	11,00
+pecorino fiorito                        	19,80
+CACIORICOTTA                            	25,00
+gorgonzola                              	17,00
+pecorino fiore sardo                    	24,00
+tartar                                  	26,00
+cervella                                	20,00
+bombette                                	18,00
+hamburger carciofi                      	14,00
+pollo al curry                          	18,00
+insalata di pollo                       	20,00
+arrosticini misti                       	24,00
+bollito d´estate                        	22,00
+tritata di pollo                        	16,00
+hamburger di coniglio                   	21,00
+bruschette                              	4,90
+prova                                   	0,01
+siciliani                               	18,00
+salame ferrarese all´aglio              	28,00
+cotechino ferrarese                     	20,00
+salsiccia ferrarese                     	20,00
+cotechino carne buona                   	20,00
+salame ferrarese s/aglio                	28,00
+zia ferrarese                           	28,00
+pancetta arrotolata ferrarese           	25,50
+pesto fresco                            	22,00
+rete maiale                             	6,00
+maialino da latte                       	21,00
+salamina da sugo                        	27,00
+cotechino                               	18,00
+sottofiletto di bue                     	28,00
+spezzatino di bue                       	22,00
+cappone di monasterolo                  	20,00
+cappelletti ferraresi                   	40,00
+panpapati ferraresi                     	20,00
+zampone                                 	20,00
+tartufina                               	35,00
+pollo ripieno                           	20,00
+rolata pollo campese                    	20,00
+tritata scelta                          	16,00
+pancetta arrotolata                     	20,00
+provolone auricchio                     	22,00
+prosciutto cotto scelto                 	18,00
+girello cotto                           	32,00
+tomino longo                            	3,50
+fior di bosco                           	17,00
+robiola di roccaverano                  	24,00
+salame crespone                         	20,00
+fontina fontal                          	17,00
+fontina aosta                           	21,00
+gorgonzola mascarpone                   	25,00
+brie francese                           	17,00
+insalata capricciosa                    	22,00
+insalata russa                          	22,00
+insalata russa con tonno                	24,00
+antipasto piemontese                    	22,00
+giuncata                                	19,50
+torta al limone                         	15,00
+burrata                                 	4,50
+burrata affumicata                      	4,90
+burrata al tartufo                      	4,90
+trullo occhiato                         	38,00
+stracciatella                           	6,90
+pancetta steccata                       	26,00
+gnocchi di patata                       	4,50
+agnolotti del plin                      	4,60
+tortellini                              	4,50
+agnolotti di carne                      	4,50
+mozzarella treccia                      	4,00
+hamburger radicchio/gorgonzola          	16,00
+hamburger provolone                     	16,00
+peperoni in bagna verde                 	22,00
+peperoni in bagna caoda                 	6,00
+bagnetto verde                          	22,00
+mozzarella                              	4,00
+mozzarella di bufala                    	4,50
+zizzona di battipaglia                  	22,00
+crescenza di capra                      	4,50
+coppa di testa                          	18,00
+ciccioli                                	20,00
+lasagna                                 	18,50
+rolata di vitella                       	20,00
+manzo affumicato                        	38,00
+luganica dolce                          	28,00
+luganica piccante                       	28,00
+robiolina capra                         	2,90
+rolata di tacchhnella                   	24,00
+mozzarella fior di latte                	20,00
+wurstel di fassona                      	6,00
+porchetta                               	22,00
+agnellino sardo                         	24,00
+robiola fresca                          	23,00
+stinco di maiale                        	10,00
+tagllate aromatizzate                   	21,00
+carpione                                	27,00
+osso del nonno                          	4,00
+ravioli borragine                       	4,60
+trippa cotta                            	24,00
+hamburger cipolla e parmigiano          	16,00
+grigliata mista                         	10,00
+salsiccia sarda                         	32,00
+pecorino sardo 24m                      	32,50
+pecorino sardo 9m                       	28,50
+caprino 12m                             	29,50
+caciocavallo sardo                      	26,00
+lonzino sardo                           	36,00
+DOLCI                                   	4,00
+tiramisu'                               	5,00
+cosce di faraone                        	13,00
+biscotto burro                          	4,00
+biscotto cioccolato                     	4,50
+tritata bue                             	18,00
+tritata magra                           	26,00
+muscolo bue                             	24,00
+bollito con osso bue                    	16,00
+tenerone bue                            	24,00
+arrosto vena bue                        	26,00
+rotonda bue                             	28,00
+gorgonzola tartufo                      	36,00
+pollo ripieno                           	24,00
+anatra ripiena                          	32,00
+tacchinella ripiena                     	29,00
+coniglio ripieno                        	30,00
+faraona ripiena                         	27,00
+cappone disossato                       	30,00
+lonza di maiale con mele                	16,00
+filetto                                 	48,00
+tomini conditi                          	6,50
+rolata di bue                           	24,00
+costata di bue                          	26,00
+tacchinella di monasterolo              	14,00

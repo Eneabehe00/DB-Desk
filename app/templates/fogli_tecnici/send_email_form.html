@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+    .email-header {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-field {
+        margin-bottom: 2rem;
+    }
+    
+    .form-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .form-control, .form-select {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #17a2b8;
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+    
+    .form-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin-top: 2rem;
+    }
+    
+    .btn-action {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        min-width: 120px;
+    }
+    
+    .info-card {
+        background: #e8f4f8;
+        border-left: 4px solid #17a2b8;
+        padding: 1.5rem;
+        border-radius: 0 10px 10px 0;
+        margin-bottom: 2rem;
+    }
+    
+    .info-card h6 {
+        color: #0c5460;
+        margin-bottom: 1rem;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .info-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .info-value {
+        color: #212529;
+    }
+    
+    .email-preview {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .email-preview h6 {
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+    
+    .email-content {
+        background: white;
+        padding: 1rem;
+        border-radius: 5px;
+        border: 1px solid #e9ecef;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    @media (max-width: 768px) {
+        .email-header {
+            padding: 1.5rem;
+        }
+        
+        .form-container {
+            padding: 1.5rem;
+        }
+        
+        .navigation-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="email-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2">
+                    <i class="bi bi-envelope-at me-2"></i>
+                    Invio Email
+                </h2>
+                <h4 class="mb-0 opacity-90">{{ foglio.numero_foglio }} - {{ foglio.titolo }}</h4>
+            </div>
+            <div class="text-end">
+                <small class="opacity-75">
+                    Cliente: {{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}<br>
+                    Stato: {{ foglio.stato }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informazioni Foglio -->
+    <div class="info-card">
+        <h6>
+            <i class="bi bi-info-circle me-2"></i>
+            Dettagli Invio
+        </h6>
+        <div class="info-item">
+            <span class="info-label">Documento:</span>
+            <span class="info-value">Foglio Tecnico {{ foglio.numero_foglio }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Data Intervento:</span>
+            <span class="info-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Tecnico:</span>
+            <span class="info-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">PDF Disponibile:</span>
+            <span class="info-value">
+                {% if foglio.pdf_generato %}
+                    <i class="bi bi-check-circle text-success me-1"></i>Sì
+                {% else %}
+                    <i class="bi bi-x-circle text-danger me-1"></i>No (verrà generato automaticamente)
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Form di Invio -->
+    <form method="POST" id="emailForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="form-container">
+            <!-- Email Destinatario -->
+            <div class="form-field">
+                <label for="email_destinatario" class="form-label">
+                    <i class="bi bi-envelope me-1"></i>
+                    Email Destinatario *
+                </label>
+                <input type="email" 
+                       class="form-control" 
+                       id="email_destinatario" 
+                       name="email_destinatario" 
+                       value="{{ email_default }}" 
+                       required
+                       placeholder="cliente@example.com">
+                <div class="form-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Indirizzo email dove inviare il foglio tecnico
+                </div>
+            </div>
+            
+            <!-- Note Aggiuntive -->
+            <div class="form-field">
+                <label for="note_aggiuntive" class="form-label">
+                    <i class="bi bi-chat-text me-1"></i>
+                    Messaggio Aggiuntivo
+                </label>
+                <textarea class="form-control" 
+                          id="note_aggiuntive" 
+                          name="note_aggiuntive" 
+                          rows="4" 
+                          placeholder="Eventuali note aggiuntive da includere nell'email..."></textarea>
+                <div class="form-text">
+                    <i class="bi bi-lightbulb me-1"></i>
+                    Messaggio personalizzato che verrà incluso nell'email (opzionale)
+                </div>
+            </div>
+            
+            <!-- Anteprima Email -->
+            <div class="email-preview">
+                <h6>
+                    <i class="bi bi-eye me-2"></i>
+                    Anteprima Email
+                </h6>
+                <div class="email-content">
+                    <strong>Oggetto:</strong> Foglio Tecnico {{ foglio.numero_foglio }} - {{ foglio.titolo }}<br><br>
+                    
+                    <p>Gentile Cliente,</p>
+                    
+                    <p>In allegato trova il foglio tecnico relativo all'intervento effettuato:</p>
+                    
+                    <ul>
+                        <li><strong>Numero Foglio:</strong> {{ foglio.numero_foglio }}</li>
+                        <li><strong>Titolo:</strong> {{ foglio.titolo }}</li>
+                        <li><strong>Data Intervento:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</li>
+                        <li><strong>Tecnico:</strong> {{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</li>
+                    </ul>
+                    
+                    <div id="custom-message" style="margin: 15px 0; padding: 10px; background: #f0f8ff; border-left: 3px solid #17a2b8; display: none;">
+                        <strong>Messaggio aggiuntivo:</strong><br>
+                        <span id="custom-message-text"></span>
+                    </div>
+                    
+                    <p>Per qualsiasi chiarimento non esiti a contattarci.</p>
+                    
+                    <p>Cordiali saluti,<br>
+                    <strong>DB Company S.r.l.</strong><br>
+                    Team Assistenza Tecnica</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigazione -->
+        <div class="navigation-buttons">
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn btn-outline-secondary btn-action">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Annulla
+                </a>
+                
+                <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-outline-primary btn-action">
+                    <i class="bi bi-list me-2"></i>
+                    Lista
+                </a>
+            </div>
+            
+            <div class="d-flex gap-2">
+                {% if not foglio.pdf_generato %}
+                <button type="button" class="btn btn-warning btn-action" onclick="generatePdfFirst()">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>
+                    Genera PDF Prima
+                </button>
+                {% endif %}
+                
+                <button type="submit" class="btn btn-info btn-action" id="sendButton">
+                    <i class="bi bi-send me-2"></i>
+                    Invia Email
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email_destinatario');
+    const noteInput = document.getElementById('note_aggiuntive');
+    const customMessage = document.getElementById('custom-message');
+    const customMessageText = document.getElementById('custom-message-text');
+    const sendButton = document.getElementById('sendButton');
+    
+    // Validazione email in tempo reale
+    emailInput.addEventListener('input', function() {
+        const isValid = this.checkValidity();
+        sendButton.disabled = !isValid;
+        
+        if (isValid) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+    
+    // Aggiorna anteprima messaggio personalizzato
+    noteInput.addEventListener('input', function() {
+        const message = this.value.trim();
+        if (message) {
+            customMessageText.textContent = message;
+            customMessage.style.display = 'block';
+        } else {
+            customMessage.style.display = 'none';
+        }
+    });
+    
+    // Auto-resize textarea
+    noteInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Validazione iniziale
+    emailInput.dispatchEvent(new Event('input'));
+    
+    // Conferma invio
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
+        const email = emailInput.value;
+        const confirmed = confirm(
+            `Confermi l'invio del foglio tecnico {{ foglio.numero_foglio }} all'indirizzo:\n\n${email}\n\n` +
+            `Il documento verrà inviato come allegato PDF.`
+        );
+        
+        if (!confirmed) {
+            e.preventDefault();
+        } else {
+            // Mostra indicatore di caricamento
+            sendButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Invio in corso...';
+            sendButton.disabled = true;
+        }
+    });
+});
+
+// Funzione per generare PDF prima dell'invio
+function generatePdfFirst() {
+    if (confirm('Generare il PDF prima di procedere con l\'invio?')) {
+        window.location.href = '{{ url_for("fogli_tecnici.generate_pdf", id=foglio.id) }}';
+    }
+}
+</script>
+{% endblock %}

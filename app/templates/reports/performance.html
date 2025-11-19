@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}Report Performance - DB-Desk{% endblock %}
+{% block page_title %}Report Performance Utenti{% endblock %}
+
+{% block content %}
+<!-- Filtri -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-funnel"></i>
+                    Filtri Report Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="days" class="form-label">Periodo di Analisi</label>
+                        <select class="form-select" id="days" name="days" onchange="this.form.submit()">
+                            <option value="7" {% if days == 7 %}selected{% endif %}>Ultimi 7 giorni</option>
+                            <option value="30" {% if days == 30 %}selected{% endif %}>Ultimi 30 giorni</option>
+                            <option value="90" {% if days == 90 %}selected{% endif %}>Ultimi 90 giorni</option>
+                            <option value="365" {% if days == 365 %}selected{% endif %}>Ultimo anno</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 d-flex align-items-end">
+                        <div class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            Analisi delle performance del team negli ultimi {{ days }} giorni
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Performance Generale del Team
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Utente</th>
+                                <th class="text-center">Ticket Creati</th>
+                                <th class="text-center">Ticket Assegnati</th>
+                                <th class="text-center">Ticket Risolti</th>
+                                <th class="text-center">Tasso Risoluzione</th>
+                                <th class="text-center">Carico di Lavoro</th>
+                                <th class="text-center">Performance Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in user_performance %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                        </div>
+                                        <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ user.created_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ user.assigned_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ user.resolved_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% set tasso = (user.resolved_count / user.assigned_count * 100) if user.assigned_count and user.assigned_count > 0 else 0 %}
+                                    <span class="badge {% if tasso >= 80 %}bg-success{% elif tasso >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ "%.1f"|format(tasso) }}%
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% set carico = (user.assigned_count or 0) - (user.resolved_count or 0) %}
+                                    <span class="badge {% if carico <= 5 %}bg-success{% elif carico <= 10 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ carico }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% set score = ((user.resolved_count or 0) * 10 + (tasso / 10)) if user.assigned_count and user.assigned_count > 0 else 0 %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if score >= 80 %}bg-success{% elif score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ score if score <= 100 else 100 }}%">
+                                            {{ "%.0f"|format(score) }}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafici Performance -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Ticket Risolti per Utente
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="resolvedChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Distribuzione Carico di Lavoro
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="workloadChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tempo di Risoluzione -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-clock"></i>
+                    Tempo Medio di Risoluzione per Utente
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Utente</th>
+                                <th class="text-center">Ticket Risolti</th>
+                                <th class="text-center">Tempo Medio (ore)</th>
+                                <th class="text-center">Performance</th>
+                                <th class="text-center">Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_tempo in tempo_risoluzione_utenti %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            {{ user_tempo.user.first_name[0] }}{{ user_tempo.user.last_name[0] }}
+                                        </div>
+                                        <strong>{{ user_tempo.user.first_name }} {{ user_tempo.user.last_name }}</strong>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ user_tempo.tickets_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if user_tempo.tempo_medio <= 4 %}bg-success{% elif user_tempo.tempo_medio <= 8 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ "%.1f"|format(user_tempo.tempo_medio) }}h
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if user_tempo.tempo_medio <= 4 %}
+                                        <i class="bi bi-emoji-smile text-success fs-5"></i>
+                                        <small class="text-success">Eccellente</small>
+                                    {% elif user_tempo.tempo_medio <= 8 %}
+                                        <i class="bi bi-emoji-neutral text-warning fs-5"></i>
+                                        <small class="text-warning">Buona</small>
+                                    {% else %}
+                                        <i class="bi bi-emoji-frown text-danger fs-5"></i>
+                                        <small class="text-danger">Da migliorare</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <!-- Placeholder per trend - potresti implementare confronto con periodo precedente -->
+                                    <i class="bi bi-arrow-up text-success"></i>
+                                    <small class="text-muted">Stabile</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche Comparative -->
+<div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">
+                    {% set top_performer = tempo_risoluzione_utenti[0] if tempo_risoluzione_utenti else None %}
+                    {% if top_performer %}
+                        {{ top_performer.user.first_name }} {{ top_performer.user.last_name }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </h4>
+                <p class="mb-0">Top Performer</p>
+                <small>
+                    {% if top_performer %}
+                        {{ "%.1f"|format(top_performer.tempo_medio) }}h tempo medio
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">
+                    {% set avg_resolution = (tempo_risoluzione_utenti | sum(attribute='tempo_medio') / tempo_risoluzione_utenti|length) if tempo_risoluzione_utenti else 0 %}
+                    {{ "%.1f"|format(avg_resolution) }}h
+                </h4>
+                <p class="mb-0">Tempo Medio Team</p>
+                <small>Media generale di risoluzione</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">
+                    {% set total_resolved = user_performance | sum(attribute='resolved_count') %}
+                    {{ total_resolved }}
+                </h4>
+                <p class="mb-0">Ticket Risolti Totali</p>
+                <small>Negli ultimi {{ days }} giorni</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Raccomandazioni -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i>
+                    Raccomandazioni per Migliorare le Performance
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-success">
+                            <i class="bi bi-check-circle"></i>
+                            Punti di Forza
+                        </h6>
+                        <ul class="list-unstyled">
+                            {% set high_performers = user_performance | selectattr('resolved_count', '>', 5) | list %}
+                            {% if high_performers %}
+                                <li><i class="bi bi-arrow-right text-success"></i> {{ high_performers|length }} utenti con alta produttività</li>
+                            {% endif %}
+                            
+                            {% set fast_resolvers = tempo_risoluzione_utenti | selectattr('tempo_medio', '<=', 4) | list %}
+                            {% if fast_resolvers %}
+                                <li><i class="bi bi-arrow-right text-success"></i> {{ fast_resolvers|length }} utenti con tempi di risoluzione eccellenti</li>
+                            {% endif %}
+                            
+                            <li><i class="bi bi-arrow-right text-success"></i> Tempo medio team: {{ "%.1f"|format(avg_resolution) }} ore</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Aree di Miglioramento
+                        </h6>
+                        <ul class="list-unstyled">
+                            {% set slow_resolvers = tempo_risoluzione_utenti | selectattr('tempo_medio', '>', 8) | list %}
+                            {% if slow_resolvers %}
+                                <li><i class="bi bi-arrow-right text-warning"></i> {{ slow_resolvers|length }} utenti necessitano formazione sui tempi</li>
+                            {% endif %}
+                            
+                            {% set high_workload = user_performance | selectattr('assigned_count', '>', 15) | list %}
+                            {% if high_workload %}
+                                <li><i class="bi bi-arrow-right text-warning"></i> {{ high_workload|length }} utenti con carico eccessivo</li>
+                            {% endif %}
+                            
+                            {% set low_resolution = user_performance | selectattr('resolved_count', '<', 3) | list %}
+                            {% if low_resolution %}
+                                <li><i class="bi bi-arrow-right text-warning"></i> {{ low_resolution|length }} utenti con bassa produttività</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Grafico ticket risolti per utente
+    const resolvedCtx = document.getElementById('resolvedChart').getContext('2d');
+    const resolvedData = [
+        {% for user in user_performance %}
+        { 
+            label: '{{ user.first_name }} {{ user.last_name }}', 
+            resolved: {{ user.resolved_count }},
+            assigned: {{ user.assigned_count }}
+        },
+        {% endfor %}
+    ];
+    
+    // Ordina per ticket risolti
+    resolvedData.sort((a, b) => b.resolved - a.resolved);
+    
+    new Chart(resolvedCtx, {
+        type: 'bar',
+        data: {
+            labels: resolvedData.map(d => d.label.split(' ').map(n => n.substring(0, 8)).join(' ')),
+            datasets: [{
+                label: 'Ticket Risolti',
+                data: resolvedData.map(d => d.resolved),
+                backgroundColor: '#198754',
+                borderColor: '#146c43',
+                borderWidth: 1
+            }, {
+                label: 'Ticket Assegnati',
+                data: resolvedData.map(d => d.assigned),
+                backgroundColor: '#0dcaf0',
+                borderColor: '#0aa2c0',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Grafico distribuzione carico di lavoro
+    const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+    const workloadData = resolvedData.map(d => ({
+        label: d.label.split(' ').map(n => n.substring(0, 8)).join(' '),
+        workload: d.assigned - d.resolved
+    }));
+    
+    new Chart(workloadCtx, {
+        type: 'doughnut',
+        data: {
+            labels: workloadData.map(d => d.label),
+            datasets: [{
+                data: workloadData.map(d => Math.max(d.workload, 0)),
+                backgroundColor: [
+                    '#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1',
+                    '#20c997', '#ffc107', '#d63384', '#6c757d', '#0dcaf0'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

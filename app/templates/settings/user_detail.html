@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.full_name }} - Dettagli Utente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-person-circle"></i>
+                    {{ user.full_name }}
+                </h1>
+                <div class="btn-group">
+                    <a href="{{ url_for('settings.users') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Torna alla lista
+                    </a>
+                    {% if current_user.has_permission('can_manage_users') %}
+                    <a href="{{ url_for('settings.edit_user', user_id=user.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Modifica
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Informazioni Utente -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Informazioni Utente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Username:</strong>
+                                    <p><code>{{ user.username }}</code></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Email:</strong>
+                                    <p>{{ user.email }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Nome completo:</strong>
+                                    <p>{{ user.full_name }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Stato:</strong>
+                                    <p>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">Attivo</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disattivo</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Ruolo:</strong>
+                                    <p>
+                                        {% if user.role %}
+                                            <span class="badge bg-{% if user.role.name == 'admin' %}danger{% elif user.role.name == 'developer' %}dark{% else %}primary{% endif %}">
+                                                {{ user.role.display_name }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">Nessun ruolo assegnato</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Reparto:</strong>
+                                    <p>
+                                        {% if user.department %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle me-2" 
+                                                     style="width: 12px; height: 12px; background-color: {{ user.department.color }};"></div>
+                                                {{ user.department.display_name }}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Nessun reparto assegnato</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Registrato il:</strong>
+                                    <p>{{ user.created_at.strftime('%d/%m/%Y alle %H:%M') if user.created_at else 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Ultimo accesso:</strong>
+                                    <p>
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%d/%m/%Y alle %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">Mai effettuato</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Creati -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-plus-circle"></i>
+                                Ticket Creati Recenti ({{ stats.total_tickets_created }} totali)
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_created_tickets %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Numero</th>
+                                            <th>Titolo</th>
+                                            <th>Cliente</th>
+                                            <th class="text-center">Stato</th>
+                                            <th class="text-center">Priorità</th>
+                                            <th class="text-center">Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ticket in recent_created_tickets %}
+                                        <tr onclick="window.location='{{ url_for('tickets.view_ticket', id=ticket.id) }}'" style="cursor: pointer;">
+                                            <td><code>{{ ticket.numero_ticket }}</code></td>
+                                            <td>{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</td>
+                                            <td>{{ ticket.cliente.ragione_sociale if ticket.cliente else 'N/A' }}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-{% if ticket.stato == 'Aperto' %}warning{% elif ticket.stato == 'In Lavorazione' %}info{% elif ticket.stato == 'Risolto' %}success{% else %}secondary{% endif %}">
+                                                    {{ ticket.stato }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-{% if ticket.priorita == 'Alta' %}danger{% elif ticket.priorita == 'Media' %}warning{% else %}secondary{% endif %}">
+                                                    {{ ticket.priorita }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">{{ ticket.created_at.strftime('%d/%m/%Y') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">Nessun ticket creato</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Ticket Assegnati -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-person-check"></i>
+                                Ticket Assegnati Recenti ({{ stats.total_tickets_assigned }} totali)
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_assigned_tickets %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Numero</th>
+                                            <th>Titolo</th>
+                                            <th>Cliente</th>
+                                            <th class="text-center">Stato</th>
+                                            <th class="text-center">Priorità</th>
+                                            <th class="text-center">Aggiornato</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ticket in recent_assigned_tickets %}
+                                        <tr onclick="window.location='{{ url_for('tickets.view_ticket', id=ticket.id) }}'" style="cursor: pointer;">
+                                            <td><code>{{ ticket.numero_ticket }}</code></td>
+                                            <td>{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</td>
+                                            <td>{{ ticket.cliente.ragione_sociale if ticket.cliente else 'N/A' }}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-{% if ticket.stato == 'Aperto' %}warning{% elif ticket.stato == 'In Lavorazione' %}info{% elif ticket.stato == 'Risolto' %}success{% else %}secondary{% endif %}">
+                                                    {{ ticket.stato }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-{% if ticket.priorita == 'Alta' %}danger{% elif ticket.priorita == 'Media' %}warning{% else %}secondary{% endif %}">
+                                                    {{ ticket.priorita }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">{{ ticket.updated_at.strftime('%d/%m/%Y') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-person-check text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">Nessun ticket assegnato</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiche e Azioni -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bar-chart"></i>
+                                Statistiche
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-plus-circle text-primary" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-primary">{{ stats.total_tickets_created }}</div>
+                                        <small class="text-muted">Ticket Creati</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-person-check text-success" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-success">{{ stats.total_tickets_assigned }}</div>
+                                        <small class="text-muted">Ticket Assegnati</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-exclamation-circle text-warning" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-warning">{{ stats.open_tickets_created }}</div>
+                                        <small class="text-muted">Creati Aperti</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-3">
+                                        <i class="bi bi-clock text-info" style="font-size: 1.5rem;"></i>
+                                        <div class="fw-bold fs-4 text-info">{{ stats.open_tickets_assigned }}</div>
+                                        <small class="text-muted">Assegnati Aperti</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Azioni Amministrative -->
+                    {% if current_user.has_permission('can_manage_users') and user.id != current_user.id %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-gear"></i>
+                                Azioni Amministrative
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn btn-{% if user.is_active %}warning{% else %}success{% endif %}"
+                                        onclick="toggleUserStatus({{ user.id }})">
+                                    <i class="bi bi-{% if user.is_active %}pause{% else %}play{% endif %}"></i>
+                                    {% if user.is_active %}Disattiva{% else %}Attiva{% endif %} Utente
+                                </button>
+                                
+                                {% if user.can_be_deleted() %}
+                                <button type="button" 
+                                        class="btn btn-danger"
+                                        onclick="deleteUser({{ user.id }}, '{{ user.full_name }}')">
+                                    <i class="bi bi-trash"></i>
+                                    Elimina Utente
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare l'utente <strong id="userName"></strong>?</p>
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa operazione non può essere annullata. I ticket associati verranno riassegnati automaticamente.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Elimina</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleUserStatus(userId) {
+    fetch(`/settings/users/${userId}/toggle_status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Errore durante l\'operazione');
+    });
+}
+
+function deleteUser(userId, userName) {
+    document.getElementById('userName').textContent = userName;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+    
+    document.getElementById('confirmDelete').onclick = function() {
+        fetch(`/settings/users/${userId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/settings/users';
+            } else {
+                alert('Errore durante l\'eliminazione');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Errore durante l\'eliminazione');
+        });
+        
+        modal.hide();
+    };
+}
+</script>
+{% endblock %}

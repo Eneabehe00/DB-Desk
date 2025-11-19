@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Import Email - DB-Desk{% endblock %}
+{% block page_title %}Import Email{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-envelope-arrow-down"></i> Gestione Import Email</h5>
+        <div class="btn-group" role="group">
+          <button class="btn btn-primary" onclick="runEmailImport()">
+            <i class="bi bi-download"></i> Importa Ora
+          </button>
+          <button class="btn btn-outline-info" onclick="testIMAPConnection()">
+            <i class="bi bi-wifi"></i> Test Connessione
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 text-center">
+            <div class="h3 text-warning">{{ pending_drafts }}</div>
+            <div class="text-muted">Email in attesa</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h3 text-success">{{ converted_drafts }}</div>
+            <div class="text-muted">Convertite</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h3 text-secondary">{{ ignored_drafts }}</div>
+            <div class="text-muted">Ignorate</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h3 text-info">{{ total_tickets_from_email }}</div>
+            <div class="text-muted">Ticket totali</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Email in Attesa di Conversione</h6>
+        <a href="{{ url_for('settings.email_drafts') }}" class="btn btn-outline-primary btn-sm">
+          Vedi Tutte
+        </a>
+      </div>
+      <div class="card-body">
+        {% if recent_drafts %}
+        <div class="list-group list-group-flush">
+          {% for draft in recent_drafts %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{ draft.subject }}</h6>
+                <p class="mb-1 text-muted">Da: {{ draft.from_email }}</p>
+                <small class="text-muted">{{ draft.received_at.strftime('%d/%m/%Y %H:%M') if draft.received_at else 'Data sconosciuta' }}</small>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-success" onclick="convertDraft({{ draft.id }})">
+                  <i class="bi bi-arrow-right"></i> Converti
+                </button>
+                <button class="btn btn-outline-danger" onclick="ignoreDraft({{ draft.id }})">
+                  <i class="bi bi-x"></i> Ignora
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-muted text-center py-3">Nessuna email in attesa</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-gear"></i> Configurazione</h6>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-6">Stato:</dt>
+          <dd class="col-6">
+            <span class="badge bg-{{ 'success' if email_config.EMAIL_IMPORT_ENABLED else 'secondary' }}">
+              {{ 'Attivo' if email_config.EMAIL_IMPORT_ENABLED else 'Disattivo' }}
+            </span>
+          </dd>
+          <dt class="col-6">Host IMAP:</dt>
+          <dd class="col-6">{{ email_config.EMAIL_IMAP_HOST or 'Non configurato' }}</dd>
+          <dt class="col-6">Porta:</dt>
+          <dd class="col-6">{{ email_config.EMAIL_IMAP_PORT }}</dd>
+          <dt class="col-6">SSL:</dt>
+          <dd class="col-6">{{ 'Sì' if email_config.EMAIL_IMAP_SSL else 'No' }}</dd>
+          <dt class="col-6">Cartella:</dt>
+          <dd class="col-6">{{ email_config.EMAIL_FOLDER }}</dd>
+          <dt class="col-6">Auto Import:</dt>
+          <dd class="col-6">{{ 'Sì' if email_config.EMAIL_AUTO_IMPORT else 'No' }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-clock"></i> Scheduler Automatico</h6>
+        <button class="btn btn-outline-primary btn-sm" onclick="refreshSchedulerStatus()">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div id="schedulerStatus">
+          <div class="text-center">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Caricamento...</span>
+            </div>
+          </div>
+        </div>
+        <div class="d-grid gap-2 mt-3">
+          <div class="btn-group btn-group-sm d-flex" role="group">
+            <button class="btn btn-outline-success flex-fill" onclick="startScheduler()" id="startSchedulerBtn">
+              <i class="bi bi-play"></i> Avvia
+            </button>
+            <button class="btn btn-outline-danger flex-fill" onclick="stopScheduler()" id="stopSchedulerBtn">
+              <i class="bi bi-stop"></i> Arresta
+            </button>
+            <button class="btn btn-outline-secondary flex-fill" onclick="restartScheduler()">
+              <i class="bi bi-arrow-repeat"></i> Riavvia
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-info-circle"></i> Come Funziona</h6>
+      </div>
+      <div class="card-body">
+        <p class="small">
+          <strong>Modalità Automatica:</strong> Se abilitata, le email che passano i filtri vengono convertite automaticamente in ticket.
+        </p>
+        <p class="small">
+          <strong>Modalità Manuale:</strong> Tutte le email vengono salvate come bozze e devi decidere manualmente quali convertire.
+        </p>
+        <p class="small">
+          <strong>Filtri disponibili:</strong>
+        </p>
+        <ul class="small">
+          <li>Mittenti permessi</li>
+          <li>Parole chiave nell'oggetto</li>
+          <li>Parole da escludere</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Carica lo status dello scheduler al caricamento della pagina
+document.addEventListener('DOMContentLoaded', function() {
+  refreshSchedulerStatus();
+  // Aggiorna lo status ogni 30 secondi
+  setInterval(refreshSchedulerStatus, 30000);
+});
+
+function runEmailImport() {
+  fetch('{{ url_for("settings.run_email_import") }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'}
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast(`Import completato: ${data.messages_processed} email processate, ${data.tickets_created} ticket creati`, 'success');
+      setTimeout(() => location.reload(), 2000);
+    } else {
+      showToast(data.message, 'danger');
+    }
+  })
+  .catch(error => {
+    showToast('Errore durante l\'import', 'danger');
+  });
+}
+
+function testIMAPConnection() {
+  const button = event.target.closest('button');
+  const originalText = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<i class="bi bi-hourglass-split"></i> Test in corso...';
+
+  fetch('{{ url_for("settings.test_imap_connection") }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'}
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      let message = data.message;
+      if (data.folders && data.folders.length > 0) {
+        message += `\n\nCartelle disponibili (${data.folders.length}):\n`;
+        message += data.folders.slice(0, 10).join(', '); // Mostra max 10 cartelle
+        if (data.folders.length > 10) {
+          message += ` ... e altre ${data.folders.length - 10}`;
+        }
+      }
+      showToast(message, 'success');
+    } else {
+      showToast(data.message, 'danger');
+    }
+  })
+  .catch(error => {
+    showToast('Errore durante il test della connessione', 'danger');
+  })
+  .finally(() => {
+    button.disabled = false;
+    button.innerHTML = originalText;
+  });
+}
+
+function refreshSchedulerStatus() {
+  fetch('{{ url_for("settings.email_scheduler_status") }}')
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      updateSchedulerDisplay(data.status);
+    } else {
+      document.getElementById('schedulerStatus').innerHTML = 
+        '<div class="text-danger"><i class="bi bi-exclamation-circle"></i> Errore nel caricamento status</div>';
+    }
+  })
+  .catch(error => {
+    document.getElementById('schedulerStatus').innerHTML = 
+      '<div class="text-danger"><i class="bi bi-exclamation-circle"></i> Errore di connessione</div>';
+  });
+}
+
+function updateSchedulerDisplay(status) {
+  const statusDiv = document.getElementById('schedulerStatus');
+  const startBtn = document.getElementById('startSchedulerBtn');
+  const stopBtn = document.getElementById('stopSchedulerBtn');
+  const restartBtn = document.querySelector('button[onclick="restartScheduler()"]');
+
+  const isRunning = status.is_running;
+  const nextRun = status.next_run_time;
+  const pollSeconds = status.poll_seconds;
+  const autoImportEnabled = status.auto_import_enabled;
+  const importEnabled = status.email_import_enabled;
+
+  let html = '<dl class="row mb-0 small">';
+
+  // Status generale
+  html += '<dt class="col-6">Stato:</dt>';
+  html += '<dd class="col-6">';
+  if (!importEnabled) {
+    html += '<span class="badge bg-secondary">Disabilitato</span>';
+  } else if (isRunning) {
+    html += '<span class="badge bg-success"><i class="bi bi-play-fill"></i> Attivo</span>';
+  } else {
+    html += '<span class="badge bg-warning"><i class="bi bi-pause-fill"></i> Fermato</span>';
+  }
+  html += '</dd>';
+
+  // Modalità
+  html += '<dt class="col-6">Modalità:</dt>';
+  html += '<dd class="col-6">' + (autoImportEnabled ? 'Automatica' : 'Manuale') + '</dd>';
+
+  // Intervallo
+  html += '<dt class="col-6">Intervallo:</dt>';
+  html += '<dd class="col-6">' + Math.floor(pollSeconds / 60) + ' minuti</dd>';
+
+  // Prossima esecuzione
+  if (nextRun && isRunning) {
+    const nextRunDate = new Date(nextRun);
+    html += '<dt class="col-6">Prossima exec:</dt>';
+    html += '<dd class="col-6">' + nextRunDate.toLocaleTimeString() + '</dd>';
+  }
+
+  html += '</dl>';
+  statusDiv.innerHTML = html;
+
+  // Gestisci stato pulsanti
+  if (importEnabled) {
+    startBtn.disabled = isRunning;
+    stopBtn.disabled = !isRunning;
+    restartBtn.disabled = false;
+  } else {
+    startBtn.disabled = true;
+    stopBtn.disabled = true;
+    restartBtn.disabled = true;
+  }
+}
+
+function startScheduler() {
+  if (confirm('Avviare l\'import automatico email?')) {
+    const btn = document.getElementById('startSchedulerBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Avvio...';
+
+    fetch('{{ url_for("settings.start_email_scheduler") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(refreshSchedulerStatus, 1000);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    })
+    .catch(error => {
+      showToast('Errore durante l\'avvio', 'danger');
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    });
+  }
+}
+
+function stopScheduler() {
+  if (confirm('Arrestare l\'import automatico email?')) {
+    const btn = document.getElementById('stopSchedulerBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Arresto...';
+
+    fetch('{{ url_for("settings.stop_email_scheduler") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(refreshSchedulerStatus, 1000);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    })
+    .catch(error => {
+      showToast('Errore durante l\'arresto', 'danger');
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    });
+  }
+}
+
+function restartScheduler() {
+  if (confirm('Riavviare lo scheduler email?')) {
+    fetch('{{ url_for("settings.restart_email_scheduler") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(refreshSchedulerStatus, 1000);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    })
+    .catch(error => {
+      showToast('Errore durante il riavvio', 'danger');
+    });
+  }
+}
+
+function convertDraft(draftId) {
+  // Potremmo aprire un modal per selezionare il cliente
+  if (confirm('Convertire questa email in ticket?')) {
+    fetch(`/settings/email_import/drafts/${draftId}/convert`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    });
+  }
+}
+
+function ignoreDraft(draftId) {
+  if (confirm('Ignorare questa email?')) {
+    fetch(`/settings/email_import/drafts/${draftId}/ignore`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast(data.message, 'danger');
+      }
+    });
+  }
+}
+</script>
+{% endblock %}

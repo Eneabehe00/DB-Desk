@@ -1,0 +1,31 @@
+user: info@marelsupermercati.it
+pass: 25.Mar.inf.25
+
+user: vernazza@marelsupermercati.it
+pass: 25.Mar.ver.25
+
+user: sangiorgio@marelsupermercati.it
+pass: 25.Mar.san.25
+
+user: garibaldi@marelsupermercati.it   
+pass: 25.Mar.gar.25
+
+user: caselette@marelsupermercati.it
+pass: 25.Mar.cas.25
+
+
+
+per quanto riguarda l'accesso via web è possibile utilizzare l'URL: http://zimbra.marelsupermercati.it/ - oppure - http://mail.marelsupermercati.it/
+per quanto riguarda invece la configurazione dei client di posta i parametri sono i seguenti:
+
+indirizzo server di posta in ingresso: zimbra.marelsupermercati.it
+protocollo: IMAP 
+cifratura: si (SSL)
+porta: 993
+utente  (completo di @nomedominio.tld) e password tra quelli elencati in precedenza
+
+indirizzo server di posta in uscita: zimbra.marelsupermercati.it
+protocollo: SMTP
+cifratura: si (SSL)
+porta: 465
+utente  (completo di @nomedominio.tld) e password tra quelli elencati in precedenza

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foglio Tecnico {{ foglio.numero_foglio }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+            font-size: 0.9em;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+            border-radius: 4px;
+        }
+        
+        .info-section h3 {
+            margin-top: 0;
+            color: #17a2b8;
+            font-size: 1.2em;
+        }
+        
+        .info-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #212529;
+        }
+        
+        .custom-message {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .custom-message h4 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        
+        .attachment-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .attachment-info i {
+            font-size: 2em;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .info-item {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DB Company S.r.l.</h1>
+        <h2>Foglio Tecnico di Intervento</h2>
+        <p>{{ foglio.numero_foglio }}</p>
+    </div>
+    
+    <div class="content">
+        <p>Gentile Cliente,</p>
+        
+        <p>In allegato trova il foglio tecnico relativo all'intervento effettuato presso la Sua sede.</p>
+        
+        <div class="info-section">
+            <h3>Dettagli Intervento</h3>
+            
+            <div class="info-item">
+                <span class="info-label">Numero Foglio:</span>
+                <span class="info-value">{{ foglio.numero_foglio }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Titolo:</span>
+                <span class="info-value">{{ foglio.titolo }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Data Intervento:</span>
+                <span class="info-value">{{ foglio.data_intervento.strftime('%d/%m/%Y alle %H:%M') }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Tecnico:</span>
+                <span class="info-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</span>
+            </div>
+            
+            {% if foglio.categoria %}
+            <div class="info-item">
+                <span class="info-label">Categoria:</span>
+                <span class="info-value">{{ foglio.categoria }}</span>
+            </div>
+            {% endif %}
+            
+            {% if foglio.durata_intervento %}
+            <div class="info-item">
+                <span class="info-label">Durata:</span>
+                <span class="info-value">{{ foglio.durata_intervento }} minuti</span>
+            </div>
+            {% endif %}
+            
+            {% if foglio.indirizzo_intervento %}
+            <div class="info-item">
+                <span class="info-label">Indirizzo:</span>
+                <span class="info-value">{{ foglio.indirizzo_intervento }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if foglio.descrizione %}
+        <div class="info-section">
+            <h3>Descrizione Intervento</h3>
+            <p>{{ foglio.descrizione|replace('\n', '<br>')|safe }}</p>
+        </div>
+        {% endif %}
+        
+        {% if foglio.macchine_collegate.count() > 0 %}
+        <div class="info-section">
+            <h3>Macchine Coinvolte</h3>
+            <ul>
+                {% for macchina in foglio.macchine_collegate %}
+                <li>{{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if foglio.ricambi_utilizzati.count() > 0 %}
+        <div class="info-section">
+            <h3>Ricambi Utilizzati</h3>
+            <ul>
+                {% for ricambio in foglio.ricambi_utilizzati %}
+                <li>{{ ricambio.codice }} - {{ ricambio.descrizione }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if foglio.modalita_pagamento or foglio.importo_intervento %}
+        <div class="info-section">
+            <h3>Informazioni Commerciali</h3>
+            {% if foglio.modalita_pagamento %}
+            <div class="info-item">
+                <span class="info-label">Modalità Pagamento:</span>
+                <span class="info-value">{{ foglio.modalita_pagamento }}</span>
+            </div>
+            {% endif %}
+            {% if foglio.importo_intervento %}
+            <div class="info-item">
+                <span class="info-label">Importo:</span>
+                <span class="info-value">€ {{ "%.2f"|format(foglio.importo_intervento) }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if note_aggiuntive %}
+        <div class="custom-message">
+            <h4>Messaggio Aggiuntivo</h4>
+            <p>{{ note_aggiuntive|replace('\n', '<br>')|safe }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="attachment-info">
+            <div style="font-size: 2em; color: #856404; margin-bottom: 10px;">📎</div>
+            <strong>Documento PDF Allegato</strong><br>
+            <small>Il foglio tecnico completo è disponibile nell'allegato PDF</small>
+        </div>
+        
+        <p>Per qualsiasi chiarimento o informazione aggiuntiva, non esiti a contattarci.</p>
+        
+        <p>Cordiali saluti,</p>
+    </div>
+    
+    <div class="footer">
+        <strong>DB Company S.r.l.</strong><br>
+        Team Assistenza Tecnica<br>
+        <small>Email generata automaticamente il {{ data_generazione }}</small>
+    </div>
+</body>
+</html>

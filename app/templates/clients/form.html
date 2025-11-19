@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-{{ 'pencil' if cliente else 'plus-circle' }}"></i>
+                    {{ title }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Informazioni principali -->
+                    <h6 class="border-bottom pb-2 mb-3">Informazioni Principali</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.ragione_sociale.label(class="form-label") }}
+                            {{ form.ragione_sociale(class="form-control" + (" is-invalid" if form.ragione_sociale.errors else "")) }}
+                            {% if form.ragione_sociale.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.ragione_sociale.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch mt-4">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.codice_fiscale.label(class="form-label") }}
+                            {{ form.codice_fiscale(class="form-control text-uppercase" + (" is-invalid" if form.codice_fiscale.errors else ""), placeholder="RSSMRA80A01H501X") }}
+                            {% if form.codice_fiscale.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.codice_fiscale.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">16 caratteri alfanumerici (opzionale)</div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.partita_iva.label(class="form-label") }}
+                            {{ form.partita_iva(class="form-control" + (" is-invalid" if form.partita_iva.errors else ""), placeholder="12345678901") }}
+                            {% if form.partita_iva.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.partita_iva.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">11 cifre numeriche (opzionale)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contatti -->
+                    <h6 class="border-bottom pb-2 mb-3">Contatti</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="cliente@esempio.it") }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.telefono.label(class="form-label") }}
+                            {{ form.telefono(class="form-control", placeholder="06 12345678") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.cellulare.label(class="form-label") }}
+                            {{ form.cellulare(class="form-control", placeholder="334 1234567") }}
+                        </div>
+                    </div>
+                    
+                    <!-- Indirizzo -->
+                    <h6 class="border-bottom pb-2 mb-3">Indirizzo</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.indirizzo.label(class="form-label") }}
+                            {{ form.indirizzo(class="form-control", placeholder="Via Roma, 123") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.cap.label(class="form-label") }}
+                            {{ form.cap(class="form-control" + (" is-invalid" if form.cap.errors else ""), placeholder="00100") }}
+                            {% if form.cap.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cap.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.citta.label(class="form-label") }}
+                            {{ form.citta(class="form-control", placeholder="Roma") }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.provincia.label(class="form-label") }}
+                            {{ form.provincia(class="form-select") }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.paese.label(class="form-label") }}
+                            {{ form.paese(class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <!-- Informazioni aggiuntive -->
+                    <h6 class="border-bottom pb-2 mb-3">Informazioni Aggiuntive</h6>
+                    <div class="mb-3">
+                        {{ form.settore.label(class="form-label") }}
+                        {{ form.settore(class="form-control", placeholder="es. Informatica, Consulenza, Manifatturiero...") }}
+                        <div class="form-text">Settore di attività del cliente</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.note.label(class="form-label") }}
+                        {{ form.note(class="form-control", rows="4", placeholder="Note aggiuntive sul cliente...") }}
+                    </div>
+                    
+                    <!-- Azioni -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('clients.list_clients') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Torna alla lista
+                        </a>
+                        <div>
+                            {% if cliente %}
+                                <a href="{{ url_for('clients.view_client', id=cliente.id) }}" class="btn btn-outline-primary me-2">
+                                    <i class="bi bi-eye"></i>
+                                    Visualizza
+                                </a>
+                            {% endif %}
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar con informazioni -->
+    <div class="col-lg-4">
+        {% if cliente %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informazioni Cliente
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Data registrazione:</dt>
+                    <dd class="col-sm-7">{{ cliente.created_at.strftime('%d/%m/%Y') }}</dd>
+                    
+                    <dt class="col-sm-5">Ultima modifica:</dt>
+                    <dd class="col-sm-7">{{ cliente.updated_at.strftime('%d/%m/%Y') }}</dd>
+                    
+                    <dt class="col-sm-5">Ticket totali:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-primary">{{ cliente.ticket_count }}</span>
+                    </dd>
+                    
+                    <dt class="col-sm-5">Ticket aperti:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-{{ 'warning' if cliente.ticket_aperti > 0 else 'success' }}">
+                            {{ cliente.ticket_aperti }}
+                        </span>
+                    </dd>
+                </dl>
+                
+                {% if cliente.ticket_count > 0 %}
+                <div class="d-grid mt-3">
+                    <a href="{{ url_for('clients.client_tickets', id=cliente.id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-ticket-detailed"></i>
+                        Vedi tutti i ticket
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Suggerimenti -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i>
+                    Suggerimenti
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        L'email è obbligatoria per comunicazioni
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Codice fiscale e P.IVA devono essere univoci
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Il settore aiuta nelle statistiche
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Usa le note per informazioni specifiche
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Controlla sempre i dati prima di salvare
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Scorciatoie -->
+        {% if cliente %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i>
+                    Azioni Rapide
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo ticket per questo cliente
+                    </a>
+                    <a href="mailto:{{ cliente.email }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-envelope"></i>
+                        Invia email
+                    </a>
+                    {% if cliente.telefono %}
+                    <a href="tel:{{ cliente.telefono }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-telephone"></i>
+                        Chiama {{ cliente.telefono }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-uppercase per codice fiscale
+document.getElementById('codice_fiscale').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Validazione in tempo reale P.IVA
+document.getElementById('partita_iva').addEventListener('input', function() {
+    const value = this.value;
+    if (value && !/^\d{11}$/.test(value)) {
+        this.classList.add('is-invalid');
+    } else {
+        this.classList.remove('is-invalid');
+    }
+});
+
+// Validazione in tempo reale CAP
+document.getElementById('cap').addEventListener('input', function() {
+    const value = this.value;
+    if (value && !/^\d{5}$/.test(value)) {
+        this.classList.add('is-invalid');
+    } else {
+        this.classList.remove('is-invalid');
+    }
+});
+
+// Auto-completamento citta basato su CAP
+document.getElementById('cap').addEventListener('blur', function() {
+    const cap = this.value;
+    if (cap && /^\d{5}$/.test(cap)) {
+        // Qui potresti implementare una chiamata API per ottenere città e provincia
+        // Per ora un placeholder
+        console.log('CAP inserito:', cap);
+    }
+});
+
+// Controllo email duplicata (debounced)
+let emailTimeout;
+document.getElementById('email').addEventListener('input', function() {
+    const email = this.value;
+    clearTimeout(emailTimeout);
+    
+    if (email && email.includes('@')) {
+        emailTimeout = setTimeout(() => {
+            // Qui potresti implementare un controllo AJAX per email duplicate
+            console.log('Controllo email:', email);
+        }, 500);
+    }
+});
+
+// Focus sul primo campo
+document.getElementById('ragione_sociale').focus();
+
+// Auto-resize textarea
+document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+});
+
+// Contatore caratteri per ragione sociale
+document.getElementById('ragione_sociale').addEventListener('input', function() {
+    const maxLength = 200;
+    const currentLength = this.value.length;
+    const remaining = maxLength - currentLength;
+    
+    let counter = this.parentNode.querySelector('.char-counter');
+    if (!counter) {
+        counter = document.createElement('div');
+        counter.className = 'form-text char-counter';
+        this.parentNode.appendChild(counter);
+    }
+    
+    counter.textContent = `${currentLength}/${maxLength} caratteri`;
+    counter.className = `form-text char-counter ${remaining < 20 ? 'text-warning' : ''}`;
+});
+</script>
+{% endblock %}

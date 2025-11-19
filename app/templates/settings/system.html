@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema - DB-Desk{% endblock %}
+{% block page_title %}Sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Informazioni Sistema</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Piattaforma</dt><dd class="col-7">{{ system_info.platform }}</dd>
+          <dt class="col-5">Python</dt><dd class="col-7">{{ system_info.python_version }}</dd>
+          <dt class="col-5">Flask</dt><dd class="col-7">{{ system_info.flask_version }}</dd>
+          <dt class="col-5">CPU</dt><dd class="col-7">{{ system_info.cpu_percent }}%</dd>
+          <dt class="col-5">Memoria</dt><dd class="col-7">{{ system_info.memory_percent }}%</dd>
+          <dt class="col-5">Disco</dt><dd class="col-7">{{ system_info.disk_usage }}%</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Informazioni Applicazione</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Debug</dt><dd class="col-7">{{ 'Sì' if app_info.debug_mode else 'No' }}</dd>
+          <dt class="col-5">Config</dt><dd class="col-7">{{ app_info.config_name }}</dd>
+          <dt class="col-5">Host</dt><dd class="col-7">{{ app_info.host }}</dd>
+          <dt class="col-5">Porta</dt><dd class="col-7">{{ app_info.port }}</dd>
+          <dt class="col-5">Import Email</dt><dd class="col-7">{{ 'Abilitato' if app_info.email_import_enabled else 'Disabilitato' }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Informazioni Sistema - DB-Desk{% endblock %}
+{% block page_title %}Informazioni Sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Informazioni Sistema -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cpu"></i>
+                    Sistema Operativo
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Piattaforma:</dt>
+                    <dd class="col-sm-8"><code>{{ system_info.platform }}</code></dd>
+                    
+                    <dt class="col-sm-4">Python:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-info">{{ system_info.python_version }}</span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Flask:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-success">{{ system_info.flask_version }}</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Risorse Sistema -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Utilizzo Risorse
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- CPU -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-medium">CPU</small>
+                        <small class="text-muted">{{ "%.1f"|format(system_info.cpu_percent) }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-{{ 'danger' if system_info.cpu_percent > 80 else 'warning' if system_info.cpu_percent > 50 else 'success' }}" 
+                             style="width: {{ system_info.cpu_percent }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Memoria -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-medium">Memoria RAM</small>
+                        <small class="text-muted">{{ "%.1f"|format(system_info.memory_percent) }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-{{ 'danger' if system_info.memory_percent > 80 else 'warning' if system_info.memory_percent > 50 else 'info' }}" 
+                             style="width: {{ system_info.memory_percent }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Disco -->
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-medium">Spazio Disco</small>
+                        <small class="text-muted">{{ "%.1f"|format(system_info.disk_usage) }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-{{ 'danger' if system_info.disk_usage > 90 else 'warning' if system_info.disk_usage > 70 else 'primary' }}" 
+                             style="width: {{ system_info.disk_usage }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configurazione Applicazione -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Configurazione App
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Modalità Debug:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'warning' if app_info.debug_mode else 'success' }}">
+                            {{ 'Attivata' if app_info.debug_mode else 'Disattivata' }}
+                        </span>
+                        {% if app_info.debug_mode %}
+                        <small class="text-warning d-block">⚠️ Disattiva in produzione</small>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">Configurazione:</dt>
+                    <dd class="col-sm-8"><code>{{ app_info.config_name }}</code></dd>
+                    
+                    <dt class="col-sm-4">Host:</dt>
+                    <dd class="col-sm-8"><code>{{ app_info.host }}</code></dd>
+                    
+                    <dt class="col-sm-4">Porta:</dt>
+                    <dd class="col-sm-8"><code>{{ app_info.port }}</code></dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Stato Servizi -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-activity"></i>
+                    Stato Servizi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Database MySQL</span>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Online
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Server Web Flask</span>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Running
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Sistema di Autenticazione</span>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Attivo
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Session Storage</span>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Funzionante
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche Avanzate -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Monitoraggio in Tempo Reale
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <canvas id="cpuChart" width="150" height="150"></canvas>
+                            <h6 class="mt-2">CPU Usage</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <canvas id="memoryChart" width="150" height="150"></canvas>
+                            <h6 class="mt-2">Memory Usage</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <canvas id="diskChart" width="150" height="150"></canvas>
+                            <h6 class="mt-2">Disk Usage</h6>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Uptime e statistiche -->
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary mb-0" id="uptime">--</h4>
+                        <small class="text-muted">Uptime</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success mb-0">{{ system_info.memory_percent|round(1) }}%</h4>
+                        <small class="text-muted">RAM in uso</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning mb-0">{{ system_info.cpu_percent|round(1) }}%</h4>
+                        <small class="text-muted">CPU Load</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info mb-0">{{ system_info.disk_usage|round(1) }}%</h4>
+                        <small class="text-muted">Disco occupato</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Crea grafici circolari per CPU, Memoria e Disco
+function createDonutChart(canvasId, percentage, label) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [percentage, 100 - percentage],
+                backgroundColor: [
+                    percentage > 80 ? '#dc3545' : percentage > 50 ? '#ffc107' : '#198754',
+                    '#e9ecef'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: false
+                }
+            }
+        },
+        plugins: [{
+            afterDraw: function(chart) {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = percentage > 80 ? '#dc3545' : percentage > 50 ? '#ffc107' : '#198754';
+                
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                
+                ctx.fillText(percentage.toFixed(1) + '%', centerX, centerY);
+                ctx.restore();
+            }
+        }]
+    });
+}
+
+// Inizializza i grafici
+createDonutChart('cpuChart', {{ system_info.cpu_percent }}, 'CPU');
+createDonutChart('memoryChart', {{ system_info.memory_percent }}, 'Memory');
+createDonutChart('diskChart', {{ system_info.disk_usage }}, 'Disk');
+
+// Calcola e mostra uptime (simulato)
+function updateUptime() {
+    const start = new Date();
+    start.setHours(start.getHours() - Math.floor(Math.random() * 24 + 1)); // Simula uptime casuale
+    
+    const now = new Date();
+    const diff = now - start;
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+}
+
+updateUptime();
+
+// Aggiorna le metriche ogni 30 secondi (in un'app reale)
+setInterval(() => {
+    // In una vera implementazione, faresti una chiamata AJAX per aggiornare i dati
+    console.log('Aggiornamento metriche sistema...');
+}, 30000);
+</script>
+{% endblock %}

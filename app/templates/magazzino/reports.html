@@ -1,0 +1,690 @@
+{% extends "base.html" %}
+
+{% block title %}Report - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}Report e Statistiche Magazzino{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <div class="row">
+        <!-- Ricambi sotto scorta -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Ricambi Sotto Scorta ({{ sotto_scorta|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sotto_scorta %}
+                        <div class="mb-3">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-primary btn-sm" id="inviaEmailRicambista" disabled>
+                                    <i class="bi bi-envelope"></i> Invia Email Ricambista
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" 
+                                        data-bs-toggle="dropdown" aria-expanded="false" id="emailDropdown" disabled>
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" id="inviaEmailOutlook">
+                                        <i class="bi bi-microsoft"></i> Apri con Outlook Desktop
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" id="inviaEmailGenerico">
+                                        <i class="bi bi-envelope"></i> Apri con Client Email Predefinito
+                                    </a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm ms-2" id="selezionaTutti">
+                                <i class="bi bi-check-all"></i> Seleziona Tutti
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="deselezionaTutti">
+                                <i class="bi bi-x-square"></i> Deseleziona Tutti
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th width="40">
+                                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                        </th>
+                                        <th>Codice</th>
+                                        <th>Descrizione</th>
+                                        <th>Disponibile</th>
+                                        <th>Minimo</th>
+                                        <th>Fornitore</th>
+                                        <th>Ubicazione</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ricambio in sotto_scorta %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input ricambio-checkbox" 
+                                                   value="{{ ricambio.id }}" 
+                                                   data-codice="{{ ricambio.codice }}"
+                                                   data-descrizione="{{ ricambio.descrizione }}"
+                                                   data-disponibile="{{ ricambio.quantita_disponibile }}"
+                                                   data-minimo="{{ ricambio.quantita_minima }}"
+                                                   data-fornitore="{{ ricambio.fornitore or '' }}"
+                                                   data-ubicazione="{{ ricambio.ubicazione or '' }}">
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}">
+                                                {{ ricambio.codice }}
+                                            </a>
+                                        </td>
+                                        <td>{{ ricambio.descrizione[:40] }}{% if ricambio.descrizione|length > 40 %}...{% endif %}</td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ ricambio.quantita_disponibile }}</span>
+                                        </td>
+                                        <td>{{ ricambio.quantita_minima }}</td>
+                                        <td>{{ ricambio.fornitore or '-' }}</td>
+                                        <td>{{ ricambio.ubicazione or '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Tutti i ricambi sono sopra la scorta minima!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top ricambi utilizzati -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i>
+                        Top Ricambi Utilizzati (30 giorni)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_utilizzati %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Codice</th>
+                                        <th>Descrizione</th>
+                                        <th>Utilizzati</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ricambio in top_utilizzati %}
+                                    <tr>
+                                        <td>{{ ricambio.codice }}</td>
+                                        <td>{{ ricambio.descrizione[:30] }}{% if ricambio.descrizione|length > 30 %}...{% endif %}</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ ricambio.totale_utilizzato }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Nessun utilizzo negli ultimi 30 giorni</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Prenotazioni in scadenza -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock"></i>
+                        Prenotazioni in Scadenza (7 giorni)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if prenotazioni_scadenza %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Ricambio</th>
+                                        <th>Quantità</th>
+                                        <th>Ticket</th>
+                                        <th>Scadenza</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for prenotazione in prenotazioni_scadenza %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ prenotazione.ricambio.codice }}</strong><br>
+                                            <small class="text-muted">{{ prenotazione.ricambio.descrizione[:40] }}{% if prenotazione.ricambio.descrizione|length > 40 %}...{% endif %}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ prenotazione.quantita }}</span>
+                                        </td>
+                                        <td>
+                                            {% if prenotazione.ticket %}
+                                                <a href="{{ url_for('tickets.view_ticket', id=prenotazione.ticket.id) }}">
+                                                    {{ prenotazione.ticket.numero_ticket }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ prenotazione.data_scadenza.strftime('%d/%m/%Y %H:%M') }}
+                                            {% if prenotazione.giorni_alla_scadenza <= 1 %}
+                                                <br><span class="badge bg-danger">Urgente</span>
+                                            {% elif prenotazione.giorni_alla_scadenza <= 3 %}
+                                                <br><span class="badge bg-warning">{{ prenotazione.giorni_alla_scadenza }} giorni</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-success" onclick="utilizzaPrenotazione({{ prenotazione.id }})">
+                                                    <i class="bi bi-check"></i>
+                                                </button>
+                                                <button class="btn btn-warning" onclick="prorogaPrenotazione({{ prenotazione.id }})">
+                                                    <i class="bi bi-clock"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Nessuna prenotazione in scadenza nei prossimi 7 giorni</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiche generali -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i>
+                        Statistiche Generali
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <h3 class="text-success">€ {{ "%.2f"|format(valore_totale) }}</h3>
+                            <small class="text-muted">Valore Totale Magazzino</small>
+                        </div>
+                    </div>
+
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Ricambi Totali:</span>
+                        <strong>{{ stats.totale_ricambi if stats else 0 }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sotto Scorta:</span>
+                        <strong class="text-warning">{{ sotto_scorta|length }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Con Prenotazioni:</span>
+                        <strong class="text-info">{{ stats.con_prenotazioni if stats else 0 }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Esauriti:</span>
+                        <strong class="text-danger">{{ stats.esauriti if stats else 0 }}</strong>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('magazzino.index') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-seam"></i> Vai al Magazzino
+                        </a>
+                        <button class="btn btn-outline-success btn-sm" onclick="esportaReport()">
+                            <i class="bi bi-download"></i> Esporta Report
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="stampaReport()">
+                            <i class="bi bi-printer"></i> Stampa Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Gestione selezione ricambi
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const ricambiCheckboxes = document.querySelectorAll('.ricambio-checkbox');
+    const inviaEmailBtn = document.getElementById('inviaEmailRicambista');
+    const selezionaTuttiBtn = document.getElementById('selezionaTutti');
+    const deselezionaTuttiBtn = document.getElementById('deselezionaTutti');
+
+    // Gestione checkbox "Seleziona tutti"
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            ricambiCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateEmailButton();
+        });
+    }
+
+    // Gestione pulsanti seleziona/deseleziona tutti
+    if (selezionaTuttiBtn) {
+        selezionaTuttiBtn.addEventListener('click', function() {
+            ricambiCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            if (selectAllCheckbox) selectAllCheckbox.checked = true;
+            updateEmailButton();
+        });
+    }
+
+    if (deselezionaTuttiBtn) {
+        deselezionaTuttiBtn.addEventListener('click', function() {
+            ricambiCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            updateEmailButton();
+        });
+    }
+
+    // Gestione singoli checkbox
+    ricambiCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllCheckbox();
+            updateEmailButton();
+        });
+    });
+
+    // Gestione pulsante invio email
+    if (inviaEmailBtn) {
+        inviaEmailBtn.addEventListener('click', function() {
+            const selectedRicambi = getSelectedRicambi();
+            if (selectedRicambi.length === 0) {
+                alert('Seleziona almeno un ricambio per inviare l\'email.');
+                return;
+            }
+            
+            compilaEmailRicambista(selectedRicambi, 'outlook');
+        });
+    }
+
+    // Gestione pulsanti dropdown email
+    const inviaEmailOutlookBtn = document.getElementById('inviaEmailOutlook');
+    const inviaEmailGenericoBtn = document.getElementById('inviaEmailGenerico');
+    const emailDropdownBtn = document.getElementById('emailDropdown');
+
+    if (inviaEmailOutlookBtn) {
+        inviaEmailOutlookBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const selectedRicambi = getSelectedRicambi();
+            if (selectedRicambi.length === 0) {
+                alert('Seleziona almeno un ricambio per inviare l\'email.');
+                return;
+            }
+            
+            compilaEmailRicambista(selectedRicambi, 'outlook');
+        });
+    }
+
+    if (inviaEmailGenericoBtn) {
+        inviaEmailGenericoBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const selectedRicambi = getSelectedRicambi();
+            if (selectedRicambi.length === 0) {
+                alert('Seleziona almeno un ricambio per inviare l\'email.');
+                return;
+            }
+            
+            compilaEmailRicambista(selectedRicambi, 'mailto');
+        });
+    }
+
+    function updateSelectAllCheckbox() {
+        const checkedBoxes = document.querySelectorAll('.ricambio-checkbox:checked');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkedBoxes.length === ricambiCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < ricambiCheckboxes.length;
+        }
+    }
+
+    function updateEmailButton() {
+        const checkedBoxes = document.querySelectorAll('.ricambio-checkbox:checked');
+        const hasSelection = checkedBoxes.length > 0;
+        
+        if (inviaEmailBtn) {
+            inviaEmailBtn.disabled = !hasSelection;
+        }
+        if (emailDropdownBtn) {
+            emailDropdownBtn.disabled = !hasSelection;
+        }
+    }
+
+    function getSelectedRicambi() {
+        const selected = [];
+        document.querySelectorAll('.ricambio-checkbox:checked').forEach(checkbox => {
+            selected.push({
+                id: checkbox.value,
+                codice: checkbox.dataset.codice,
+                descrizione: checkbox.dataset.descrizione,
+                disponibile: parseInt(checkbox.dataset.disponibile),
+                minimo: parseInt(checkbox.dataset.minimo),
+                fornitore: checkbox.dataset.fornitore,
+                ubicazione: checkbox.dataset.ubicazione
+            });
+        });
+        return selected;
+    }
+
+    function compilaEmailRicambista(ricambi, tipoClient = 'outlook') {
+        // Raggruppa per fornitore
+        const ricambiPerFornitore = {};
+        ricambi.forEach(ricambio => {
+            const fornitore = ricambio.fornitore || 'Non specificato';
+            if (!ricambiPerFornitore[fornitore]) {
+                ricambiPerFornitore[fornitore] = [];
+            }
+            ricambiPerFornitore[fornitore].push(ricambio);
+        });
+
+        // Salva il tipo di client per uso successivo
+        window.tipoClientEmail = tipoClient;
+
+        // Se c'è un solo fornitore, compila direttamente l'email
+        const fornitori = Object.keys(ricambiPerFornitore);
+        if (fornitori.length === 1) {
+            const fornitore = fornitori[0];
+            const ricambiFornitore = ricambiPerFornitore[fornitore];
+            apriEmailClient(fornitore, ricambiFornitore, tipoClient);
+        } else {
+            // Mostra dialog per scegliere il fornitore
+            mostraDialogFornitori(ricambiPerFornitore);
+        }
+    }
+
+    function apriEmailClient(fornitore, ricambi, tipoClient = 'outlook') {
+        // Compila oggetto email
+        const oggetto = `Richiesta Ricambi Sotto Scorta - ${new Date().toLocaleDateString('it-IT')}`;
+        
+        // Compila corpo email
+        let corpo = `Gentile ${fornitore},\n\n`;
+        corpo += `Vi contatto per richiedere i seguenti ricambi che sono sotto la scorta minima:\n\n`;
+        
+        ricambi.forEach((ricambio, index) => {
+            corpo += `${index + 1}. Codice: ${ricambio.codice}\n`;
+            corpo += `   Descrizione: ${ricambio.descrizione}\n`;
+            corpo += `   Quantità disponibile: ${ricambio.disponibile}\n`;
+            corpo += `   Quantità minima: ${ricambio.minimo}\n`;
+            corpo += `   Quantità da ordinare: ${Math.max(ricambio.minimo - ricambio.disponibile + 5, 10)}\n`;
+            if (ricambio.ubicazione) {
+                corpo += `   Ubicazione: ${ricambio.ubicazione}\n`;
+            }
+            corpo += `\n`;
+        });
+        
+        corpo += `Vi prego di inviarmi un preventivo per i ricambi sopra elencati.\n\n`;
+        corpo += `Cordiali saluti,\n`;
+        corpo += `${document.querySelector('meta[name="user-name"]')?.content || 'Staff Tecnico'}\n`;
+        corpo += `DB-Desk - Sistema Gestione Ricambi`;
+
+        if (tipoClient === 'outlook') {
+            apriOutlookDesktop(oggetto, corpo);
+        } else {
+            apriClientGenerico(oggetto, corpo);
+        }
+    }
+
+    function apriOutlookDesktop(oggetto, corpo) {
+        // Prova prima ad aprire Outlook desktop usando il protocollo outlook:
+        const outlookLink = `outlook:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(corpo)}`;
+        
+        try {
+            // Tenta di aprire Outlook desktop
+            window.location.href = outlookLink;
+            
+            // Fallback dopo un breve delay se Outlook non si apre
+            setTimeout(() => {
+                // Se siamo ancora sulla stessa pagina, prova con mailto
+                console.log('Outlook desktop non disponibile, fallback a client generico');
+                apriClientGenerico(oggetto, corpo);
+            }, 1500);
+            
+        } catch (error) {
+            // Se il protocollo outlook: non funziona, usa mailto come fallback
+            console.log('Outlook protocol not supported, falling back to generic client');
+            apriClientGenerico(oggetto, corpo);
+        }
+    }
+
+    function apriClientGenerico(oggetto, corpo) {
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(corpo)}`;
+        
+        if (window.navigator.userAgent.includes('Mobile')) {
+            // Su mobile, prova ad aprire l'app email
+            window.location.href = mailtoLink;
+        } else {
+            // Su desktop, apri in una nuova finestra
+            const newWindow = window.open(mailtoLink, '_blank');
+            if (!newWindow) {
+                // Se il popup è bloccato, copia negli appunti
+                copiaEmailNeglAppunti(oggetto, corpo);
+            }
+        }
+    }
+
+    function mostraDialogFornitori(ricambiPerFornitore) {
+        const fornitori = Object.keys(ricambiPerFornitore);
+        let dialogHtml = `
+            <div class="modal fade" id="dialogFornitori" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Seleziona Fornitore</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>I ricambi selezionati appartengono a fornitori diversi. Seleziona per quale fornitore vuoi compilare l'email:</p>
+                            <div class="list-group">`;
+        
+        fornitori.forEach(fornitore => {
+            const count = ricambiPerFornitore[fornitore].length;
+            dialogHtml += `
+                <button type="button" class="list-group-item list-group-item-action" onclick="selezionaFornitore('${fornitore}')">
+                    <strong>${fornitore}</strong>
+                    <br><small class="text-muted">${count} ricambi</small>
+                </button>`;
+        });
+        
+        dialogHtml += `
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        
+        // Rimuovi dialog esistente se presente
+        const existingDialog = document.getElementById('dialogFornitori');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+        
+        // Aggiungi nuovo dialog
+        document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        
+        // Salva i dati per l'uso successivo
+        window.ricambiPerFornitoreTemp = ricambiPerFornitore;
+        
+        // Mostra il dialog
+        const modal = new bootstrap.Modal(document.getElementById('dialogFornitori'));
+        modal.show();
+    }
+
+    function copiaEmailNeglAppunti(oggetto, corpo) {
+        const testoCompleto = `Oggetto: ${oggetto}\n\n${corpo}`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(testoCompleto).then(() => {
+                alert('Email copiata negli appunti! Puoi incollarla nel tuo client email.');
+            }).catch(() => {
+                mostraTestoInDialog(testoCompleto);
+            });
+        } else {
+            mostraTestoInDialog(testoCompleto);
+        }
+    }
+
+    function mostraTestoInDialog(testo) {
+        const dialogHtml = `
+            <div class="modal fade" id="dialogEmail" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Email Ricambista</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Copia il testo seguente e incollalo nel tuo client email:</p>
+                            <textarea class="form-control" rows="15" readonly>${testo}</textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="copiaTestoArea()">Copia</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        
+        document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        const modal = new bootstrap.Modal(document.getElementById('dialogEmail'));
+        modal.show();
+    }
+
+    // Funzioni globali per i callback
+    window.selezionaFornitore = function(fornitore) {
+        const ricambi = window.ricambiPerFornitoreTemp[fornitore];
+        const tipoClient = window.tipoClientEmail || 'outlook';
+        const modal = bootstrap.Modal.getInstance(document.getElementById('dialogFornitori'));
+        modal.hide();
+        
+        setTimeout(() => {
+            apriEmailClient(fornitore, ricambi, tipoClient);
+        }, 300);
+    };
+
+    window.copiaTestoArea = function() {
+        const textarea = document.querySelector('#dialogEmail textarea');
+        textarea.select();
+        document.execCommand('copy');
+        alert('Testo copiato negli appunti!');
+    };
+});
+
+function utilizzaPrenotazione(prenotazioneId) {
+    if (confirm('Confermi di voler utilizzare questa prenotazione?')) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'azione=utilizza_totale'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+
+function prorogaPrenotazione(prenotazioneId) {
+    const nuovaData = prompt('Inserisci la nuova data di scadenza (YYYY-MM-DD HH:MM):');
+    if (nuovaData) {
+        fetch(`/magazzino/prenotazione/${prenotazioneId}/gestisci`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `azione=modifica_scadenza&nuova_scadenza=${nuovaData}`
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Errore durante l\'operazione');
+            }
+        });
+    }
+}
+
+function esportaReport() {
+    window.open('/magazzino/reports/export', '_blank');
+}
+
+function stampaReport() {
+    // Apri il CSV in una nuova finestra e stampalo automaticamente
+    const csvWindow = window.open('/magazzino/reports/export', '_blank');
+    if (csvWindow) {
+        // Attendi che la finestra si carichi e poi stampa
+        csvWindow.onload = function() {
+            csvWindow.print();
+        };
+    } else {
+        // Fallback: se il popup è bloccato, mostra un messaggio
+        alert('Popup bloccato! Consenti i popup per questo sito e riprova.');
+    }
+}
+</script>
+
+<style media="print">
+    .btn, .btn-group {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+    }
+</style>
+{% endblock %}

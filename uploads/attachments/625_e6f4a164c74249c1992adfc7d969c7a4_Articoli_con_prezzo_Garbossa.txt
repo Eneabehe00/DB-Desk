@@ -1,0 +1,345 @@
+Articoli
+Descrizione                               	Prezzo con IVA
+MORBIDOSE CON FONTINA                     	19,50
+TAGLIO DLLA VENA                          	19,50
+COPERTINA DELLA VENA ARROSTO              	18,50
+MUSCOLO                                   	16,50
+FERMO DI SPALLA                           	24,50
+TAGLI MAGRI                               	17,50
+TENERONE                                  	16,80
+BRUTTO MA BUONO                           	16,50
+SOTTOFILETTO                              	26,00
+FILETTO                                   	42,00
+OSSOBUCHI                                 	16,00
+COSCIA ROTONDA                            	25,90
+PRIMO TAGLIO                              	24,50
+SCAMONE                                   	24,50
+ARROSTO FIOCCO                            	19,50
+COSCIA FESA                               	24,50
+COSCIA INFUORI                            	24,50
+ARROSTO GALLINELLA                        	19,50
+TRITATO DA SUGO                           	15,00
+BATTUTA AL COLTELLO                       	25,00
+TRITATO MAGRO SCELTO                      	20,90
+TRIPPA                                    	11,00
+PETTO DI POLLO                            	14,00
+COSCE DI POLLO                            	7,50
+FUSI DI POLLO                             	7,00
+ALI DI POLLO                              	5,50
+CONIGLIO                                  	14,50
+FESA DI TACCHINO                          	0,00
+AGNELLO                                   	25,00
+CAPRETTO                                  	22,00
+COSTINE DI MAIALE                         	11,50
+BRACIOLE DI SUINO                         	11,00
+LONZA DI SUINO                            	15,00
+SALSICCIA                                 	11,90
+SALSICCIA CON FINOCCHIO                   	11,90
+SALSICCIA TIPO BRA                        	16,50
+SALSICCIA PREZZEMOLO PARMIGIANO           	13,50
+MILANESI DI VITELLO                       	25,00
+VALDOSTANE DI VITELLO                     	24,50
+MILANESI DI POLLO                         	17,00
+POLPETTINE IMPANATE                       	17,50
+CRESCENTINE                               	18,50
+CROCCHETTE DI POLLO                       	17,50
+MESSINESI                                 	19,50
+SFIZIOSE                                  	19,50
+TRAMEZZINI RIPIENI                        	19,00
+HAMBURGER                                 	17,50
+POLPETTONI                                	18,50
+HAMBURGHER DI POLLO                       	17,50
+TIROLESI                                  	18,50
+CASTELLANE                                	18,50
+ROLATINE DI POLLO                         	14,50
+ROLATINE DI VITELLO                       	18,50
+ROLATINE DI CONIGLIO                      	24,00
+VOL AU VENT DI CARNE                      	20,50
+HAMBURGHER FARCITI DA FORNO               	18,90
+CAPOCOLLO IN BBQ                          	15,80
+ALI DI POLLO IN BBQ                       	7,00
+COSTINE IN BBQ                            	12,00
+POLPETTE DI POLLO MARINATE                	18,50
+STRACCETTI DI POLLO                       	18,50
+STRACCETTI DI CONIGLIO                    	22,00
+STRACCETTI DI VITELLO AI FUNGHI           	24,00
+RICOTTA                                   	10,90
+PRIMO SALE                                	12,50
+MOZZARELLA DI BUFALA                      	4,90
+MOZZARELLA GIOIELLA                       	4,10
+NODINI MONTRONE                           	16,50
+GORGONZOLA DOLCE                          	18,90
+GORGONZOLA MASCARPONE                     	23,90
+EMMENTHAL SVIZZERO                        	20,90
+MAASDAMMER                                	18,90
+CACIOCAVALLO                              	21,50
+PROVOLONE PICCANTE                        	18,90
+PROVOLA SILANA                            	14,90
+TOMA di SAN MARTINO                       	16,90
+TOMA REALE                                	20,90
+FONTEGIDIA                                	22,90
+FONTINA  AOSTA                            	29,00
+RASCHERA                                  	22,90
+BRIE                                      	14,90
+SCAMORZE                                  	20,90
+ROBIOLA OSELLA                            	24,00
+NONNO NANNI                               	19,80
+CERTOSA                                   	19,80
+ROBIOLA ALBA                              	19,50
+TOMA di CAPRA                             	35,00
+PECORINO TOSCANO                          	19,50
+BRIGANTE                                  	18,90
+FIORE SARDO                               	22,90
+ROBIOLINA di CAPRA                        	1,90
+AFFINATI di CAPRA                         	37,00
+PAGLIERINA di CAPRA                       	22,00
+EMPTY                                     	0,00
+OLIVE VERDI                               	15,00
+OLIVE NERE                                	15,00
+ALICI MARINATE                            	35,00
+ACCIUGHE AL VERDE                         	39,90
+CARCIOFI GRIGLIATI                        	40,00
+PEPERINI                                  	39,00
+ANTIPASTO PIEMONTESE                      	26,00
+INSALATA RUSSA                            	18,00
+INSALATA CAPRICCIOSA                      	18,00
+TONNO e CARCIOFINI                        	22,90
+PEPERONI e  ACCIUGHE                      	29,00
+PEPERONI BAGNA CAODA                      	29,00
+VITELLO TONNATO                           	35,00
+VERDURE RIPIENE                           	22,50
+SEMOLINO FRITTO                           	18,00
+FRITTATE                                  	21,00
+PEPERONATA                                	22,00
+EMPTY                                     	0,00
+SPINACI al VAPORE                         	15,00
+BIETOLINE                                 	12,00
+BROCCOLETTI                               	18,00
+LASAGNA                                   	18,00
+PARMIGIANA                                	18,00
+CANNELLONI                                	23,00
+CRESPELLE                                 	23,00
+ROTOLO alle VERDURE                       	18,00
+ARANCINI                                  	2,50
+INSALATA di MARE                          	36,00
+INSALATA SAMOA                            	25,00
+SALMONE MARINATO                          	60,00
+STRACCETTI di BRESAOLA                    	38,00
+BRESAOLA                                  	39,00
+PANCETTA COPPATA                          	24,90
+PANCETTA ARROTOLATA                       	16,90
+COPPA                                     	30,00
+ARROSTO di TACCHINO                       	16,90
+PORCHETTA                                 	25,00
+LARDO alle ERBE                           	20,90
+LARDO NATURALE                            	18,90
+GUANCIALE                                 	20,90
+PANCETTA AFFUMICATA                       	18,90
+CRUDO di CUNEO                            	39,90
+CRUDO di PARMA                            	39,00
+CRUDO SAN DANIELE                         	35,00
+CRUDO NOSTRANO                            	25,00
+MORTADELLA                                	16,20
+MANZO AFFUMICATO                          	29,00
+GOLFETTA                                  	26,00
+SALAME MILANO                             	25,00
+SALAME UNGHERESE                          	23,90
+SALAME TOSCANO                            	25,00
+SALAME NAPOLI                             	25,00
+SALAME LEVONI                             	0,00
+SALSICCIA ROMAGNOLA                       	30,00
+SALSICCIA CALABRESE                       	25,00
+SPECK                                     	29,00
+COTTO RASPINI                             	22,90
+COTTO ALFIERE LEV0NI                      	29,00
+COTTO GRAN TORINO                         	18,90
+COTTO BORGO DORA                          	16,60
+FILETTO DI TACCHINO                       	17,00
+COSTATA FASSONE                           	25,90
+FIORENTINT DI FASSONE                     	28,00
+FEGATO DI VITELLO                         	15,50
+ROBIOLA DI ROCCAVERANO                    	26,00
+RUSTICHELLE DI POLLO                      	14,50
+SCARAMELLA                                	15,00
+TONDINO DI SPALLA                         	17,50
+GALLINA NOSTRANA                          	0,00
+TORTELLNI                                 	15,70
+RAVIOLI DI CARNE PIEMONTESE               	15,90
+COTECHINI                                 	12,50
+TOMA DI LANZO                             	20,90
+RAVIOLI DEL PLIN                          	21,60
+GNOCCHI                                   	8,30
+TORTELLINI                                	15,80
+EMPTY                                     	0,00
+EMPTY                                     	0,00
+SPIEDINI                                  	14,50
+ROLATE VITELLO                            	14,50
+ROLATA DI VITELLO                         	0,00
+BOX FAMIGLIA                              	39,90
+GALLINA NOSTRANA                          	7,50
+MOZZARELLA DI BUFALA CAMPANA              	22,00
+TOMA DI GRESSONAY                         	22,00
+EMPTY                                     	0,00
+PARMIGIANO LOTTO 003270 scadenza  26\09\24	24,00
+GRANA PADANO lotto003290 scadenza 14\04\24	21,00
+ASIAGO                                    	15,90
+ROCCAVERANO                               	27,00
+BACON                                     	15,90
+MILLA                                     	27,00
+TESTINA DI VITELLO                        	12,50
+POLPETTE IMPANATE                         	9,50
+PASTA SALSICCIA                           	7,50
+SALSICCIA TIPO BRA                        	13,00
+LANGAROLI                                 	21,80
+NIZZARDA                                  	22,00
+BOMBETTE                                  	18,50
+STINCHI DI MAIALE                         	7,50
+BERGERA                                   	16,50
+INVOLTINO DI ASPARAGI                     	19,50
+ROAST BEEF                                	38,00
+PISELLI ALLA CONTADINA                    	22,00
+CAROTE AL ROSMARINO                       	12,00
+GHIOTT0 DI CAPRA                          	32,00
+RIBATIN CAPRA                             	27,00
+BOSINA                                    	23,00
+CROTTIN                                   	2,50
+CROTTEN DI CAPRA                          	3,50
+BURRATA IN FOGLIA                         	17,80
+KEBAB PIEMONTESE                          	18,50
+ROLATA VITELLO                            	16,50
+TOMA  DEL M0NVISO                         	22,00
+TOMA DI BRA                               	14,60
+ROCCHETTA BOSINA                          	25,00
+BOSCAIOLO PAGLIERINA                      	25,00
+FORMAGGIO GRATTUGIATO                     	17,50
+STRACCHINATA                              	23,90
+TROFIE                                    	12,50
+PANZEROTTI                                	15,90
+MOUSSE TONNO                              	29,00
+LANGAROLA                                 	22,90
+manzo affumicato                          	0,00
+PLIN BORRAGINE                            	20,90
+CODA DI VITELLO                           	11,50
+LINGUA DI VITELLO                         	11,50
+SALSICCIA DI POLLO                        	15,00
+PEPERONATA                                	18,00
+CROSTATE                                  	25,00
+PANNA COTTA                               	20,00
+INSALATA DI RISO                          	18,00
+COSTOLETTE D´AGNELLO                      	24,00
+COSTOLETTE DI MAIALINO                    	17,00
+ASIAGO                                    	19,90
+TOMINI AL VERDE                           	20,50
+EMPTY                                     	0,00
+SCHIACCIATA PICCANTE LEVONI               	25,90
+INSALATA DI CEREALI                       	25,00
+CASTELMAGNO                               	42,00
+ROSTELLE DI POLLO                         	16,00
+INSALATA DI RISO                          	18,00
+FLAN DI VERDURA                           	29,00
+EMPTY                                     	0,00
+TORTE SALATE                              	26,00
+ACCIUGHE AL VERDE                         	42,00
+TOMA DELLA COLLINA                        	20,90
+TOMA NICOLETTA ALLE ERBE DI MONTAGNA      	24,90
+TESTUN                                    	19,50
+CARPACCIO DI BRESAOLA                     	29,00
+SFOGLIA DI BUFALA                         	18,00
+ANTIPASTO PIEMONTESE                      	26,00
+PECORINO ROMANO                           	16,80
+POLLO IN CARPIONE                         	25,00
+UOVA MIMOSA                               	15,00
+UOVA MIMOSA                               	18,00
+FRITTATE                                  	21,00
+INVOLTINO DI PROSCIUTTO                   	3,00
+INSALATA DI POLLO                         	22,00
+PESCHE RIPIENE                            	25,00
+VERDURE GRIGLIATE                         	22,00
+MOUSSE PROSCIUTTO O TONNO                 	35,00
+SALAME COTTO                              	13,90
+RISO VENERE                               	22,00
+PROVOLA DOLCE                             	15,90
+INSALATA DI FARRO                         	25,00
+MONTASIO                                  	18,90
+TOMA PIEMONTESE                           	18,90
+NERVETTI                                  	16,00
+MONTASIO MEZZANO                          	19,90
+INSALATA CARNE CRUDA                      	22,00
+CARNE CRUDA                               	22,00
+PECORINO ROMANO                           	22,80
+TALEGGIO                                  	18,90
+FLAN DI VERDURA                           	29,00
+RIBATIN                                   	39,00
+BLU' DI NICOLETTA                         	25,00
+POLPO ALLA LIGURE                         	55,00
+TORTA                                     	30,00
+BORSA                                     	0,10
+BATTUTE DI FASSONE                        	25,00
+EMPTY                                     	0,00
+UOVA MIMOSA                               	18,00
+SUSHI DI CARNE                            	7,00
+ROSA                                      	26,90
+ROSA                                      	26,90
+ROSA                                      	26,90
+ROLLATA DI TACCHINO                       	18,50
+IL NOSTRO COTTO                           	35,00
+SGOMBRO                                   	40,00
+ROQUEFORT                                 	43,00
+EMPTY                                     	25,00
+SALAME LEVONI                             	35,00
+MONTE REGALE  OCCELLI                     	25,00
+PLIN CASTELMAGNO                          	25,00
+PLIN FONDUTA E TARTUFO                    	25,90
+FRITTELL DI MELA                          	28,00
+SOPPRESSA VENETA                          	25,00
+CACIORICOTTA                              	22,00
+PECORINO SICILIANO CON PEPE-              	25,00
+STRACCHINO                                	18,90
+TOMA DEL LAGO NERO                        	18,90
+ROLATA DI CONIGLIO                        	24,00
+VERDURE GRIGLIATE                         	22,00
+TORTINI DI VERDURE                        	29,00
+CIPOLLINE                                 	18,00
+POMODORI SECCHI                           	32,00
+RISO VENERE                               	22,00
+TOMA MACCAGNO                             	23,00
+INVERNIZZINA                              	18,90
+FEIA  OCCELLI                             	35,00
+STRACCIATELLA                             	22,00
+TOMA DI MALGA                             	25,00
+RAVIOLI DI MAGRO                          	15,60
+GNOCCHETTI BASILICO                       	8,50
+TOMA LAGO NERO                            	24,00
+SPIEDINO ALLA NORMA                       	7,10
+CERTOSA                                   	19,00
+CAPOCOLLO SUINO                           	14,00
+CAPROTTA                                  	35,00
+MAESTOSA RASPINI                          	36,00
+MEDAGLIONE DI FILETTO                     	17,00
+CROCCHETTE DI PATATE                      	18,00
+CACIO DI PIENZA                           	27,00
+QUARTIROLO                                	16,00
+FANTASIA DI FUNGHI                        	18,00
+VERDURE SPADELLATE                        	18,00
+ZIZZONA                                   	22,00
+PANCETTA AL PEPE                          	29,00
+SALAME E FILETTO                          	35,00
+GHIOTTOLINO                               	35,00
+SALAME DELLA ROSA                         	25,00
+FIOR  DI CAPRA                            	18,00
+GIARDINIERA                               	25,00
+GRECA                                     	22,00
+CUSIE´                                    	48,00
+TAGLIOLINI                                	13,50
+CROISSANT                                 	24,00
+COTTO CORONA LEVONI                       	29,00
+EMPTY                                     	25,00
+ROLATA DI VITELLO CON FRITTATA            	19,50
+SPINACINE                                 	20,00
+ROSTELLE ABRUZZESI                        	25,00
+SCOTTADITO DI AGNELLO SARDO               	30,00
+ROLLE´ FARCITI                            	25,00
+POLENTINE                                 	22,00
+ORECCHIETTE                               	12,50
+Prezzo Diretto                            	0,00
+Prezzo Unitario                           	0,00

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Tracciamento Movimenti Macchine - DB-Desk{% endblock %}
+{% block page_title %}Tracciamento Movimenti Macchine{% endblock %}
+
+{% block extra_head %}
+<style>
+    .movement-row {
+        transition: all 0.2s ease;
+    }
+
+    .movement-row:hover {
+        background: #f8fafc !important;
+    }
+
+    .movement-type-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .movement-type.Assegnazione { background: #dbeafe; color: #1e40af; }
+    .movement-type.Rientro { background: #dcfce7; color: #166534; }
+    .movement-type.Riparazione { background: #fef3c7; color: #92400e; }
+    .movement-type.Fine\\ Riparazione { background: #dbeafe; color: #1e40af; }
+    .movement-type.Attivazione { background: #f0f9ff; color: #0369a1; }
+    .movement-type.Manutenzione { background: #e0f2fe; color: #0c4a6e; }
+    .movement-type.Altro { background: #f3f4f6; color: #374151; }
+
+    .status-badge {
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .status-from { background: #fef2f2; color: #dc2626; }
+    .status-to { background: #f0fdf4; color: #16a34a; }
+
+    .filter-section {
+        background: #f8fafc;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .table-responsive {
+        border-radius: 0.375rem;
+        overflow: hidden;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{{ url_for('macchine.index') }}">Macchine</a></li>
+                        <li class="breadcrumb-item active">Tracciamento Movimenti</li>
+                    </ol>
+                </nav>
+                <h4 class="mb-0">Tracciamento Movimenti</h4>
+                <small class="text-muted">Storico completo di tutti i movimenti delle macchine</small>
+            </div>
+            <div>
+                <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alle Macchine
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtri -->
+<div class="filter-section">
+    <form method="GET" class="row g-3">
+        <div class="col-md-4">
+            <label for="macchina_id" class="form-label">Filtra per Macchina</label>
+            <select name="macchina_id" id="macchina_id" class="form-select">
+                <option value="">Tutte le macchine</option>
+                {% for macchina in macchine %}
+                <option value="{{ macchina.id }}" {% if filtro_macchina_id == macchina.id %}selected{% endif %}>
+                    {{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <button type="submit" class="btn btn-primary d-block">
+                <i class="bi bi-funnel"></i> Filtra
+            </button>
+        </div>
+        {% if filtro_macchina_id %}
+        <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-outline-secondary d-block">
+                <i class="bi bi-x-circle"></i> Rimuovi Filtro
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Data/Ora</th>
+                                <th>Macchina</th>
+                                <th>Tipo Movimento</th>
+                                <th>Stato</th>
+                                <th>Cliente</th>
+                                <th>Ticket</th>
+                                <th>Operatore</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if movimenti %}
+                                {% for movimento in movimenti %}
+                                <tr class="movement-row">
+                                    <td>
+                                        <div class="fw-bold">{{ movimento.created_at.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted">{{ movimento.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('macchine.detail_macchina', macchina_id=movimento.macchina.id) }}"
+                                           class="text-decoration-none fw-bold">
+                                            {{ movimento.macchina.codice }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ movimento.macchina.marca }} {{ movimento.macchina.modello }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="movement-type-badge {{ movimento.tipo_movimento }}">
+                                            {{ movimento.tipo_movimento }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if movimento.stato_precedente and movimento.stato_nuovo %}
+                                        <span class="status-badge status-from">{{ movimento.stato_precedente }}</span>
+                                        <i class="bi bi-arrow-right text-muted mx-1"></i>
+                                        <span class="status-badge status-to">{{ movimento.stato_nuovo }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movimento.cliente %}
+                                        <a href="{{ url_for('clients.view_client', id=movimento.cliente.id) }}"
+                                           class="text-decoration-none">
+                                            {{ movimento.cliente.ragione_sociale }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movimento.ticket %}
+                                        <a href="{{ url_for('tickets.view_ticket', id=movimento.ticket.id) }}"
+                                           class="text-decoration-none">
+                                            {{ movimento.ticket.numero_ticket }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movimento.user %}
+                                        <span title="{{ movimento.user.full_name }}">{{ movimento.user.full_name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movimento.note %}
+                                        <span title="{{ movimento.note }}">{{ movimento.note|truncate(50) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                        {% if movimento.costo %}
+                                        <br><small class="text-success fw-bold">€{{ "%.2f"|format(movimento.costo) }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <i class="bi bi-clock-history display-4 text-muted"></i>
+                                        <h5 class="mt-3 text-muted">Nessun movimento trovato</h5>
+                                        <p class="text-muted mb-3">
+                                            {% if filtro_macchina_id %}
+                                            Questa macchina non ha ancora effettuato movimenti.
+                                            {% else %}
+                                            Non sono stati registrati movimenti per nessuna macchina.
+                                            {% endif %}
+                                        </p>
+                                        {% if filtro_macchina_id %}
+                                        <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-primary">
+                                            <i class="bi bi-funnel"></i> Vedi Tutti i Movimenti
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ url_for('macchine.index') }}" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Aggiungi Macchina
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paginazione -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Paginazione movimenti">
+            <ul class="pagination justify-content-center mt-4">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('macchine.movimenti_generale', page=pagination.prev_num, macchina_id=filtro_macchina_id or '') }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('macchine.movimenti_generale', page=page_num, macchina_id=filtro_macchina_id or '') }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('macchine.movimenti_generale', page=pagination.next_num, macchina_id=filtro_macchina_id or '') }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

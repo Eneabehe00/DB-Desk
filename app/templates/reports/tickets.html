@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Report Ticket - DB-Desk{% endblock %}
+{% block page_title %}Report Ticket{% endblock %}
+
+{% block content %}
+<!-- Filtri -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-funnel"></i>
+                    Filtri Report
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="days" class="form-label">Periodo di Analisi</label>
+                        <select class="form-select" id="days" name="days" onchange="this.form.submit()">
+                            <option value="7" {% if days == 7 %}selected{% endif %}>Ultimi 7 giorni</option>
+                            <option value="30" {% if days == 30 %}selected{% endif %}>Ultimi 30 giorni</option>
+                            <option value="90" {% if days == 90 %}selected{% endif %}>Ultimi 90 giorni</option>
+                            <option value="365" {% if days == 365 %}selected{% endif %}>Ultimo anno</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 d-flex align-items-end">
+                        <a href="{{ url_for('reports.export_report', report_type='tickets_summary') }}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-download"></i>
+                            Esporta CSV
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche Generali -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ total_tickets }}</h4>
+                        <p class="mb-0">Ticket Totali</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-ticket-detailed fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ tickets_periodo }}</h4>
+                        <p class="mb-0">Ultimi {{ days }} giorni</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-calendar-range fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ "%.1f"|format(tempo_medio) }}</h4>
+                        <p class="mb-0">Ore Risoluzione Media</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clock fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ tickets_scaduti|length }}</h4>
+                        <p class="mb-0">Ticket Scaduti</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafici -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Distribuzione per Stato
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Distribuzione per Priorità
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Trend Creazione Ticket (Ultimi 30 giorni)
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabelle Statistiche -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-person-plus"></i>
+                    Top Creatori Ticket
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Utente</th>
+                                <th class="text-end">Ticket Creati</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for creator in top_creators %}
+                            <tr>
+                                <td>{{ creator.first_name }} {{ creator.last_name }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary">{{ creator.count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-person-check"></i>
+                    Top Assegnatari Ticket
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Utente</th>
+                                <th class="text-end">Ticket Assegnati</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assigned in top_assigned %}
+                            <tr>
+                                <td>{{ assigned.first_name }} {{ assigned.last_name }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-success">{{ assigned.count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i>
+                    Distribuzione per Categoria
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th class="text-end">Numero Ticket</th>
+                                <th class="text-end">Percentuale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria in tickets_per_categoria %}
+                            <tr>
+                                <td>
+                                    <strong>{{ categoria.categoria or 'Non specificata' }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-info">{{ categoria.count }}</span>
+                                </td>
+                                <td class="text-end">
+                                    {% set percentage = (categoria.count / total_tickets * 100) if total_tickets > 0 else 0 %}
+                                    {{ "%.1f"|format(percentage) }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Scaduti -->
+{% if tickets_scaduti %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Ticket Scaduti ({{ tickets_scaduti|length }})
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Numero</th>
+                                <th>Titolo</th>
+                                <th>Cliente</th>
+                                <th>Stato</th>
+                                <th>Scadenza</th>
+                                <th>Giorni Ritardo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets_scaduti %}
+                            <tr class="table-warning">
+                                <td>
+                                    <a href="{{ url_for('tickets.detail', id=ticket.id) }}" 
+                                       class="text-decoration-none">
+                                        #{{ ticket.numero_ticket }}
+                                    </a>
+                                </td>
+                                <td>{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</td>
+                                <td>{{ ticket.cliente.ragione_sociale }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ ticket.stato }}</span>
+                                </td>
+                                <td>{{ ticket.due_date.strftime('%d/%m/%Y') if ticket.due_date }}</td>
+                                <td>
+                                    {% set days_overdue = (moment().date() - ticket.due_date.date()).days if ticket.due_date else 0 %}
+                                    <span class="badge bg-danger">+{{ days_overdue }} giorni</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Grafico distribuzione stati
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusData = [
+        {% for stato in tickets_per_stato %}
+        { label: '{{ stato.stato }}', value: {{ stato.count }} },
+        {% endfor %}
+    ];
+    
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(d => d.label),
+            datasets: [{
+                data: statusData.map(d => d.value),
+                backgroundColor: [
+                    '#dc3545', // Aperto - Rosso
+                    '#fd7e14', // In Lavorazione - Arancione
+                    '#198754', // Risolto - Verde
+                    '#6c757d', // Chiuso - Grigio
+                    '#0d6efd', // Altri - Blu
+                    '#6f42c1', // Altri - Viola
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Grafico distribuzione priorità
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    const priorityData = [
+        {% for priorita in tickets_per_priorita %}
+        { label: '{{ priorita.priorita }}', value: {{ priorita.count }} },
+        {% endfor %}
+    ];
+    
+    new Chart(priorityCtx, {
+        type: 'bar',
+        data: {
+            labels: priorityData.map(d => d.label),
+            datasets: [{
+                label: 'Numero Ticket',
+                data: priorityData.map(d => d.value),
+                backgroundColor: [
+                    '#dc3545', // Critica - Rosso
+                    '#fd7e14', // Alta - Arancione
+                    '#ffc107', // Media - Giallo
+                    '#198754', // Bassa - Verde
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Grafico trend
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const trendData = {{ trend_data | tojson }};
+    
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendData.map(d => {
+                const date = new Date(d.date);
+                return date.toLocaleDateString('it-IT', { month: 'short', day: 'numeric' });
+            }),
+            datasets: [{
+                label: 'Ticket Creati',
+                data: trendData.map(d => d.count),
+                borderColor: '#0d6efd',
+                backgroundColor: '#0d6efd20',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

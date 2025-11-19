@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Database - DB-Desk{% endblock %}
+{% block page_title %}Gestione Database{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistiche Database -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-database"></i>
+                    Statistiche Database
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fs-2 text-primary"></i>
+                                <h4 class="mt-2">{{ stats.total_users }}</h4>
+                                <p class="text-muted mb-0">Utenti Totali</p>
+                                <small class="text-success">{{ stats.active_users }} attivi</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-building fs-2 text-info"></i>
+                                <h4 class="mt-2">{{ stats.total_clients }}</h4>
+                                <p class="text-muted mb-0">Clienti Totali</p>
+                                <small class="text-success">{{ stats.active_clients }} attivi</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-ticket-detailed fs-2 text-warning"></i>
+                                <h4 class="mt-2">{{ stats.total_tickets }}</h4>
+                                <p class="text-muted mb-0">Ticket Totali</p>
+                                <small class="text-warning">{{ stats.open_tickets }} aperti</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-shield-check fs-2 text-success"></i>
+                                <h4 class="mt-2">{{ stats.admin_users }}</h4>
+                                <p class="text-muted mb-0">Amministratori</p>
+                                <small class="text-muted">{{ stats.closed_tickets }} ticket chiusi</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informazioni Database -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-server"></i>
+                    Informazioni Database
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Host:</dt>
+                    <dd class="col-sm-9"><code>{{ db_info.host }}</code></dd>
+                    
+                    <dt class="col-sm-3">Database:</dt>
+                    <dd class="col-sm-9"><code>{{ db_info.database }}</code></dd>
+                    
+                    <dt class="col-sm-3">Porta:</dt>
+                    <dd class="col-sm-9"><code>{{ db_info.port }}</code></dd>
+                    
+                    <dt class="col-sm-3">Tipo:</dt>
+                    <dd class="col-sm-9"><span class="badge bg-info">MySQL</span></dd>
+                    
+                    <dt class="col-sm-3">Stato:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Connesso
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Azioni Database -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-tools"></i>
+                    Operazioni Database
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Backup -->
+                <div class="d-grid gap-2">
+                    <button id="backup-btn" class="btn btn-warning">
+                        <i class="bi bi-download"></i>
+                        Crea Backup
+                    </button>
+                    
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#optimizeModal">
+                        <i class="bi bi-speedometer2"></i>
+                        Ottimizza Database
+                    </button>
+                    
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
+                        <i class="bi bi-wrench"></i>
+                        Modalità Manutenzione
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <!-- Backup recenti -->
+                <h6 class="fw-bold">Backup Recenti</h6>
+                <div id="recent-backups">
+                    <small class="text-muted">Nessun backup disponibile</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avvisi -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Avvisi
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        Effettua backup regolari del database per proteggere i tuoi dati.
+                    </small>
+                </div>
+                
+                {% if stats.open_tickets > 50 %}
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-ticket-detailed"></i>
+                        Hai molti ticket aperti ({{ stats.open_tickets }}). 
+                        Considera di archiviarli periodicamente.
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ottimizzazione -->
+<div class="modal fade" id="optimizeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ottimizza Database</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>L'ottimizzazione del database può migliorare le prestazioni ma potrebbe richiedere alcuni minuti.</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Attenzione:</strong> Durante l'ottimizzazione, il sistema potrebbe essere temporaneamente lento.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-info" id="optimize-confirm">Ottimizza</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Manutenzione -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modalità Manutenzione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>La modalità manutenzione impedirà agli utenti di accedere al sistema.</p>
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Attenzione:</strong> Solo gli amministratori potranno accedere durante la manutenzione.
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="maintenance-confirm">
+                    <label class="form-check-label" for="maintenance-confirm">
+                        Confermo di voler attivare la modalità manutenzione
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-warning" id="maintenance-toggle" disabled>Attiva Manutenzione</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Backup database
+document.getElementById('backup-btn').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Creando backup...';
+    
+    fetch('{{ url_for("settings.backup_database") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            updateRecentBackups(data.filename);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        showToast('Errore durante il backup', 'danger');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+
+// Aggiorna lista backup recenti
+function updateRecentBackups(filename) {
+    const recentBackups = document.getElementById('recent-backups');
+    const now = new Date().toLocaleString('it-IT');
+    
+    recentBackups.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-dark fw-medium">${filename}</small><br>
+                <small class="text-muted">${now}</small>
+            </div>
+            <span class="badge bg-success">Nuovo</span>
+        </div>
+    `;
+}
+
+// Conferma ottimizzazione
+document.getElementById('optimize-confirm').addEventListener('click', function() {
+    showToast('Ottimizzazione avviata in background', 'info');
+    bootstrap.Modal.getInstance(document.getElementById('optimizeModal')).hide();
+});
+
+// Checkbox manutenzione
+document.getElementById('maintenance-confirm').addEventListener('change', function() {
+    document.getElementById('maintenance-toggle').disabled = !this.checked;
+});
+
+// Toggle manutenzione
+document.getElementById('maintenance-toggle').addEventListener('click', function() {
+    showToast('Modalità manutenzione attivata', 'warning');
+    bootstrap.Modal.getInstance(document.getElementById('maintenanceModal')).hide();
+});
+</script>
+{% endblock %}

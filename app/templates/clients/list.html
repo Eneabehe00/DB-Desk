@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Clienti - DB-Desk{% endblock %}
+{% block page_title %}Gestione Clienti{% endblock %}
+
+{% block content %}
+<!-- Filtri e azioni -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-funnel"></i>
+                Filtri
+            </h5>
+            <div>
+                <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Nuovo Cliente
+                </a>
+                <a href="{{ url_for('clients.export_clients') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-download"></i>
+                    Esporta CSV
+                </a>
+                <a href="{{ url_for('clients.clients_stats') }}" class="btn btn-outline-info">
+                    <i class="bi bi-graph-up"></i>
+                    Statistiche
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3" id="filter-form">
+            
+            <div class="col-md-4">
+                {{ form.search.label(class="form-label") }}
+                {{ form.search(class="form-control", placeholder="Cerca clienti...", id="search-input") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.provincia.label(class="form-label") }}
+                {{ form.provincia(class="form-select filter-select", id="provincia-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.settore.label(class="form-label") }}
+                {{ form.settore(class="form-control filter-input", placeholder="Settore...", id="settore-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                {{ form.is_active.label(class="form-label") }}
+                {{ form.is_active(class="form-select filter-select", id="active-filter") }}
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-outline-secondary" id="reset-filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista clienti -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                Lista Clienti
+                <span class="badge bg-secondary">{{ clienti.total }} totali</span>
+            </h5>
+            <div class="btn-group btn-group-sm" role="group">
+                <input type="radio" class="btn-check" name="view" id="table-view" checked>
+                <label class="btn btn-outline-secondary" for="table-view">
+                    <i class="bi bi-table"></i>
+                </label>
+                <input type="radio" class="btn-check" name="view" id="card-view">
+                <label class="btn btn-outline-secondary" for="card-view">
+                    <i class="bi bi-grid"></i>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    {% if clienti.items %}
+    <!-- Vista tabella -->
+    <div id="table-view-content" class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ragione Sociale</th>
+                    <th>Contatti</th>
+                    <th>Località</th>
+                    <th>Settore</th>
+                    <th>Ticket</th>
+                    <th>Stato</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clienti.items %}
+                <tr class="{{ 'table-secondary' if not cliente.is_active else '' }} clickable-row" 
+                    onclick="window.location.href='{{ url_for('clients.view_client', id=cliente.id) }}'">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <div class="fw-bold text-dark">
+                                    {{ cliente.ragione_sociale }}
+                                </div>
+                                {% if cliente.partita_iva %}
+                                    <small class="text-muted">P.IVA: {{ cliente.partita_iva }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <i class="bi bi-envelope"></i> 
+                            <a href="mailto:{{ cliente.email }}" class="text-decoration-none">
+                                {{ cliente.email }}
+                            </a>
+                        </div>
+                        {% if cliente.telefono %}
+                            <div class="text-muted">
+                                <i class="bi bi-telephone"></i> {{ cliente.telefono }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cliente.citta %}
+                            {{ cliente.citta }}
+                            {% if cliente.provincia %}({{ cliente.provincia }}){% endif %}
+                        {% else %}
+                            <span class="text-muted">Non specificata</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cliente.settore %}
+                            <span class="badge bg-light text-dark">{{ cliente.settore }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary me-1">{{ cliente.ticket_count }}</span>
+                            {% if cliente.ticket_aperti > 0 %}
+                                <span class="badge bg-warning">{{ cliente.ticket_aperti }} aperti</span>
+                            {% endif %}
+                        </div>
+                        {% if cliente.ticket_count > 0 %}
+                            <small>
+                                <a href="{{ url_for('clients.client_tickets', id=cliente.id) }}" 
+                                   class="text-decoration-none">
+                                    Vedi ticket
+                                </a>
+                            </small>
+                        {% endif %}
+                    </td>
+                    <td onclick="event.stopPropagation();">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input status-toggle" 
+                                   type="checkbox" 
+                                   {% if cliente.is_active %}checked{% endif %}
+                                   data-client-id="{{ cliente.id }}"
+                                   data-client-name="{{ cliente.ragione_sociale }}">
+                            <label class="form-check-label">
+                                {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Vista card (nascosta di default) -->
+    <div id="card-view-content" class="row g-3 p-3" style="display: none;">
+        {% for cliente in clienti.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 {{ 'border-secondary' if not cliente.is_active else '' }}">
+                <div class="card-header d-flex justify-content-between align-items-center py-2">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input status-toggle" 
+                               type="checkbox" 
+                               {% if cliente.is_active %}checked{% endif %}
+                               data-client-id="{{ cliente.id }}"
+                               data-client-name="{{ cliente.ragione_sociale }}">
+                        <label class="form-check-label">
+                            {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
+                        </label>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <span class="badge bg-primary">{{ cliente.ticket_count }}</span>
+                        {% if cliente.ticket_aperti > 0 %}
+                            <span class="badge bg-warning">{{ cliente.ticket_aperti }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ url_for('clients.view_client', id=cliente.id) }}" 
+                           class="text-decoration-none">
+                            {{ cliente.ragione_sociale }}
+                        </a>
+                    </h6>
+                    <p class="card-text small">
+                        <i class="bi bi-envelope"></i> {{ cliente.email }}
+                        {% if cliente.telefono %}
+                            <br><i class="bi bi-telephone"></i> {{ cliente.telefono }}
+                        {% endif %}
+                    </p>
+                    {% if cliente.citta %}
+                        <p class="card-text small text-muted">
+                            <i class="bi bi-geo-alt"></i> 
+                            {{ cliente.citta }}{% if cliente.provincia %} ({{ cliente.provincia }}){% endif %}
+                        </p>
+                    {% endif %}
+                    {% if cliente.settore %}
+                        <span class="badge bg-light text-dark">{{ cliente.settore }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ cliente.created_at.strftime('%d/%m/%Y') }}</small>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('clients.view_client', id=cliente.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" 
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginazione -->
+    {% if clienti.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Paginazione clienti">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+                {% if clienti.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('clients.list_clients', page=clienti.prev_num) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in clienti.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != clienti.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('clients.list_clients', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if clienti.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('clients.list_clients', page=clienti.next_num) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card-body text-center">
+        <i class="bi bi-people fs-1 text-muted"></i>
+        <h5 class="text-muted">Nessun cliente trovato</h5>
+        <p class="text-muted">Prova a modificare i filtri di ricerca.</p>
+        <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Crea il primo cliente
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare il cliente <strong id="clientName"></strong>?
+                <br><br>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Questa azione non può essere annullata.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtri automatici
+let searchTimeout;
+let settoreTimeout;
+const filterForm = document.getElementById('filter-form');
+
+// Filtri automatici per select
+document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', function() {
+        applyFilters();
+    });
+});
+
+// Ricerca con debounce per il campo ricerca principale
+document.getElementById('search-input').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 500); // 500ms di debounce
+});
+
+// Ricerca con debounce per il campo settore
+document.getElementById('settore-filter').addEventListener('input', function() {
+    clearTimeout(settoreTimeout);
+    settoreTimeout = setTimeout(applyFilters, 500); // 500ms di debounce
+});
+
+// Reset filtri
+document.getElementById('reset-filters').addEventListener('click', function() {
+    // Reset tutti i campi
+    document.getElementById('search-input').value = '';
+    document.getElementById('settore-filter').value = '';
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    // Applica filtri (vuoti)
+    applyFilters();
+});
+
+function applyFilters() {
+    const url = new URL(window.location.href);
+    url.search = ''; // Reset dei parametri
+    
+    // Aggiungi parametri filtri
+    const searchValue = document.getElementById('search-input').value.trim();
+    if (searchValue) {
+        url.searchParams.set('search', searchValue);
+    }
+    
+    const settoreValue = document.getElementById('settore-filter').value.trim();
+    if (settoreValue) {
+        url.searchParams.set('settore', settoreValue);
+    }
+    
+    document.querySelectorAll('.filter-select').forEach(select => {
+        if (select.value && select.value !== '') {
+            url.searchParams.set(select.name, select.value);
+        }
+    });
+    
+    // Reindirizza con i nuovi parametri
+    window.location.href = url.toString();
+}
+
+// Popola filtri dai parametri URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Popola campo ricerca
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+        document.getElementById('search-input').value = searchParam;
+    }
+    
+    // Popola campo settore
+    const settoreParam = urlParams.get('settore');
+    if (settoreParam) {
+        document.getElementById('settore-filter').value = settoreParam;
+    }
+    
+    // Popola select filters
+    document.querySelectorAll('.filter-select').forEach(select => {
+        const paramValue = urlParams.get(select.name);
+        if (paramValue) {
+            select.value = paramValue;
+        }
+    });
+});
+
+// Cambio vista tabella/card
+document.querySelectorAll('input[name="view"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const tableView = document.getElementById('table-view-content');
+        const cardView = document.getElementById('card-view-content');
+        
+        if (this.id === 'table-view') {
+            tableView.style.display = 'block';
+            cardView.style.display = 'none';
+        } else {
+            tableView.style.display = 'none';
+            cardView.style.display = 'block';
+        }
+    });
+});
+
+// Toggle stato cliente (AJAX)
+document.querySelectorAll('.status-toggle').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+        const clientId = this.dataset.clientId;
+        const clientName = this.dataset.clientName;
+        
+        fetch(`{{ url_for('clients.toggle_status', id=0) }}`.replace('0', clientId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Aggiorna il label
+                const label = this.parentNode.querySelector('.form-check-label');
+                if (label) {
+                    label.textContent = data.is_active ? 'Attivo' : 'Inattivo';
+                }
+            } else {
+                showToast(data.message, 'danger');
+                this.checked = !this.checked; // Ripristina stato precedente
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            showToast('Errore durante l\'aggiornamento dello stato', 'danger');
+            this.checked = !this.checked; // Ripristina stato precedente
+        });
+    });
+});
+
+// Eliminazione cliente
+document.querySelectorAll('.delete-client').forEach(button => {
+    button.addEventListener('click', function() {
+        const clientId = this.dataset.clientId;
+        const clientName = this.dataset.clientName;
+        
+        document.getElementById('clientName').textContent = clientName;
+        document.getElementById('deleteForm').action = `{{ url_for('clients.delete_client', id=0) }}`.replace('0', clientId);
+        
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+});
+</script>
+{% endblock %}

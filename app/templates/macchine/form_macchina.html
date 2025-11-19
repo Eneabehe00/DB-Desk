@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-section {
+        background: #f8fafc;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-section h5 {
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear"></i> {{ title }}
+                    </h5>
+                    <div>
+                        <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Torna alla Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <form method="POST" action="{{ action_url }}">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Sezione Informazioni Base -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-info-circle"></i> Informazioni Base</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.codice.id }}" class="form-label required-field">{{ form.codice.label.text }}</label>
+                                {{ form.codice(class="form-control") }}
+                                {% if form.codice.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.codice.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Codice univoco per identificare la macchina</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.tipo_macchina_id.id }}" class="form-label required-field">{{ form.tipo_macchina_id.label.text }}</label>
+                                {{ form.tipo_macchina_id(class="form-select") }}
+                                {% if form.tipo_macchina_id.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.tipo_macchina_id.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.marca.id }}" class="form-label required-field">{{ form.marca.label.text }}</label>
+                                {{ form.marca(class="form-control") }}
+                                {% if form.marca.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.marca.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.modello.id }}" class="form-label required-field">{{ form.modello.label.text }}</label>
+                                {{ form.modello(class="form-control") }}
+                                {% if form.modello.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.modello.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.numero_serie.id }}" class="form-label">{{ form.numero_serie.label.text }}</label>
+                                {{ form.numero_serie(class="form-control") }}
+                                {% if form.numero_serie.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.numero_serie.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Opzionale - Numero di serie del produttore</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.department_id.id }}" class="form-label required-field">{{ form.department_id.label.text }}</label>
+                                {{ form.department_id(class="form-select") }}
+                                {% if form.department_id.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.department_id.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Assegnazione Cliente -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-person-check"></i> Assegnazione Cliente</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="{{ form.cliente_id.id }}" class="form-label">{{ form.cliente_id.label.text }}</label>
+                                {{ form.cliente_id(class="form-select") }}
+                                {% if form.cliente_id.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.cliente_id.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.cliente_id.description }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Stato e Ubicazione -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-geo-alt"></i> Stato e Ubicazione</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.stato.id }}" class="form-label required-field">{{ form.stato.label.text }}</label>
+                                {{ form.stato(class="form-select") }}
+                                {% if form.stato.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.stato.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.ubicazione.id }}" class="form-label">{{ form.ubicazione.label.text }}</label>
+                                {{ form.ubicazione(class="form-control") }}
+                                {% if form.ubicazione.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.ubicazione.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Es: Magazzino, Cliente XYZ, Riparazione</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Caratteristiche Tecniche -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-cpu"></i> Caratteristiche Tecniche</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.anno_produzione.id }}" class="form-label">{{ form.anno_produzione.label.text }}</label>
+                                {{ form.anno_produzione(class="form-control") }}
+                                {% if form.anno_produzione.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.anno_produzione.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.peso.id }}" class="form-label">{{ form.peso.label.text }}</label>
+                                {{ form.peso(class="form-control", step="0.01") }}
+                                {% if form.peso.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.peso.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.alimentazione.id }}" class="form-label">{{ form.alimentazione.label.text }}</label>
+                                {{ form.alimentazione(class="form-control") }}
+                                {% if form.alimentazione.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.alimentazione.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Es: 220V, Batteria, 12V</div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="{{ form.dimensioni.id }}" class="form-label">{{ form.dimensioni.label.text }}</label>
+                                {{ form.dimensioni(class="form-control") }}
+                                {% if form.dimensioni.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.dimensioni.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Es: 120x80x150 cm</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Informazioni Commerciali -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-currency-euro"></i> Informazioni Commerciali</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.fornitore.id }}" class="form-label">{{ form.fornitore.label.text }}</label>
+                                {{ form.fornitore(class="form-control") }}
+                                {% if form.fornitore.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.fornitore.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.data_acquisto.id }}" class="form-label">{{ form.data_acquisto.label.text }}</label>
+                                {{ form.data_acquisto(class="form-control") }}
+                                {% if form.data_acquisto.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.data_acquisto.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.prezzo_acquisto.id }}" class="form-label">{{ form.prezzo_acquisto.label.text }}</label>
+                                {{ form.prezzo_acquisto(class="form-control", step="0.01") }}
+                                {% if form.prezzo_acquisto.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.prezzo_acquisto.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.prezzo_vendita.id }}" class="form-label">{{ form.prezzo_vendita.label.text }}</label>
+                                {{ form.prezzo_vendita(class="form-control", step="0.01") }}
+                                {% if form.prezzo_vendita.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.prezzo_vendita.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Garanzia e Manutenzione -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-shield-check"></i> Garanzia e Manutenzione</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.data_scadenza_garanzia.id }}" class="form-label">{{ form.data_scadenza_garanzia.label.text }}</label>
+                                {{ form.data_scadenza_garanzia(class="form-control") }}
+                                {% if form.data_scadenza_garanzia.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.data_scadenza_garanzia.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.intervallo_manutenzione_giorni.id }}" class="form-label">{{ form.intervallo_manutenzione_giorni.label.text }}</label>
+                                {{ form.intervallo_manutenzione_giorni(class="form-control") }}
+                                {% if form.intervallo_manutenzione_giorni.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.intervallo_manutenzione_giorni.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Intervallo in giorni per la manutenzione programmata</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sezione Note -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-journal-text"></i> Note Aggiuntive</h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.note.id }}" class="form-label">{{ form.note.label.text }}</label>
+                                {{ form.note(class="form-control", rows="4") }}
+                                {% if form.note.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.note.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Note, osservazioni o informazioni aggiuntive sulla macchina</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pulsanti -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Annulla
+                            </a>
+                        </div>
+                        <div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

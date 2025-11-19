@@ -1,0 +1,783 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Stili ottimizzati per tablet - Step 2 */
+    .tablet-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .step-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .step {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0.5rem;
+        font-weight: bold;
+        position: relative;
+        background-color: #28a745;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .step.active {
+        background-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    }
+    
+    .step.pending {
+        background-color: #e9ecef;
+        color: #6c757d;
+    }
+    
+    .step::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        width: 30px;
+        height: 3px;
+        background-color: #28a745;
+        margin-top: -1.5px;
+    }
+    
+    .step.pending::after {
+        background-color: #e9ecef;
+    }
+    
+    .step:last-child::after {
+        display: none;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-field {
+        margin-bottom: 2.5rem;
+    }
+    
+    .form-label {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .form-control, .form-select {
+        font-size: 1.2rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .form-text {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .machine-selector {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        background: #f8f9fa;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+    
+    .machine-item {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        background: white;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .machine-item:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    .machine-item.selected {
+        border-color: #28a745;
+        background: #f8fff8;
+    }
+    
+    .machine-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: #28a745;
+    }
+    
+    .machine-info {
+        flex: 1;
+    }
+    
+    .machine-code {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+    
+    .machine-details {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-top: 0.25rem;
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin-top: 2rem;
+    }
+    
+    .btn-step {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        min-width: 150px;
+    }
+    
+    .summary-card {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 1.5rem;
+        border-radius: 0 10px 10px 0;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card h6 {
+        color: #1976d2;
+        margin-bottom: 1rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .summary-label {
+        font-weight: 500;
+        color: #555;
+    }
+    
+    .summary-value {
+        color: #333;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .tablet-container {
+            padding: 0.5rem;
+        }
+        
+        .step-header {
+            padding: 1.5rem;
+        }
+        
+        .form-container {
+            padding: 1.5rem;
+        }
+        
+        .step {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        
+        .step::after {
+            width: 20px;
+        }
+        
+        .navigation-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .machine-selector {
+            max-height: 250px;
+        }
+        
+        .machine-item {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tablet-container">
+    <!-- Header del step -->
+    <div class="step-header">
+        <h2 class="mb-3">
+            <i class="bi bi-2-circle-fill me-2"></i>
+            Dettagli Tecnici
+        </h2>
+        <p class="mb-0 fs-5">Specifica i dettagli tecnici dell'intervento e le macchine coinvolte</p>
+    </div>
+    
+    <!-- Progress indicator -->
+    <div class="progress-steps">
+        <div class="step">1</div>
+        <div class="step active">2</div>
+        <div class="step pending">3</div>
+        <div class="step pending">4</div>
+        <div class="step pending">5</div>
+    </div>
+    
+    <!-- Riepilogo Step Precedente -->
+    <div class="summary-card">
+        <h6>
+            <i class="bi bi-check-circle me-2"></i>
+            Riepilogo Informazioni Base
+        </h6>
+        <div class="summary-item">
+            <span class="summary-label">Cliente:</span>
+            <span class="summary-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Titolo:</span>
+            <span class="summary-value">{{ foglio.titolo }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Descrizione:</span>
+            <span class="summary-value">{{ foglio.descrizione[:100] }}{% if foglio.descrizione|length > 100 %}...{% endif %}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Data Intervento:</span>
+            <span class="summary-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+    </div>
+    
+    <!-- Operazioni in Corso -->
+    <div class="alert alert-info" id="operazioniInCorso" style="display: none;">
+        <h6>
+            <i class="bi bi-info-circle me-2"></i>
+            Operazioni in Corso per questo Cliente
+        </h6>
+        <div id="operazioniList">
+            <!-- Le operazioni verranno caricate dinamicamente -->
+        </div>
+        <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="applicaSuggerimenti">
+                <i class="bi bi-magic me-1"></i>
+                Applica Suggerimenti Automatici
+            </button>
+        </div>
+    </div>
+    
+    <!-- Form -->
+    <form method="POST" id="step2Form">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-container">
+            <!-- Durata Intervento -->
+            <div class="form-field">
+                {{ form.durata_intervento.label(class="form-label") }}
+                <div class="input-group">
+                    {{ form.durata_intervento(class="form-control" + (" is-invalid" if form.durata_intervento.errors else ""), placeholder="es. 120") }}
+                    <span class="input-group-text">minuti</span>
+                </div>
+                {% if form.durata_intervento.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.durata_intervento.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-text">
+                        <i class="bi bi-clock me-1"></i>
+                        Tempo impiegato per completare l'intervento (opzionale)
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Km Percorsi -->
+            <div class="form-field">
+                {{ form.km_percorsi.label(class="form-label") }}
+                <div class="input-group">
+                    {{ form.km_percorsi(class="form-control" + (" is-invalid" if form.km_percorsi.errors else ""), placeholder="es. 25") }}
+                    <span class="input-group-text">km</span>
+                </div>
+                {% if form.km_percorsi.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.km_percorsi.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-text">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        Kilometri percorsi per raggiungere il cliente (opzionale)
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Macchine Coinvolte -->
+            <div class="form-field">
+                <label class="form-label">
+                    <i class="bi bi-gear me-1"></i>
+                    Macchine Coinvolte
+                </label>
+                <div class="machine-selector" id="machineSelector">
+                    <div id="machinesList">
+                        <!-- Le macchine verranno caricate dinamicamente -->
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
+                            Caricamento macchine del cliente...
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Seleziona le macchine su cui è stato effettuato l'intervento
+                </div>
+            </div>
+            
+            <!-- Tipo Operazione Macchine -->
+            <div class="form-field">
+                {{ form.tipo_operazione_macchine.label(class="form-label") }}
+                {{ form.tipo_operazione_macchine(class="form-select" + (" is-invalid" if form.tipo_operazione_macchine.errors else "")) }}
+                {% if form.tipo_operazione_macchine.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.tipo_operazione_macchine.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-text">
+                        <i class="bi bi-tools me-1"></i>
+                        {{ form.tipo_operazione_macchine.description }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Macchine Sostitutive (visibile solo per riparazione con prestito) -->
+            <div class="form-field" id="macchineSubstituteSection" style="display: none;">
+                <label class="form-label">
+                    <i class="bi bi-arrow-repeat me-1"></i>
+                    Macchine Sostitutive
+                </label>
+                <div class="machine-selector" id="substituteMachineSelector">
+                    <div id="substituteMachinesList">
+                        <!-- Le macchine sostitutive verranno caricate dinamicamente -->
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
+                            Caricamento macchine disponibili...
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Seleziona le macchine da dare in prestito durante la riparazione
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden fields per macchine selezionate -->
+        <input type="hidden" name="macchine" id="selectedMachines" value="">
+        <input type="hidden" name="macchine_sostitutive" id="selectedSubstituteMachines" value="">
+        
+        <!-- Navigazione -->
+        <div class="navigation-buttons">
+            <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-outline-secondary btn-step">
+                <i class="bi bi-arrow-left me-2"></i>
+                Indietro
+            </a>
+            
+            <button type="submit" class="btn btn-primary btn-step" id="nextButton">
+                Avanti
+                <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clienteId = {{ foglio.cliente_id }};
+    const selectedMachinesInput = document.getElementById('selectedMachines');
+    const selectedSubstituteMachinesInput = document.getElementById('selectedSubstituteMachines');
+    const nextButton = document.getElementById('nextButton');
+    const machinesList = document.getElementById('machinesList');
+    const substituteMachinesList = document.getElementById('substituteMachinesList');
+    const macchineSubstituteSection = document.getElementById('macchineSubstituteSection');
+    const tipoOperazioneSelect = document.getElementById('tipo_operazione_macchine');
+    const operazioniInCorso = document.getElementById('operazioniInCorso');
+    const operazioniList = document.getElementById('operazioniList');
+    const applicaSuggerimentiBtn = document.getElementById('applicaSuggerimenti');
+    
+    let selectedMachines = new Set();
+    let selectedSubstituteMachines = new Set();
+    let currentOperations = [];
+    
+    // Carica macchine del cliente
+    if (clienteId) {
+        loadClientMachines(clienteId);
+        loadClientOngoingOperations(clienteId);
+    }
+    
+    // Carica macchine disponibili per sostituzione
+    loadAvailableMachines();
+    
+    // Gestisci visibilità sezione macchine sostitutive
+    tipoOperazioneSelect.addEventListener('change', function() {
+        if (this.value === 'riparazione_sede_con_prestito') {
+            macchineSubstituteSection.style.display = 'block';
+        } else {
+            macchineSubstituteSection.style.display = 'none';
+            // Deseleziona tutte le macchine sostitutive
+            selectedSubstituteMachines.clear();
+            updateSelectedSubstituteMachines();
+        }
+    });
+    
+    // Inizializza visibilità basata sul valore corrente
+    if (tipoOperazioneSelect.value === 'riparazione_sede_con_prestito') {
+        macchineSubstituteSection.style.display = 'block';
+    }
+    
+    function loadClientMachines(clienteId) {
+        fetch(`{{ url_for('fogli_tecnici.get_client_machines', cliente_id=0) }}`.replace('0', clienteId))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderMachines(data.machines);
+                    
+                    // Pre-seleziona macchine già associate
+                    {% if foglio.macchine_collegate %}
+                    const preselectedMachines = [
+                        {% for macchina in foglio.macchine_collegate %}
+                        {{ macchina.id }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ];
+                    
+                    preselectedMachines.forEach(machineId => {
+                        selectMachine(machineId, true);
+                    });
+                    {% endif %}
+                    
+                } else {
+                    showError('Errore nel caricamento delle macchine');
+                }
+            })
+            .catch(error => {
+                showError('Errore di connessione durante il caricamento delle macchine');
+            });
+    }
+    
+    function renderMachines(machines) {
+        if (machines.length === 0) {
+            machinesList.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="bi bi-gear mb-2 d-block" style="font-size: 2rem;"></i>
+                    Nessuna macchina trovata per questo cliente
+                </div>
+            `;
+            return;
+        }
+        
+        machinesList.innerHTML = machines.map(machine => `
+            <div class="machine-item" data-machine-id="${machine.id}">
+                <input type="checkbox" class="machine-checkbox" id="machine_${machine.id}">
+                <div class="machine-info">
+                    <div class="machine-code">${machine.codice}</div>
+                    <div class="machine-details">${machine.marca} ${machine.modello}</div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Aggiungi event listeners
+        document.querySelectorAll('.machine-item').forEach(item => {
+            const machineId = parseInt(item.dataset.machineId);
+            const checkbox = item.querySelector('.machine-checkbox');
+            
+            // Click su tutta la card
+            item.addEventListener('click', function() {
+                toggleMachine(machineId);
+            });
+            
+            // Click solo sulla checkbox (evita doppio toggle)
+            checkbox.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            checkbox.addEventListener('change', function() {
+                selectMachine(machineId, this.checked);
+            });
+        });
+    }
+    
+    function toggleMachine(machineId) {
+        const checkbox = document.getElementById(`machine_${machineId}`);
+        const isSelected = !checkbox.checked;
+        checkbox.checked = isSelected;
+        selectMachine(machineId, isSelected);
+    }
+    
+    function selectMachine(machineId, select) {
+        const item = document.querySelector(`[data-machine-id="${machineId}"]`);
+        const checkbox = document.getElementById(`machine_${machineId}`);
+        
+        if (select) {
+            selectedMachines.add(machineId);
+            item.classList.add('selected');
+            checkbox.checked = true;
+        } else {
+            selectedMachines.delete(machineId);
+            item.classList.remove('selected');
+            checkbox.checked = false;
+        }
+        
+        updateSelectedMachines();
+        validateForm();
+    }
+    
+    function updateSelectedMachines() {
+        selectedMachinesInput.value = Array.from(selectedMachines).join(',');
+    }
+    
+    function updateSelectedSubstituteMachines() {
+        selectedSubstituteMachinesInput.value = Array.from(selectedSubstituteMachines).join(',');
+    }
+    
+    function loadAvailableMachines() {
+        fetch(`{{ url_for('fogli_tecnici.get_available_machines') }}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderSubstituteMachines(data.machines);
+                } else {
+                    showSubstituteError('Errore nel caricamento delle macchine disponibili');
+                }
+            })
+            .catch(error => {
+                showSubstituteError('Errore di connessione durante il caricamento delle macchine');
+            });
+    }
+    
+    function renderSubstituteMachines(machines) {
+        if (machines.length === 0) {
+            substituteMachinesList.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="bi bi-gear mb-2 d-block" style="font-size: 2rem;"></i>
+                    Nessuna macchina disponibile per il prestito
+                </div>
+            `;
+            return;
+        }
+        
+        substituteMachinesList.innerHTML = machines.map(machine => `
+            <div class="machine-item" data-substitute-machine-id="${machine.id}">
+                <input type="checkbox" class="substitute-machine-checkbox" id="substitute_machine_${machine.id}">
+                <div class="machine-info">
+                    <div class="machine-code">${machine.codice}</div>
+                    <div class="machine-details">${machine.marca} ${machine.modello}</div>
+                    <div class="machine-status">
+                        <span class="badge bg-success">Disponibile</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Aggiungi event listeners per macchine sostitutive
+        document.querySelectorAll('[data-substitute-machine-id]').forEach(item => {
+            const machineId = parseInt(item.dataset.substituteMachineId);
+            const checkbox = item.querySelector('.substitute-machine-checkbox');
+            
+            // Click su tutta la card
+            item.addEventListener('click', function() {
+                toggleSubstituteMachine(machineId);
+            });
+            
+            // Click solo sulla checkbox (evita doppio toggle)
+            checkbox.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            checkbox.addEventListener('change', function() {
+                selectSubstituteMachine(machineId, this.checked);
+            });
+        });
+    }
+    
+    function toggleSubstituteMachine(machineId) {
+        const checkbox = document.getElementById(`substitute_machine_${machineId}`);
+        const isSelected = !checkbox.checked;
+        checkbox.checked = isSelected;
+        selectSubstituteMachine(machineId, isSelected);
+    }
+    
+    function selectSubstituteMachine(machineId, select) {
+        const item = document.querySelector(`[data-substitute-machine-id="${machineId}"]`);
+        const checkbox = document.getElementById(`substitute_machine_${machineId}`);
+        
+        if (select) {
+            selectedSubstituteMachines.add(machineId);
+            item.classList.add('selected');
+            checkbox.checked = true;
+        } else {
+            selectedSubstituteMachines.delete(machineId);
+            item.classList.remove('selected');
+            checkbox.checked = false;
+        }
+        
+        updateSelectedSubstituteMachines();
+        validateForm();
+    }
+    
+    function showSubstituteError(message) {
+        substituteMachinesList.innerHTML = `
+            <div class="text-center text-danger p-4">
+                <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
+                ${message}
+            </div>
+        `;
+    }
+    
+    function validateForm() {
+        // Il form è sempre valido ora che non ci sono campi obbligatori
+        const isValid = true;
+        
+        nextButton.disabled = !isValid;
+        nextButton.classList.toggle('btn-primary', isValid);
+        nextButton.classList.toggle('btn-outline-primary', !isValid);
+    }
+    
+    function showError(message) {
+        machinesList.innerHTML = `
+            <div class="text-center text-danger p-4">
+                <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
+                ${message}
+            </div>
+        `;
+    }
+    
+    function loadClientOngoingOperations(clienteId) {
+        fetch(`{{ url_for('fogli_tecnici.get_client_ongoing_operations', cliente_id=0) }}`.replace('0', clienteId))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.has_operations) {
+                    currentOperations = data.operazioni_in_corso;
+                    renderOngoingOperations(data.operazioni_in_corso);
+                    operazioniInCorso.style.display = 'block';
+                } else {
+                    operazioniInCorso.style.display = 'none';
+                    currentOperations = [];
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel caricamento operazioni in corso:', error);
+                operazioniInCorso.style.display = 'none';
+            });
+    }
+    
+    function renderOngoingOperations(operations) {
+        operazioniList.innerHTML = operations.map(op => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                <div>
+                    <strong>${op.macchina.codice}</strong> - ${op.macchina.marca} ${op.macchina.modello}
+                    <br><small class="text-muted">${op.descrizione}</small>
+                </div>
+                <div>
+                    <span class="badge bg-warning">${op.macchina.stato}</span>
+                    <small class="text-success ms-2">
+                        <i class="bi bi-arrow-right"></i> ${op.operazione_suggerita_label}
+                    </small>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Gestisci click su "Applica Suggerimenti Automatici"
+    applicaSuggerimentiBtn.addEventListener('click', function() {
+        if (currentOperations.length === 0) return;
+        
+        // Seleziona automaticamente le macchine coinvolte
+        currentOperations.forEach(op => {
+            selectMachine(op.macchina.id, true);
+        });
+        
+        // Imposta automaticamente il tipo di operazione più comune
+        const operazioniSuggerite = currentOperations.map(op => op.operazione_suggerita);
+        const operazionePiuComune = operazioniSuggerite.reduce((a, b, i, arr) =>
+            arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+        );
+        
+        tipoOperazioneSelect.value = operazionePiuComune;
+        
+        // Trigger change event per aggiornare UI
+        tipoOperazioneSelect.dispatchEvent(new Event('change'));
+        
+        // Mostra messaggio di conferma
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+        alert.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            Suggerimenti applicati! Selezionate ${currentOperations.length} macchine con operazione "${operazionePiuComune}".
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        operazioniInCorso.appendChild(alert);
+        
+        // Rimuovi alert dopo 5 secondi
+        setTimeout(() => {
+            if (alert.parentNode) alert.remove();
+        }, 5000);
+    });
+    
+    // Validazione in tempo reale (ora non necessaria ma manteniamo per consistenza)
+    [].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', validateForm);
+            field.addEventListener('change', validateForm);
+        }
+    });
+    
+    // Validazione iniziale
+    validateForm();
+    
+});
+</script>
+{% endblock %}

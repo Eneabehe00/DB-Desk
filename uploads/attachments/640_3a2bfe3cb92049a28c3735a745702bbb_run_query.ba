@@ -1,0 +1,20 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM Imposta le variabili di connessione al database
+set "server=localhost"
+set "database=sys_datos"
+set "username=user"
+set "password=dibal"
+
+REM Imposta il percorso del file di output
+set "outputPath=H:\Il mio Drive\Monchiero\output.csv"
+
+REM Imposta il percorso del file di query SQL
+set "queryPath=C:\batch\query.sql"
+
+REM Esegui la query SQL e salva l'output nel file di testo specificato
+"C:\Program Files (x86)\MySQL\MySQL Server 5.0\bin\mysql.exe" -h %server% -u %username% -p%password% %database% < "%queryPath%" > "%outputPath%"
+
+echo Query eseguita con successo. Dati salvati in %outputPath%
+pause

@@ -1,0 +1,607 @@
+{% extends "base.html" %}
+
+{% block title %}Calendario Prenotazioni - Magazzino - DB-Desk{% endblock %}
+{% block page_title %}Calendario Prenotazioni Ricambi{% endblock %}
+
+{% block extra_head %}
+<style>
+    .calendario-container {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .calendario-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .calendario-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .calendario-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background-color: #e5e7eb;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .giorno-header {
+        background: #f3f4f6;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #d1d5db;
+    }
+    
+    .giorno-cell {
+        background: white;
+        min-height: 120px;
+        padding: 0.5rem;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+    
+    .giorno-cell:hover {
+        background: #f9fafb;
+    }
+    
+    .giorno-numero {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .giorno-altro-mese {
+        background: #f9fafb;
+        color: #9ca3af;
+    }
+    
+    .giorno-oggi {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 2px solid #f59e0b;
+    }
+    
+    .prenotazione-item {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border: 1px solid #3b82f6;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .prenotazione-item:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .prenotazione-scaduta {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-color: #ef4444;
+        color: #991b1b;
+    }
+    
+    .prenotazione-in-scadenza {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-color: #f59e0b;
+        color: #92400e;
+    }
+    
+    .filtri-container {
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .legenda {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 1rem;
+    }
+    
+    .legenda-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .legenda-colore {
+        width: 16px;
+        height: 16px;
+        border-radius: 0.25rem;
+        border: 1px solid #d1d5db;
+    }
+    
+    .drag-over {
+        background: #e0f2fe !important;
+        border: 2px dashed #0284c7 !important;
+    }
+    
+    .prenotazione-dragging {
+        opacity: 0.5;
+        transform: rotate(5deg);
+    }
+    
+    @media (max-width: 768px) {
+        .calendario-grid {
+            font-size: 0.875rem;
+        }
+        
+        .giorno-cell {
+            min-height: 80px;
+            padding: 0.25rem;
+        }
+        
+        .prenotazione-item {
+            font-size: 0.625rem;
+            padding: 0.125rem 0.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation tabs -->
+    {% include 'magazzino/_nav_tabs.html' %}
+    
+    <!-- Filtri e controlli -->
+    <div class="filtri-container">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Mese</label>
+                <select name="mese" class="form-select">
+                    {% for i in range(1, 13) %}
+                        {% set mesi = ['', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                                      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'] %}
+                        <option value="{{ i }}" {% if i == mese %}selected{% endif %}>
+                            {{ mesi[i] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label">Anno</label>
+                <input type="number" name="anno" class="form-control" value="{{ anno }}" min="2020" max="2030">
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label">Filtra per Ricambio</label>
+                <select name="filtro_ricambio" class="form-select">
+                    <option value="0">Tutti i ricambi</option>
+                    <!-- Popolato dal form -->
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Applica Filtri
+                    </button>
+                    <a href="{{ url_for('magazzino.calendario') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Legenda -->
+        <div class="legenda">
+            <strong>Legenda:</strong>
+            <div class="legenda-item">
+                <div class="legenda-colore" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: #3b82f6;"></div>
+                <span>Prenotazione attiva</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-colore" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #f59e0b;"></div>
+                <span>In scadenza (3 giorni)</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-colore" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #ef4444;"></div>
+                <span>Scaduta</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-colore" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;"></div>
+                <span>Oggi</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Azioni rapide -->
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-secondary" onclick="esportaCalendario()">
+                <i class="bi bi-download"></i> Esporta
+            </button>
+            <button class="btn btn-outline-secondary" onclick="stampaCalendario()">
+                <i class="bi bi-printer"></i> Stampa
+            </button>
+        </div>
+    </div>
+
+    <!-- Calendario -->
+    <div class="calendario-container">
+        <div class="calendario-header">
+            <div class="calendario-nav">
+                <a href="?mese={{ (mese - 1) if mese > 1 else 12 }}&anno={{ anno if mese > 1 else (anno - 1) }}" 
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-chevron-left"></i> Precedente
+                </a>
+                
+                <h4 class="mb-0">
+                    {% set mesi = ['', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                                  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'] %}
+                    {{ mesi[mese] }} {{ anno }}
+                </h4>
+                
+                <a href="?mese={{ (mese + 1) if mese < 12 else 1 }}&anno={{ anno if mese < 12 else (anno + 1) }}" 
+                   class="btn btn-light btn-sm">
+                    Successivo <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="calendario-grid">
+            <!-- Header giorni settimana -->
+            <div class="giorno-header">Lun</div>
+            <div class="giorno-header">Mar</div>
+            <div class="giorno-header">Mer</div>
+            <div class="giorno-header">Gio</div>
+            <div class="giorno-header">Ven</div>
+            <div class="giorno-header">Sab</div>
+            <div class="giorno-header">Dom</div>
+            
+            <!-- Giorni del mese -->
+            
+            <!-- Giorni del mese precedente -->
+            {% for giorno_precedente in giorni_precedenti %}
+                <div class="giorno-cell giorno-altro-mese" data-date="{{ giorno_precedente.strftime('%Y-%m-%d') }}">
+                    <div class="giorno-numero">{{ giorno_precedente.day }}</div>
+                </div>
+            {% endfor %}
+            
+            <!-- Giorni del mese corrente -->
+            {% for data_corrente in giorni_correnti %}
+                {% set is_oggi = data_corrente.date() == oggi %}
+                {% set prenotazioni_giorno = prenotazioni_per_giorno.get(data_corrente.day, []) %}
+                
+                <div class="giorno-cell {% if is_oggi %}giorno-oggi{% endif %}" 
+                     data-date="{{ data_corrente.strftime('%Y-%m-%d') }}"
+                     ondrop="drop(event)" 
+                     ondragover="allowDrop(event)"
+                     ondragenter="dragEnter(event)"
+                     ondragleave="dragLeave(event)">
+                    
+                    <div class="giorno-numero">{{ data_corrente.day }}</div>
+                    
+                    <!-- Prenotazioni del giorno -->
+                    {% for prenotazione in prenotazioni_giorno %}
+                        {% set classe_prenotazione = 'prenotazione-item' %}
+                        {% if prenotazione.is_scaduta %}
+                            {% set classe_prenotazione = classe_prenotazione + ' prenotazione-scaduta' %}
+                        {% elif prenotazione.giorni_alla_scadenza is not none and prenotazione.giorni_alla_scadenza <= 3 %}
+                            {% set classe_prenotazione = classe_prenotazione + ' prenotazione-in-scadenza' %}
+                        {% endif %}
+                        
+                        <div class="{{ classe_prenotazione }}" 
+                             draggable="true"
+                             ondragstart="drag(event)"
+                             data-prenotazione-id="{{ prenotazione.id }}"
+                             data-ricambio-codice="{{ prenotazione.ricambio.codice }}"
+                             onclick="mostraDettagliPrenotazione({{ prenotazione.id }})">
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">{{ prenotazione.ricambio.codice }}</span>
+                                <span class="badge bg-primary">{{ prenotazione.quantita }}</span>
+                            </div>
+                            
+                            {% if prenotazione.ticket %}
+                                <div class="text-truncate" title="{{ prenotazione.ticket.titolo }}">
+                                    <i class="bi bi-ticket"></i> {{ prenotazione.ticket.numero_ticket }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if prenotazione.data_scadenza %}
+                                <div class="text-muted">
+                                    <i class="bi bi-clock"></i> 
+                                    {{ prenotazione.data_scadenza.strftime('%H:%M') }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <!-- Giorni del mese successivo -->
+            {% for giorno_successivo in giorni_successivi %}
+                <div class="giorno-cell giorno-altro-mese" data-date="{{ giorno_successivo.strftime('%Y-%m-%d') }}">
+                    <div class="giorno-numero">{{ giorno_successivo.day }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal dettagli prenotazione -->
+<div class="modal fade" id="dettagliPrenotazioneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli Prenotazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="dettagli-prenotazione-content">
+                <!-- Contenuto caricato via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <button type="button" class="btn btn-primary" onclick="modificaPrenotazione()">
+                    <i class="bi bi-pencil"></i> Modifica
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast per notifiche drag & drop -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="dragToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="bi bi-info-circle text-primary me-2"></i>
+            <strong class="me-auto">Spostamento Prenotazione</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="dragToastBody">
+            <!-- Messaggio dinamico -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let prenotazioneCorrente = null;
+
+// Drag & Drop functionality
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.dataset.prenotazioneId);
+    ev.target.classList.add('prenotazione-dragging');
+}
+
+function dragEnter(ev) {
+    ev.preventDefault();
+    if (ev.target.classList.contains('giorno-cell')) {
+        ev.target.classList.add('drag-over');
+    }
+}
+
+function dragLeave(ev) {
+    if (ev.target.classList.contains('giorno-cell')) {
+        ev.target.classList.remove('drag-over');
+    }
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    const prenotazioneId = ev.dataTransfer.getData("text");
+    const targetDate = ev.target.closest('.giorno-cell').dataset.date;
+    
+    // Rimuovi classe drag-over
+    document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+    
+    // Rimuovi classe dragging
+    document.querySelectorAll('.prenotazione-dragging').forEach(el => {
+        el.classList.remove('prenotazione-dragging');
+    });
+    
+    // Sposta prenotazione
+    spostaPrenotazione(prenotazioneId, targetDate);
+}
+
+function spostaPrenotazione(prenotazioneId, nuovaData) {
+    // Mostra toast di conferma
+    const toast = new bootstrap.Toast(document.getElementById('dragToast'));
+    document.getElementById('dragToastBody').textContent = 
+        `Spostamento prenotazione alla data ${nuovaData}...`;
+    toast.show();
+    
+    // Simula chiamata AJAX per spostare la prenotazione
+    fetch(`/magazzino/prenotazione/${prenotazioneId}/sposta`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            nuova_data: nuovaData,
+            csrf_token: '{{ csrf_token }}'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Ricarica la pagina per aggiornare il calendario
+            location.reload();
+        } else {
+            showToast('Errore nello spostamento della prenotazione', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        showToast('Errore di connessione', 'danger');
+    });
+}
+
+function mostraDettagliPrenotazione(prenotazioneId) {
+    prenotazioneCorrente = prenotazioneId;
+    
+    // Carica dettagli prenotazione via AJAX
+    fetch(`/magazzino/api/prenotazione/${prenotazioneId}`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('dettagli-prenotazione-content');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Ricambio</h6>
+                        <p><strong>${data.ricambio_codice}</strong><br>
+                        <small class="text-muted">${data.ricambio_descrizione}</small></p>
+                        
+                        <h6>Quantità</h6>
+                        <p><span class="badge bg-primary fs-6">${data.quantita} pezzi</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Ticket Collegato</h6>
+                        <p>${data.ticket_numero ? `<a href="/tickets/${data.ticket_id}">${data.ticket_numero}</a>` : 'Nessun ticket'}</p>
+                        
+                        <h6>Data Prenotazione</h6>
+                        <p>${new Date(data.data_prenotazione).toLocaleDateString('it-IT')}</p>
+                        
+                        ${data.data_scadenza ? `
+                            <h6>Data Scadenza</h6>
+                            <p>${new Date(data.data_scadenza).toLocaleDateString('it-IT')}</p>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${data.note ? `
+                    <h6>Note</h6>
+                    <p class="text-muted">${data.note}</p>
+                ` : ''}
+                
+                <div class="alert alert-info">
+                    <strong>Stato:</strong> ${data.stato}
+                    ${data.is_scaduta ? '<span class="badge bg-danger ms-2">Scaduta</span>' : ''}
+                </div>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('dettagliPrenotazioneModal')).show();
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento dettagli:', error);
+            showToast('Errore nel caricamento dei dettagli', 'danger');
+        });
+}
+
+function modificaPrenotazione() {
+    if (prenotazioneCorrente) {
+        window.location.href = `/magazzino/prenotazione/${prenotazioneCorrente}/modifica`;
+    }
+}
+
+function esportaCalendario() {
+    const mese = new URLSearchParams(window.location.search).get('mese') || {{ mese }};
+    const anno = new URLSearchParams(window.location.search).get('anno') || {{ anno }};
+    
+    window.open(`/magazzino/calendario/esporta?mese=${mese}&anno=${anno}`, '_blank');
+}
+
+function stampaCalendario() {
+    window.print();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 'p':
+                e.preventDefault();
+                stampaCalendario();
+                break;
+            case 'e':
+                e.preventDefault();
+                esportaCalendario();
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                // Vai al mese precedente
+                const prevLink = document.querySelector('a[href*="mese"]:first-of-type');
+                if (prevLink) prevLink.click();
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                // Vai al mese successivo
+                const nextLink = document.querySelector('a[href*="mese"]:last-of-type');
+                if (nextLink) nextLink.click();
+                break;
+        }
+    }
+});
+
+// Tooltip per prenotazioni
+document.addEventListener('DOMContentLoaded', function() {
+    const prenotazioni = document.querySelectorAll('.prenotazione-item');
+    prenotazioni.forEach(prenotazione => {
+        const codice = prenotazione.dataset.ricambioCodice;
+        prenotazione.setAttribute('title', `Clicca per dettagli - Trascina per spostare`);
+    });
+});
+
+// Auto-refresh ogni 5 minuti
+setInterval(() => {
+    // Controlla se ci sono nuove prenotazioni
+    fetch('/magazzino/api/prenotazioni/check-updates')
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_updates) {
+                const toast = new bootstrap.Toast(document.getElementById('dragToast'));
+                document.getElementById('dragToastBody').innerHTML = 
+                    'Nuove prenotazioni disponibili. <a href="#" onclick="location.reload()">Ricarica</a>';
+                toast.show();
+            }
+        })
+        .catch(error => console.log('Check updates failed:', error));
+}, 300000); // 5 minuti
+</script>
+
+<!-- CSS per stampa -->
+<style media="print">
+    .filtri-container,
+    .btn-group,
+    .modal,
+    .toast-container {
+        display: none !important;
+    }
+    
+    .calendario-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .calendario-header {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .prenotazione-item {
+        background: #f8f9fa !important;
+        border: 1px solid #000 !important;
+        -webkit-print-color-adjust: exact;
+    }
+</style>
+{% endblock %}
