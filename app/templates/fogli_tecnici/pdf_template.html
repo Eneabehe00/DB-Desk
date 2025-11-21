@@ -4,230 +4,378 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foglio Tecnico {{ foglio.numero_foglio }}</title>
-    
+
     {% if not is_html %}
     <!-- Stili per PDF -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
         @page {
             size: A4;
-            margin: 1.5cm;
+            margin: 1.2cm;
             @top-center {
-                content: "DB-Desk - Foglio Tecnico {{ foglio.numero_foglio }}";
+                content: "DB-Desk - Sistema Gestionale Aziendale";
                 font-family: 'Inter', sans-serif;
-                font-size: 10px;
-                color: #6b7280;
-                margin-bottom: 1cm;
+                font-size: 9px;
+                color: #64748b;
+                font-weight: 500;
+                margin-bottom: 0.8cm;
             }
             @bottom-center {
-                content: "Pagina " counter(page) " di " counter(pages);
+                content: "Documento riservato - Pagina " counter(page) " di " counter(pages);
                 font-family: 'Inter', sans-serif;
-                font-size: 10px;
-                color: #6b7280;
-                margin-top: 1cm;
+                font-size: 9px;
+                color: #64748b;
+                font-weight: 500;
+                margin-top: 0.8cm;
             }
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', 'Arial', sans-serif;
-            font-size: 11px;
-            line-height: 1.6;
-            color: #1f2937;
+            font-size: 10px;
+            line-height: 1.5;
+            color: #1e293b;
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         }
-        
+
         .document-container {
             background: white;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
             overflow: hidden;
             margin: 0;
+            position: relative;
         }
-        
-        /* Header moderno con gradiente */
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
+
+        /* Intestazione Aziendale Premium */
+        .company-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
             color: white;
-            padding: 2rem;
-            text-align: center;
+            padding: 3rem 2.5rem 2rem;
             position: relative;
             overflow: hidden;
         }
-        
-        .header::before {
+
+        .company-header::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
         }
-        
-        .header-content {
+
+        .company-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 50%, #10b981 100%);
+        }
+
+        .company-header-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            text-align: center;
         }
-        
-        .company-logo {
-            font-size: 2.5rem;
+
+        .company-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            letter-spacing: -0.025em;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
-        .document-title {
-            font-size: 1.5rem;
+
+        .company-tagline {
+            font-size: 1rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .document-type {
+            font-size: 1.8rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            opacity: 0.95;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
         }
-        
-        .document-number {
-            font-size: 1.1rem;
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
+
+        .document-number-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem 2rem;
             border-radius: 50px;
             display: inline-block;
-            backdrop-filter: blur(10px);
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Barra di stato documento */
+        .document-status-bar {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            padding: 0.75rem 2.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
         
-        /* Contenuto principale */
+        /* Contenuto principale strutturato */
         .content {
-            padding: 2rem;
+            padding: 0;
         }
-        
-        /* Sezioni moderne con card design */
-        .info-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e5e7eb;
+
+        /* Sezioni con design professionale */
+        .content-section {
+            margin-bottom: 2rem;
             page-break-inside: avoid;
         }
-        
+
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            margin: 0 2rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
         .section-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 60px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        }
+
+        .section-title-container {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #f3f4f6;
+            gap: 1rem;
         }
-        
+
         .section-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 0.75rem;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            border-radius: 6px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 600;
-            font-size: 12px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        
+
         .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1f2937;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e293b;
             margin: 0;
+            font-family: 'Inter', sans-serif;
         }
-        
-        /* Grid layout moderno */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .info-item {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #3b82f6;
-            transition: all 0.2s ease;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #374151;
+
+        .section-subtitle {
             font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-            display: block;
+            color: #64748b;
+            margin: 0.25rem 0 0 0;
+            font-weight: 400;
         }
-        
-        .info-value {
-            color: #1f2937;
-            font-weight: 500;
-            font-size: 1rem;
+
+        .section-content {
+            padding: 2rem;
         }
-        
-        /* Descrizioni con stile moderno */
-        .description-section {
+
+        /* Sistema di griglie responsive */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin: 1.5rem 0;
         }
-        
-        .description-text {
+
+        .data-grid-2col {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .data-grid-3col {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .data-item {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             padding: 1.5rem;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
-            white-space: pre-wrap;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .data-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .data-value {
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .data-value.large {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .data-value.accent {
+            color: #059669;
+        }
+
+        /* Box di informazioni speciali */
+        .info-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .info-box::before {
+            content: 'ℹ';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #f59e0b;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .info-box-content {
+            margin-left: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #92400e;
+        }
+
+        /* Descrizioni migliorate */
+        .description-block {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .description-block::before {
+            content: '"';
+            position: absolute;
+            top: -8px;
+            left: 20px;
+            font-size: 2.5rem;
+            color: #cbd5e1;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+
+        .description-text {
             font-size: 1rem;
             line-height: 1.7;
             color: #374151;
-            position: relative;
+            white-space: pre-wrap;
+            margin-top: 0.5rem;
         }
-        
-        .description-text::before {
-            content: '"';
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            font-size: 3rem;
-            color: #cbd5e1;
-            font-family: serif;
+
+        /* Liste professionali */
+        .items-list {
+            margin: 1.5rem 0;
         }
-        
-        /* Liste moderne */
-        .list-section {
-            margin: 1rem 0;
-        }
-        
+
         .list-item {
             background: white;
-            margin-bottom: 0.75rem;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             position: relative;
-            padding-left: 3rem;
+            padding-left: 4rem;
+            transition: all 0.3s ease;
         }
-        
+
+        .list-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
         .list-item::before {
             content: '✓';
             position: absolute;
-            left: 1rem;
+            left: 1.5rem;
             top: 50%;
             transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border-radius: 50%;
@@ -236,102 +384,215 @@
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
         }
-        
-        /* Sezione firme completamente ridisegnata */
-        .signature-section {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-top: 2rem;
-            border: 2px solid #e2e8f0;
-            page-break-inside: avoid;
+
+        .list-item-content {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1e293b;
         }
-        
-        .signature-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .signature-header h3 {
-            font-size: 1.3rem;
+
+        .list-item-title {
             font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
         }
-        
-        .signature-subtitle {
-            color: #6b7280;
-            font-size: 0.95rem;
+
+        .list-item-meta {
+            font-size: 0.85rem;
+            color: #64748b;
             font-style: italic;
         }
         
-        .signature-grid {
+        /* Sezione firme professionale */
+        .signatures-section {
+            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 0;
+            margin: 2rem 2rem 0;
+            border: 2px solid #e2e8f0;
+            page-break-inside: avoid;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .signatures-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .signatures-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .signatures-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .signatures-content {
+            padding: 3rem 2rem;
+        }
+
+        .signatures-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
+            gap: 3rem;
+            margin-bottom: 2rem;
         }
-        
+
         .signature-card {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 2px solid #f1f5f9;
             text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
         }
-        
+
+        .signature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .signature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            border-radius: 14px 14px 0 0;
+        }
+
         .signature-role {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #6b7280;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
-        
-        .signature-box {
-            background: #f9fafb;
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            min-height: 120px;
+
+        .signature-role::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            border-radius: 1px;
+        }
+
+        .signature-area {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            min-height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
-        
-        .signature-box.has-signature {
-            border: 2px solid #10b981;
-            background: white;
+
+        .signature-area.has-signature {
+            border: 3px solid #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1);
         }
-        
+
         .signature-image {
             max-width: 100%;
-            max-height: 100px;
+            max-height: 120px;
             object-fit: contain;
-            filter: contrast(1.1);
+            filter: contrast(1.1) brightness(1.05);
+            border-radius: 4px;
         }
-        
+
         .signature-placeholder {
-            color: #9ca3af;
+            color: #64748b;
             font-style: italic;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 500;
         }
-        
+
         .signature-name {
-            font-weight: 600;
-            color: #1f2937;
-            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.1rem;
             margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
         }
-        
+
         .signature-date {
-            font-size: 0.85rem;
-            color: #6b7280;
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Dichiarazione di accettazione migliorata */
+        .acceptance-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0 0;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.2);
+        }
+
+        .acceptance-box::before {
+            content: '📝';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f59e0b;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .acceptance-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #92400e;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .acceptance-highlight {
+            color: #dc2626;
+            font-weight: 700;
+            text-decoration: underline;
         }
         
         /* Badge di stato moderni */
@@ -382,40 +643,117 @@
             font-weight: 600;
         }
         
-        /* Footer moderno */
-        .footer {
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        /* Footer professionale */
+        .document-footer {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
             color: white;
-            padding: 1.5rem 2rem;
-            margin-top: 2rem;
-            border-radius: 0 0 12px 12px;
-            font-size: 0.9rem;
+            padding: 2.5rem;
+            margin-top: 3rem;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .document-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 30% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+        }
+
         .footer-content {
+            position: relative;
+            z-index: 2;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            align-items: center;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            align-items: start;
         }
-        
-        .footer-left {
-            text-align: left;
+
+        .footer-company {
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding-right: 2rem;
         }
-        
-        .footer-right {
-            text-align: right;
+
+        .footer-client {
+            padding-left: 1rem;
         }
-        
-        .footer-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #f3f4f6;
+
+        .footer-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'Inter', sans-serif;
         }
-        
+
+        .footer-company-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 0.75rem;
+            font-family: 'Playfair Display', serif;
+        }
+
         .footer-text {
-            color: #d1d5db;
-            line-height: 1.5;
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-meta {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-meta-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .footer-meta-label {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-meta-value {
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+
+        /* Separatore di sezione */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .section-divider::before {
+            content: '⋄';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #64748b;
+            padding: 0 1rem;
+            font-size: 1.2rem;
         }
         
         /* Dichiarazione di accettazione */
@@ -484,252 +822,350 @@
 </head>
 <body>
     {% if is_html %}<div class="container">{% endif %}
-    
+
     <div class="document-container">
-        <!-- Header moderno -->
-        <div class="header">
-            <div class="header-content">
-                <div class="company-logo">DB-Desk</div>
-                <div class="document-title">FOGLIO TECNICO DI INTERVENTO</div>
-                <div class="document-number">N° {{ foglio.numero_foglio }}</div>
+        <!-- Intestazione Aziendale Premium -->
+        <div class="company-header">
+            <div class="company-header-content">
+                <div class="company-name">DB-Desk</div>
+                <div class="company-tagline">Sistema Gestionale Aziendale</div>
+                <div class="document-type">FOGLIO TECNICO DI INTERVENTO</div>
+                <div class="document-number-badge">N° {{ foglio.numero_foglio }}</div>
             </div>
         </div>
-        
+
+        <!-- Barra di stato documento -->
+        <div class="document-status-bar">
+            Stato Documento: <strong>{{ foglio.stato }}</strong> • Priorità: <strong>{{ foglio.priorita }}</strong> • Data: <strong>{{ foglio.data_intervento.strftime('%d/%m/%Y') }}</strong>
+        </div>
+
         <div class="content">
-            <!-- Informazioni Generali -->
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">ℹ</div>
-                    <h3 class="section-title">Informazioni Generali</h3>
+            <!-- Sezione Informazioni Cliente -->
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">🏢</div>
+                            <div>
+                                <h2 class="section-title">Informazioni Cliente</h2>
+                                <p class="section-subtitle">Dettagli del committente e contatto</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="data-grid data-grid-2col">
+                            <div class="data-item">
+                                <span class="data-label">Ragione Sociale</span>
+                                <span class="data-value large">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Codice Fiscale/P.IVA</span>
+                                <span class="data-value">{{ foglio.cliente.codice_fiscale if foglio.cliente and foglio.cliente.codice_fiscale else 'N/A' }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Indirizzo</span>
+                                <span class="data-value">{{ foglio.cliente.indirizzo if foglio.cliente and foglio.cliente.indirizzo else 'N/A' }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Contatto</span>
+                                <span class="data-value">{{ foglio.cliente.email if foglio.cliente and foglio.cliente.email else 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Cliente</span>
-                        <span class="info-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Tecnico Responsabile</span>
-                        <span class="info-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Data e Ora Intervento</span>
-                        <span class="info-value">{{ foglio.data_intervento.strftime('%d/%m/%Y alle %H:%M') }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Categoria Intervento</span>
-                        <span class="info-value">{{ foglio.categoria }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Livello di Priorità</span>
-                        <span class="info-value priority-{{ foglio.priorita.lower() }}">{{ foglio.priorita }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Stato Attuale</span>
-                        <span class="stato-badge stato-{{ foglio.stato.lower().replace(' ', '-') }}">{{ foglio.stato }}</span>
-                    </div>
-                </div>
-                
-                {% if foglio.indirizzo_intervento %}
-                <div class="info-item" style="margin-top: 1rem;">
-                    <span class="info-label">Indirizzo di Intervento</span>
-                    <span class="info-value">{{ foglio.indirizzo_intervento }}</span>
-                </div>
-                {% endif %}
-                
-                {% if foglio.durata_intervento or foglio.km_percorsi %}
-                <div class="info-grid" style="margin-top: 1rem;">
-                    {% if foglio.durata_intervento %}
-                    <div class="info-item">
-                        <span class="info-label">Durata Intervento</span>
-                        <span class="info-value">{{ foglio.durata_intervento }} minuti</span>
-                    </div>
-                    {% endif %}
-                    {% if foglio.km_percorsi %}
-                    <div class="info-item">
-                        <span class="info-label">Chilometri Percorsi</span>
-                        <span class="info-value">{{ foglio.km_percorsi }} km</span>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
             </div>
-            
-            <!-- Dettagli Intervento -->
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">🔧</div>
-                    <h3 class="section-title">Dettagli dell'Intervento</h3>
+
+            <!-- Sezione Dettagli Intervento -->
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">🔧</div>
+                            <div>
+                                <h2 class="section-title">Dettagli dell'Intervento</h2>
+                                <p class="section-subtitle">Informazioni operative e tecniche</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <span class="data-label">Tecnico Responsabile</span>
+                                <span class="data-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Data e Ora Intervento</span>
+                                <span class="data-value">{{ foglio.data_intervento.strftime('%d/%m/%Y alle %H:%M') }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Categoria Intervento</span>
+                                <span class="data-value">{{ foglio.categoria or 'Non specificata' }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Livello di Priorità</span>
+                                <span class="data-value priority-{{ foglio.priorita.lower() }}">{{ foglio.priorita }}</span>
+                            </div>
+                            {% if foglio.indirizzo_intervento %}
+                            <div class="data-item">
+                                <span class="data-label">Indirizzo di Intervento</span>
+                                <span class="data-value">{{ foglio.indirizzo_intervento }}</span>
+                            </div>
+                            {% endif %}
+                            {% if foglio.durata_intervento %}
+                            <div class="data-item">
+                                <span class="data-label">Durata Intervento</span>
+                                <span class="data-value">{{ foglio.durata_intervento }} minuti</span>
+                            </div>
+                            {% endif %}
+                            {% if foglio.km_percorsi %}
+                            <div class="data-item">
+                                <span class="data-label">Chilometri Percorsi</span>
+                                <span class="data-value">{{ foglio.km_percorsi }} km</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if foglio.titolo %}
+                        <div class="info-box">
+                            <div class="info-box-content">
+                                <strong>Titolo dell'Intervento:</strong> {{ foglio.titolo }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if foglio.descrizione %}
+                        <div class="description-block">
+                            <span class="data-label">Descrizione Dettagliata</span>
+                            <div class="description-text">{{ foglio.descrizione }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="info-item" style="margin-bottom: 1.5rem;">
-                    <span class="info-label">Titolo dell'Intervento</span>
-                    <span class="info-value font-semibold text-lg">{{ foglio.titolo }}</span>
-                </div>
-                {% if foglio.descrizione %}
-                <div class="description-section">
-                    <span class="info-label">Descrizione Dettagliata</span>
-                    <div class="description-text">{{ foglio.descrizione }}</div>
-                </div>
-                {% endif %}
             </div>
             
             <!-- Macchine Coinvolte -->
             {% if foglio.macchine_collegate.count() > 0 %}
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">⚙</div>
-                    <h3 class="section-title">Macchine e Attrezzature Coinvolte</h3>
-                </div>
-                <div class="list-section">
-                    {% for macchina in foglio.macchine_collegate %}
-                    <div class="list-item">
-                        <strong>{{ macchina.codice }}</strong> - {{ macchina.marca }} {{ macchina.modello }}
-                        {% if macchina.numero_serie %}
-                        <br><small style="color: #6b7280;">Numero di Serie: {{ macchina.numero_serie }}</small>
-                        {% endif %}
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">⚙️</div>
+                            <div>
+                                <h2 class="section-title">Macchine e Attrezzature Coinvolte</h2>
+                                <p class="section-subtitle">Equipaggiamenti oggetto dell'intervento</p>
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
+                    <div class="section-content">
+                        <div class="items-list">
+                            {% for macchina in foglio.macchine_collegate %}
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">{{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}</div>
+                                    {% if macchina.numero_serie %}
+                                    <div class="list-item-meta">Numero di Serie: {{ macchina.numero_serie }}</div>
+                                    {% endif %}
+                                    {% if macchina.ubicazione %}
+                                    <div class="list-item-meta">Ubicazione: {{ macchina.ubicazione }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
-            
+
             <!-- Ricambi Utilizzati -->
             {% if foglio.ricambi_utilizzati.count() > 0 %}
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">📦</div>
-                    <h3 class="section-title">Ricambi e Materiali Utilizzati</h3>
-                </div>
-                <div class="list-section">
-                    {% for ricambio in foglio.ricambi_utilizzati %}
-                    <div class="list-item">
-                        <strong>{{ ricambio.codice }}</strong> - {{ ricambio.descrizione }}
-                        {% if ricambio.fornitore %}
-                        <br><small style="color: #6b7280;">Fornitore: {{ ricambio.fornitore }}</small>
-                        {% endif %}
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">📦</div>
+                            <div>
+                                <h2 class="section-title">Ricambi e Materiali Utilizzati</h2>
+                                <p class="section-subtitle">Componenti e materiali impiegati</p>
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
+                    <div class="section-content">
+                        <div class="items-list">
+                            {% for ricambio in foglio.ricambi_utilizzati %}
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">{{ ricambio.codice }} - {{ ricambio.descrizione }}</div>
+                                    {% if ricambio.fornitore %}
+                                    <div class="list-item-meta">Fornitore: {{ ricambio.fornitore }}</div>
+                                    {% endif %}
+                                    {% if ricambio.prezzo_unitario %}
+                                    <div class="list-item-meta">Prezzo unitario: € {{ ricambio.prezzo_unitario }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
-            
+
             <!-- Note Aggiuntive -->
             {% if foglio.note_aggiuntive %}
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">📝</div>
-                    <h3 class="section-title">Note Aggiuntive e Osservazioni</h3>
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">📝</div>
+                            <div>
+                                <h2 class="section-title">Note Aggiuntive e Osservazioni</h2>
+                                <p class="section-subtitle">Informazioni aggiuntive sull'intervento</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="description-block">
+                            <div class="description-text">{{ foglio.note_aggiuntive }}</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="description-text">{{ foglio.note_aggiuntive }}</div>
             </div>
             {% endif %}
-            
+
             <!-- Informazioni Commerciali -->
             {% if foglio.modalita_pagamento or foglio.importo_intervento %}
-            <div class="info-section">
-                <div class="section-header">
-                    <div class="section-icon">💰</div>
-                    <h3 class="section-title">Informazioni Commerciali</h3>
-                </div>
-                <div class="info-grid">
-                    {% if foglio.modalita_pagamento %}
-                    <div class="info-item">
-                        <span class="info-label">Modalità di Pagamento</span>
-                        <span class="info-value">{{ foglio.modalita_pagamento }}</span>
+            <div class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-container">
+                            <div class="section-icon">💰</div>
+                            <div>
+                                <h2 class="section-title">Informazioni Commerciali</h2>
+                                <p class="section-subtitle">Dettagli economici e modalità di pagamento</p>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
-                    {% if foglio.importo_intervento %}
-                    <div class="info-item">
-                        <span class="info-label">Importo dell'Intervento</span>
-                        <span class="info-value font-bold text-lg" style="color: #059669;">€ {{ foglio.importo_intervento }}</span>
+                    <div class="section-content">
+                        <div class="data-grid">
+                            {% if foglio.modalita_pagamento %}
+                            <div class="data-item">
+                                <span class="data-label">Modalità di Pagamento</span>
+                                <span class="data-value">{{ foglio.modalita_pagamento }}</span>
+                            </div>
+                            {% endif %}
+                            {% if foglio.importo_intervento %}
+                            <div class="data-item">
+                                <span class="data-label">Importo dell'Intervento</span>
+                                <span class="data-value large accent">€ {{ "%.2f"|format(foglio.importo_intervento) }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
             {% endif %}
         </div>
         
-        <!-- Sezione Firme Completamente Ridisegnata -->
-        <div class="signature-section">
-            <div class="signature-header">
-                <h3>Firme di Accettazione e Conferma</h3>
-                <p class="signature-subtitle">Le firme sottostanti confermano l'accettazione del lavoro svolto</p>
-            </div>
-            
-            <div class="signature-grid">
-                <!-- Firma Tecnico -->
-                <div class="signature-card">
-                    <div class="signature-role">Tecnico Responsabile</div>
-                    <div class="signature-box {% if foglio.firma_tecnico_path %}has-signature{% endif %}">
-                        {% if foglio.firma_tecnico_path %}
-                        <img src="data:image/png;base64,{{ get_signature_base64(foglio.firma_tecnico_path) }}" 
-                             alt="Firma Tecnico" class="signature-image">
-                        {% else %}
-                        <span class="signature-placeholder">Firma non presente</span>
-                        {% endif %}
-                    </div>
-                    <div class="signature-name">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
-                    <div class="signature-date">{{ foglio.data_intervento.strftime('%d/%m/%Y') }}</div>
+            <!-- Sezione Firme Professionali -->
+            <div class="signatures-section">
+                <div class="signatures-header">
+                    <h2 class="signatures-title">Firme di Accettazione e Conferma</h2>
+                    <p class="signatures-subtitle">Le firme sottostanti confermano l'accettazione del lavoro svolto</p>
                 </div>
-                
-                <!-- Firma Cliente -->
-                <div class="signature-card">
-                    <div class="signature-role">Cliente</div>
-                    <div class="signature-box {% if foglio.firma_cliente_path %}has-signature{% endif %}">
-                        {% if foglio.firma_cliente_path %}
-                        <img src="data:image/png;base64,{{ get_signature_base64(foglio.firma_cliente_path) }}" 
-                             alt="Firma Cliente" class="signature-image">
-                        {% else %}
-                        <span class="signature-placeholder">Firma non presente</span>
-                        {% endif %}
+
+                <div class="signatures-content">
+                    <div class="signatures-grid">
+                        <!-- Firma Tecnico -->
+                        <div class="signature-card">
+                            <div class="signature-role">Tecnico Responsabile</div>
+                            <div class="signature-area {% if foglio.firma_tecnico_path %}has-signature{% endif %}">
+                                {% if foglio.firma_tecnico_path %}
+                                <img src="data:image/png;base64,{{ get_signature_base64(foglio.firma_tecnico_path) }}"
+                                     alt="Firma Tecnico" class="signature-image">
+                                {% else %}
+                                <span class="signature-placeholder">Firma non presente</span>
+                                {% endif %}
+                            </div>
+                            <div class="signature-name">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
+                            <div class="signature-date">{{ foglio.data_intervento.strftime('%d/%m/%Y') }}</div>
+                        </div>
+
+                        <!-- Firma Cliente -->
+                        <div class="signature-card">
+                            <div class="signature-role">Cliente</div>
+                            <div class="signature-area {% if foglio.firma_cliente_path %}has-signature{% endif %}">
+                                {% if foglio.firma_cliente_path %}
+                                <img src="data:image/png;base64,{{ get_signature_base64(foglio.firma_cliente_path) }}"
+                                     alt="Firma Cliente" class="signature-image">
+                                {% else %}
+                                <span class="signature-placeholder">Firma non presente</span>
+                                {% endif %}
+                            </div>
+                            <div class="signature-name">
+                                {% if foglio.nome_firmatario_cliente %}
+                                {{ foglio.nome_firmatario_cliente }}
+                                {% else %}
+                                Nome: _____________________
+                                {% endif %}
+                            </div>
+                            <div class="signature-date">{{ foglio.data_intervento.strftime('%d/%m/%Y') }}</div>
+                        </div>
                     </div>
-                    <div class="signature-name">
-                        {% if foglio.nome_firmatario_cliente %}
-                        {{ foglio.nome_firmatario_cliente }}
-                        {% else %}
-                        Nome: _____________________
-                        {% endif %}
+
+                    <!-- Dichiarazione di accettazione -->
+                    {% if foglio.nome_firmatario_cliente %}
+                    <div class="acceptance-box">
+                        <p class="acceptance-text">
+                            <span class="acceptance-highlight">DICHIARAZIONE DI ACCETTAZIONE</span><br><br>
+                            Il sottoscritto <strong>{{ foglio.nome_firmatario_cliente }}</strong> dichiara di aver ricevuto l'intervento tecnico sopra descritto e di essere pienamente soddisfatto del lavoro svolto dal personale tecnico di DB-Desk.
+                        </p>
                     </div>
-                    <div class="signature-date">{{ foglio.data_intervento.strftime('%d/%m/%Y') }}</div>
+                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Dichiarazione di accettazione -->
-            {% if foglio.nome_firmatario_cliente %}
-            <div class="acceptance-declaration">
-                <strong>Il sottoscritto {{ foglio.nome_firmatario_cliente }}</strong> dichiara di aver ricevuto l'intervento tecnico sopra descritto e di essere soddisfatto del lavoro svolto dal personale tecnico di DB-Desk.
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Footer moderno -->
-        <div class="footer">
-            <div class="footer-content">
-                <div class="footer-left">
-                    <div class="footer-title">DB-Desk</div>
-                    <div class="footer-text">
-                        Documento generato automaticamente<br>
-                        Data di generazione: {{ timestamp }}
+
+            <!-- Separatore finale -->
+            <div class="section-divider"></div>
+
+            <!-- Footer Professionale -->
+            <div class="document-footer">
+                <div class="footer-content">
+                    <div class="footer-company">
+                        <h3 class="footer-section-title">DB-Desk</h3>
+                        <div class="footer-company-name">Sistema Gestionale Aziendale</div>
+                        <div class="footer-meta">
+                            <div class="footer-meta-item">
+                                <span class="footer-meta-label">Documento</span>
+                                <span class="footer-meta-value">{{ foglio.numero_foglio }}</span>
+                            </div>
+                            <div class="footer-meta-item">
+                                <span class="footer-meta-label">Generato il</span>
+                                <span class="footer-meta-value">{{ timestamp }}</span>
+                            </div>
+                            <div class="footer-meta-item">
+                                <span class="footer-meta-label">Stato</span>
+                                <span class="footer-meta-value">{{ foglio.stato }}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="footer-right">
-                    {% if foglio.cliente %}
-                    <div class="footer-title">Informazioni Cliente</div>
-                    <div class="footer-text">
-                        {{ foglio.cliente.ragione_sociale }}<br>
+                    <div class="footer-client">
+                        {% if foglio.cliente %}
+                        <h3 class="footer-section-title">Cliente</h3>
+                        <div class="footer-text"><strong>{{ foglio.cliente.ragione_sociale }}</strong></div>
                         {% if foglio.cliente.indirizzo %}
-                        {{ foglio.cliente.indirizzo }}
+                        <div class="footer-text">{{ foglio.cliente.indirizzo }}</div>
                         {% if foglio.cliente.cap and foglio.cliente.citta %}
-                        <br>{{ foglio.cliente.cap }} {{ foglio.cliente.citta }}
+                        <div class="footer-text">{{ foglio.cliente.cap }} {{ foglio.cliente.citta }}</div>
                         {% endif %}
                         {% endif %}
                         {% if foglio.cliente.email %}
-                        <br>{{ foglio.cliente.email }}
+                        <div class="footer-text">{{ foglio.cliente.email }}</div>
+                        {% endif %}
                         {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
-        </div>
     </div>
     
     {% if is_html %}</div>{% endif %}
