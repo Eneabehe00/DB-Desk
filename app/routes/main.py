@@ -115,7 +115,8 @@ def dashboard():
                          ultimi_tickets=ultimi_tickets,
                          miei_tickets=miei_tickets,
                          top_clienti=top_clienti,
-                         chart_data=chart_data)
+                         chart_data=chart_data,
+                         now=datetime.utcnow())
 
 
 @main_bp.route('/quick_stats')

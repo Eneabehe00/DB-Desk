@@ -40,14 +40,45 @@
             min-height: 100vh;
             background: linear-gradient(180deg, var(--dark-color) 0%, #334155 100%);
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            width: 280px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: width 0.3s ease, transform 0.3s ease;
+            overflow-x: hidden;
+        }
+        
+        .sidebar.collapsed {
+            width: 95px;
+        }
+        
+        /* Forza la visualizzazione corretta delle icone */
+        .sidebar.collapsed .nav-link * {
+            pointer-events: none;
+        }
+        
+        .sidebar.collapsed .nav-link i::before {
+            display: inline-block !important;
+            font-family: "bootstrap-icons" !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
         }
         .sidebar .nav-link {
             color: #cbd5e1;
-            padding: 0.875rem 1.25rem;
-            border-radius: 0.5rem;
-            margin: 0.25rem 0.5rem;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 4px 8px;
+            height: 48px;
             transition: all 0.2s ease;
             font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            box-sizing: border-box;
         }
         .sidebar .nav-link:hover {
             color: #fff;
@@ -60,18 +91,269 @@
             box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
         }
         .sidebar .nav-link i {
-            width: 1.5rem;
+            width: 20px;
+            height: 20px;
+            font-size: 20px;
+            line-height: 20px;
             text-align: center;
-            margin-right: 0.5rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
+        .sidebar.collapsed .nav-link {
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 12px 8px !important;
+            margin: 4px 12px !important;
+            width: 60px !important;
+            height: 48px !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+        
+        .sidebar.collapsed .nav-link i {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 20px !important;
+            line-height: 20px !important;
+            color: #cbd5e1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            flex-shrink: 0 !important;
+        }
+        
+        .sidebar.collapsed .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light)) !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        }
+        
+        .sidebar.collapsed .nav-link.active i {
+            color: #ffffff !important;
+        }
+        
+        .sidebar.collapsed .nav-link:hover {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            transform: none !important;
+        }
+        
+        .sidebar.collapsed .nav-link:hover i {
+            color: #ffffff !important;
+        }
+        
+        .sidebar.collapsed .nav-link-text {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        .sidebar .nav-link-text {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+        
+        .sidebar.collapsed .sidebar-brand-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .nav-section-title {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            top: 25px;
+            left: 290px;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+        
+        
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+            transform: translateX(-50%) translateY(-2px);
+        }
+        
+        .sidebar-toggle i {
+            transition: transform 0.3s ease;
+            transform-origin: center;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle {
+            transform: translateX(-50%);
+        }
+        
+        .sidebar.collapsed .sidebar-toggle:hover {
+            transform: translateX(-50%) translateY(-2px);
+        }
+        
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+        
+        .sidebar-close-mobile {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+        
+        .sidebar-close-mobile:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        /* Mobile behavior - Fullscreen sidebar */
+        @media (max-width: 575.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100vw !important;
+                height: 100vh;
+                z-index: 1050;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .sidebar.collapsed {
+                width: 100vw !important;
+            }
+            
+            .sidebar-toggle {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            
+            /* Mobile overlay */
+            .sidebar.show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0,0,0,0.5);
+                z-index: -1;
+            }
+        }
+        
+        /* Tablet behavior - Same as desktop */
+        @media (min-width: 576px) and (max-width: 767.98px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .sidebar.collapsed {
+                width: 85px;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+            
+            .main-content.sidebar-collapsed {
+                margin-left: 85px;
+                width: calc(100% - 85px);
+            }
+        }
+        
+        /* Tooltip per sidebar collassata */
+        .sidebar.collapsed .nav-link {
+            position: relative;
+        }
+
+        .sidebar.collapsed .nav-link:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark-color);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            z-index: 1002000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none;
+        }
+
+        .sidebar.collapsed .nav-link:hover::before {
+            content: '';
+            position: absolute;
+            left: 95px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: var(--dark-color);
+            z-index: 1002000;
+            pointer-events: none;
+        }
+        
         .main-content {
             margin-left: 0;
             background-color: var(--light-color);
             min-height: 100vh;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            width: 100%;
+            position: relative;
+            padding: 0 15px;
         }
         @media (min-width: 768px) {
             .main-content {
-                margin-left: 250px;
+                margin-left: 280px;
+                width: calc(100% - 280px);
+                padding: 0 24px;
+            }
+            .main-content.sidebar-collapsed {
+                margin-left: 85px;
+                width: calc(100% - 85px);
             }
         }
         
@@ -88,6 +370,66 @@
             padding: 1.25rem;
         }
         
+        /* Nuovo Header Minimal */
+        .page-header-minimal {
+            background: linear-gradient(180deg, var(--dark-color) 0%, #334155 100%);
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+        }
+
+        .page-title-minimal {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0 0 0.25rem 0;
+            letter-spacing: -0.025em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: #cbd5e1 !important;
+            margin: 0;
+        }
+
+        .btn-minimal {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-minimal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .dropdown-menu {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-radius: 0.5rem;
+            background: linear-gradient(180deg, #334155 0%, var(--dark-color) 100%);
+        }
+
+        .dropdown-item {
+            font-weight: 500;
+            color: #e2e8f0;
+            transition: all 0.15s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
         /* Table improvements */
         .table {
             margin-bottom: 0;
@@ -171,6 +513,25 @@
         .alert {
             animation: slideInFromRight 0.3s ease-out;
         }
+        /* Header Minimal Responsive */
+        @media (max-width: 768px) {
+            .page-header-minimal {
+                padding: 1rem 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .page-title-minimal {
+                font-size: 1.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.8rem;
+            }
+
+            .btn-minimal span {
+                display: none !important;
+            }
+        }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -180,125 +541,135 @@
         <div class="row">
             <!-- Sidebar -->
             {% if current_user.is_authenticated %}
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebarMenu">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h4 class="text-white">
+            <nav class="d-md-block sidebar collapse" id="sidebarMenu">
+                <!-- Pulsante Toggle Sidebar -->
+                <button class="sidebar-toggle d-none d-sm-block" id="sidebarToggle" title="Riduci/Espandi Sidebar">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                
+                <!-- Pulsante Chiusura Mobile -->
+                <button class="sidebar-close-mobile d-sm-none" id="sidebarCloseMobile" title="Chiudi Menu">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                
+                <div class="position-sticky pt-2">
+                    <div class="text-center mb-3">
+                        <h5 class="text-white">
                             <i class="bi bi-pc-display text-white"></i>
-                            DB-Desk
-                        </h4>
+                            <span class="sidebar-brand-text">DB-Desk</span>
+                        </h5>
                     </div>
                     
                     <ul class="nav flex-column">
                         <!-- Sezione Principale -->
                         <li class="nav-item">
-                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Principale</small>
+                            <small class="text-white-50 fw-bold px-3 py-1 text-uppercase nav-section-title" style="font-size: 0.75rem;">Principale</small>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
-                               href="{{ url_for('main.dashboard') }}">
+                               href="{{ url_for('main.dashboard') }}" title="Dashboard">
                                 <i class="bi bi-house-door"></i>
-                                Dashboard
+                                <span class="nav-link-text">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('tickets.') and not request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
-                               href="{{ url_for('tickets.list_tickets') }}">
+                               href="{{ url_for('tickets.list_tickets') }}" title="Gestione Ticket">
                                 <i class="bi bi-ticket-detailed"></i>
-                                Gestione Ticket
+                                <span class="nav-link-text">Gestione Ticket</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('fogli_tecnici.') %}active{% endif %}" 
-                               href="{{ url_for('fogli_tecnici.list_fogli') }}">
+                               href="{{ url_for('fogli_tecnici.list_fogli') }}" title="Fogli Tecnici">
                                 <i class="bi bi-file-earmark-text"></i>
-                                Fogli Tecnici
+                                <span class="nav-link-text">Fogli Tecnici</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
-                               href="{{ url_for('tickets.calendar_view') }}">
+                               href="{{ url_for('tickets.calendar_view') }}" title="Calendario">
                                 <i class="bi bi-calendar3"></i>
-                                Calendario
+                                <span class="nav-link-text">Calendario</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('clients.') %}active{% endif %}" 
-                               href="{{ url_for('clients.list_clients') }}">
+                               href="{{ url_for('clients.list_clients') }}" title="Gestione Clienti">
                                 <i class="bi bi-building"></i>
-                                Gestione Clienti
+                                <span class="nav-link-text">Gestione Clienti</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('magazzino.') %}active{% endif %}"
-                               href="{{ url_for('magazzino.index') }}">
+                               href="{{ url_for('magazzino.index') }}" title="Magazzino Ricambi">
                                 <i class="bi bi-box-seam"></i>
-                                Magazzino Ricambi
+                                <span class="nav-link-text">Magazzino Ricambi</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('macchine.') %}active{% endif %}"
-                               href="{{ url_for('macchine.index') }}">
+                               href="{{ url_for('macchine.index') }}" title="Gestione Macchine">
                                 <i class="bi bi-gear"></i>
-                                Gestione Macchine
+                                <span class="nav-link-text">Gestione Macchine</span>
                             </a>
                         </li>
                          <li class="nav-item">
                              <a class="nav-link {% if request.endpoint.startswith('docs.') %}active{% endif %}"
-                                href="{{ url_for('docs.index') }}">
+                                href="{{ url_for('docs.index') }}" title="Docs">
                                  <i class="bi bi-folder"></i>
-                                 Docs
+                                 <span class="nav-link-text">Docs</span>
                              </a>
                          </li>
                         
                         <!-- Sezione Analisi -->
-                        <li class="nav-item mt-3">
-                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Analisi</small>
+                        <li class="nav-item mt-2">
+                            <small class="text-white-50 fw-bold px-3 py-1 text-uppercase nav-section-title" style="font-size: 0.75rem;">Analisi</small>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('reports.') %}active{% endif %}" 
-                               href="{{ url_for('reports.index') }}">
+                               href="{{ url_for('reports.index') }}" title="Report & Analytics">
                                 <i class="bi bi-bar-chart"></i>
-                                Report & Analytics
+                                <span class="nav-link-text">Report & Analytics</span>
                             </a>
                         </li>
                         
                         <!-- Sezione Personale -->
-                        <li class="nav-item mt-3">
-                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Personale</small>
+                        <li class="nav-item mt-2">
+                            <small class="text-white-50 fw-bold px-3 py-1 text-uppercase nav-section-title" style="font-size: 0.75rem;">Personale</small>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('tickets.my_tickets') }}">
+                            <a class="nav-link" href="{{ url_for('tickets.my_tickets') }}" title="I Miei Ticket">
                                 <i class="bi bi-person-workspace"></i>
-                                I Miei Ticket
+                                <span class="nav-link-text">I Miei Ticket</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('settings.profile') }}">
+                            <a class="nav-link" href="{{ url_for('settings.profile') }}" title="Il Mio Profilo">
                                 <i class="bi bi-person-circle"></i>
-                                Il Mio Profilo
+                                <span class="nav-link-text">Il Mio Profilo</span>
                             </a>
                         </li>
                         
                         <!-- Sezione Amministrazione -->
                         {% if current_user.has_permission('can_manage_users') or current_user.has_permission('can_manage_departments') or current_user.has_permission('can_manage_system') %}
-                        <li class="nav-item mt-3">
-                            <small class="text-white-50 fw-bold px-3 py-2 text-uppercase">Amministrazione</small>
+                        <li class="nav-item mt-2">
+                            <small class="text-white-50 fw-bold px-3 py-1 text-uppercase nav-section-title" style="font-size: 0.75rem;">Amministrazione</small>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('settings.') and request.endpoint != 'settings.profile' %}active{% endif %}" 
-                               href="{{ url_for('settings.index') }}">
+                               href="{{ url_for('settings.index') }}" title="Sistema & Configurazioni">
                                 <i class="bi bi-gear-wide-connected"></i>
-                                Sistema & Configurazioni
+                                <span class="nav-link-text">Sistema & Configurazioni</span>
                             </a>
                         </li>
                         {% endif %}
                         
                         <!-- Logout -->
-                        <li class="nav-item mt-4 pt-3 border-top border-secondary">
-                            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+                        <li class="nav-item mt-3 pt-2 border-top border-secondary">
+                            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}" title="Disconnetti">
                                 <i class="bi bi-box-arrow-right"></i>
-                                Disconnetti
+                                <span class="nav-link-text">Disconnetti</span>
                             </a>
                         </li>
                     </ul>
@@ -307,32 +678,39 @@
             {% endif %}
             
             <!-- Main content -->
-            <main class="{% if current_user.is_authenticated %}col-md-9 ms-sm-auto col-lg-10 px-md-4{% else %}col-12{% endif %} main-content">
+            <main class="{% if current_user.is_authenticated %}px-md-4{% else %}col-12{% endif %} main-content" id="mainContent">
                 {% if current_user.is_authenticated %}
-                <!-- Top navbar -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-secondary d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                            <i class="bi bi-list"></i>
-                        </button>
-                        <h1 class="h2">{% block page_title %}{% endblock %}</h1>
-                    </div>
-                    
-                    <div class="d-flex align-items-center">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i>
-                                {{ current_user.full_name }}
+                <!-- Nuovo Header Minimal -->
+                <div class="page-header-minimal mt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary d-sm-none me-3" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                                <i class="bi bi-list"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('settings.profile') }}">
-                                    <i class="bi bi-person"></i> Profilo
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                    <i class="bi bi-box-arrow-right"></i> Logout
-                                </a></li>
-                            </ul>
+                            <div>
+                                <h1 class="page-title-minimal">{% block page_title %}{% endblock %}</h1>
+                                {% block page_subtitle %}{% endblock %}
+                                {% block page_info %}{% endblock %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            {% block page_actions %}{% endblock %}
+                            <div class="dropdown ms-3">
+                                <button class="btn btn-outline-secondary btn-minimal dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span class="d-none d-md-inline">{{ current_user.full_name }}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('settings.profile') }}">
+                                        <i class="bi bi-person"></i> Profilo
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -369,6 +747,99 @@
                 bsAlert.close();
             });
         }, 5000);
+        
+        // Sidebar Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarCloseMobile = document.getElementById('sidebarCloseMobile');
+            const sidebar = document.getElementById('sidebarMenu');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Funzione per posizionare il toggle button
+            function updateTogglePosition() {
+                if (sidebarToggle && window.innerWidth >= 576) {
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    const sidebarWidth = isCollapsed ? 95 : 280;
+                    sidebarToggle.style.left = sidebarWidth + 'px';
+                }
+            }
+            
+            // Funzione per applicare lo stato collapsed
+            function applySidebarState(collapsed) {
+                if (collapsed) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('sidebar-collapsed');
+                }
+                updateTogglePosition();
+            }
+            
+            // Funzione per verificare se siamo su desktop/tablet
+            function isDesktopOrTablet() {
+                return window.innerWidth >= 576;
+            }
+            
+            // Recupera lo stato salvato dal localStorage (solo per desktop/tablet)
+            if (isDesktopOrTablet()) {
+                const savedState = localStorage.getItem('sidebarCollapsed');
+                const isCollapsed = savedState === 'true';
+                applySidebarState(isCollapsed);
+            }
+            
+            // Posiziona inizialmente il toggle
+            updateTogglePosition();
+            
+            // Gestisce il click sul pulsante toggle
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+                    const newState = !isCurrentlyCollapsed;
+                    
+                    applySidebarState(newState);
+                    
+                    // Salva lo stato solo se siamo su desktop/tablet
+                    if (isDesktopOrTablet()) {
+                        localStorage.setItem('sidebarCollapsed', newState.toString());
+                    }
+                });
+            }
+            
+            // Gestisce il click sul pulsante chiusura mobile
+            if (sidebarCloseMobile) {
+                sidebarCloseMobile.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                });
+            }
+            
+            // Chiude la sidebar quando si clicca su un link (solo su mobile)
+            const sidebarLinks = sidebar.querySelectorAll('.nav-link');
+            sidebarLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 576) {
+                        setTimeout(function() {
+                            sidebar.classList.remove('show');
+                        }, 100);
+                    }
+                });
+            });
+            
+            // Gestisce il resize della finestra per il comportamento responsive
+            window.addEventListener('resize', function() {
+                if (window.innerWidth < 576) {
+                    // Su mobile, rimuovi sempre le classi collapsed
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('sidebar-collapsed');
+                } else {
+                    // Su desktop/tablet, ripristina lo stato salvato
+                    const savedState = localStorage.getItem('sidebarCollapsed');
+                    const isCollapsed = savedState === 'true';
+                    applySidebarState(isCollapsed);
+                }
+                updateTogglePosition();
+            });
+        });
         
         // Utility functions
         function formatDate(dateString) {

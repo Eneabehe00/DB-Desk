@@ -25,6 +25,7 @@ class FoglioTecnico(db.Model):
     # Modalità pagamento
     modalita_pagamento = db.Column(db.String(50))  # Contanti, Bonifico, Assegno, etc.
     importo_intervento = db.Column(db.Numeric(10, 2))
+    pagamento_immediato = db.Column(db.Boolean, default=False)  # False = da pagare, True = già pagato
     
     # Informazioni intervento sul posto
     indirizzo_intervento = db.Column(db.String(200))
@@ -47,6 +48,8 @@ class FoglioTecnico(db.Model):
     
     # Gestione operazioni sulle macchine (come nei ticket)
     tipo_operazione_macchine = db.Column(db.String(50))  # prestito_semplice, riparazione_sede, etc.
+    macchina_manuale = db.Column(db.String(200))  # Macchina inserita manualmente
+    ricambio_manuale = db.Column(db.String(200))  # Ricambio inserito manualmente
     
     # Stato compilazione progressiva
     step_corrente = db.Column(db.Integer, default=1)  # 1-N step

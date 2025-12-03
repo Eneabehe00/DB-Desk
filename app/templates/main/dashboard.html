@@ -1,69 +1,180 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard - DB-Desk{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}{{ "Buonasera" if now.hour >= 18 else "Buongiorno" }}, {{ current_user.full_name }} <i class="bi bi-stars"></i>{% endblock %}
+
+{% block page_subtitle %}
+    <p class="page-subtitle text-muted mb-0">{{ now.strftime('%A %d %B %Y') }}</p>
+{% endblock %}
 
 {% block content %}
-<!-- Statistiche rapide -->
-<div class="row mb-4">
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card card-stat h-100 border-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title text-muted mb-1">Ticket Totali</h6>
-                        <h3 class="mb-0 text-primary">{{ total_tickets }}</h3>
+
+<!-- Tasti veloci -->
+<div class="quick-actions mb-4">
+    <h5 class="mb-3">
+        <i class="bi bi-lightning-charge text-warning"></i>
+        Azioni rapide
+    </h5>
+    <div class="row g-2">
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('tickets.new_ticket') }}" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-plus-circle-fill text-primary"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Nuovo Ticket</h6>
+                        <small class="text-muted">Crea un nuovo ticket</small>
                     </div>
-                    <div class="text-primary">
-                        <i class="bi bi-ticket-detailed fs-1"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('clients.new_client') }}" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-building-fill text-success"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Nuovo Cliente</h6>
+                        <small class="text-muted">Aggiungi cliente</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('tickets.list_tickets') }}?priorita=Critica" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Ticket Critici</h6>
+                        <small class="text-muted">Priorità massima</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('tickets.calendar_view') }}" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-calendar-event-fill text-info"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Calendario</h6>
+                        <small class="text-muted">Scadenze ticket</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('reports.index') }}" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-bar-chart-line-fill text-secondary"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Report</h6>
+                        <small class="text-muted">Statistiche avanzate</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="{{ url_for('magazzino.index') }}" class="quick-action-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="action-icon mb-2">
+                            <i class="bi bi-box-seam-fill text-warning"></i>
+                        </div>
+                        <h6 class="card-title mb-1">Magazzino</h6>
+                        <small class="text-muted">Gestisci ricambi</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche principali -->
+<div class="stats-section mb-4">
+    <div class="row">
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="stats-card gradient-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="stats-title">Ticket Totali</h6>
+                            <h2 class="stats-number">{{ total_tickets }}</h2>
+                            <div class="stats-change">
+                                <i class="bi bi-arrow-up"></i>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="bi bi-ticket-detailed-fill"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card card-stat h-100 border-danger">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title text-muted mb-1">Ticket Aperti</h6>
-                        <h3 class="mb-0 text-danger">{{ tickets_aperti }}</h3>
-                    </div>
-                    <div class="text-danger">
-                        <i class="bi bi-exclamation-circle fs-1"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card card-stat h-100 border-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title text-muted mb-1">Ticket Critici</h6>
-                        <h3 class="mb-0 text-warning">{{ tickets_critici }}</h3>
-                    </div>
-                    <div class="text-warning">
-                        <i class="bi bi-lightning fs-1"></i>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="stats-card gradient-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="stats-title">Ticket Aperti</h6>
+                            <h2 class="stats-number">{{ tickets_aperti }}</h2>
+                            <div class="stats-change">
+                                <i class="bi bi-clock"></i>
+                                <span>Da risolvere</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card card-stat h-100 border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title text-muted mb-1">Clienti Attivi</h6>
-                        <h3 class="mb-0 text-success">{{ total_clienti }}</h3>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="stats-card gradient-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="stats-title">Ticket Critici</h6>
+                            <h2 class="stats-number">{{ tickets_critici }}</h2>
+                            <div class="stats-change">
+                                <i class="bi bi-lightning"></i>
+                                <span>Priorità alta</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="bi bi-lightning-fill"></i>
+                        </div>
                     </div>
-                    <div class="text-success">
-                        <i class="bi bi-people fs-1"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="stats-card gradient-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="stats-title">Clienti Attivi</h6>
+                            <h2 class="stats-number">{{ total_clienti }}</h2>
+                            <div class="stats-change">
+                                <i class="bi bi-people"></i>
+                                <span>Attivi</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,134 +183,170 @@
 </div>
 
 <!-- Grafici e statistiche -->
-<div class="row mb-4">
-    <div class="col-lg-6 mb-3">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-pie-chart"></i>
-                    Distribuzione Ticket per Stato
-                </h5>
-            </div>
-            <div class="card-body">
-                <canvas id="statusChart" width="400" height="200"></canvas>
+<div class="charts-section mb-4">
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-pie-chart-fill text-primary me-2"></i>
+                                Distribuzione Ticket per Stato
+                            </h5>
+                            <div class="chart-legend">
+                                <small class="text-muted">Stati attivi</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="statusChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-6 mb-3">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-bar-chart"></i>
-                    Top 5 Clienti per Ticket
-                </h5>
-            </div>
-            <div class="card-body">
-                <canvas id="clientsChart" width="400" height="200"></canvas>
+
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bar-chart-fill text-success me-2"></i>
+                                Top 5 Clienti per Ticket
+                            </h5>
+                            <div class="chart-legend">
+                                <small class="text-muted">Ultimi 30 giorni</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="clientsChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sezioni informative -->
-<div class="row">
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-clock-history"></i>
-                    Ultimi Ticket Creati
-                </h5>
-                <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-sm btn-outline-primary">
-                    Vedi tutti
-                </a>
-            </div>
-            <div class="card-body p-0">
-                {% if ultimi_tickets %}
-                    <div class="list-group list-group-flush">
-                        {% for ticket in ultimi_tickets %}
-                            <div class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">
-                                            <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
-                                               class="text-decoration-none">
-                                                {{ ticket.numero_ticket }}
-                                            </a>
-                                        </h6>
-                                        <p class="mb-1">{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</p>
-                                        <small class="text-muted">
-                                            <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
-                                        </small>
+<!-- Ticket recenti -->
+<div class="tickets-section">
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="ticket-list-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clock-history text-info me-2"></i>
+                            Ultimi Ticket Creati
+                        </h5>
+                        <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                            <i class="bi bi-arrow-right"></i> Vedi tutti
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ultimi_tickets %}
+                            <div class="ticket-list">
+                                {% for ticket in ultimi_tickets %}
+                                    <div class="ticket-item">
+                                        <div class="d-flex w-100 justify-content-between align-items-start">
+                                            <div class="ticket-content">
+                                                <div class="ticket-number">
+                                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" class="text-decoration-none">
+                                                        {{ ticket.numero_ticket }}
+                                                    </a>
+                                                </div>
+                                                <div class="ticket-title">{{ ticket.titolo[:45] }}{% if ticket.titolo|length > 45 %}...{% endif %}</div>
+                                                <div class="ticket-client">
+                                                    <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
+                                                </div>
+                                            </div>
+                                            <div class="ticket-meta">
+                                                <div class="ticket-priority">
+                                                    <span class="badge priority-{{ ticket.priorita.lower() }}">
+                                                        {{ ticket.priorita }}
+                                                    </span>
+                                                </div>
+                                                <div class="ticket-time">
+                                                    {{ ticket.created_at.strftime('%d/%m %H:%M') }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
-                                            {{ ticket.priorita }}
-                                        </span>
-                                        <br>
-                                        <small class="text-muted">{{ ticket.created_at.strftime('%d/%m %H:%M') }}</small>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
-                        {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="bi bi-inbox"></i>
+                                </div>
+                                <h6>Nessun ticket recente</h6>
+                                <p class="text-muted">I nuovi ticket appariranno qui</p>
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="card-body text-center text-muted">
-                        <i class="bi bi-inbox fs-1"></i>
-                        <p>Nessun ticket trovato</p>
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-person-badge"></i>
-                    I Miei Ticket Assegnati
-                </h5>
-                <a href="{{ url_for('tickets.my_tickets') }}" class="btn btn-sm btn-outline-primary">
-                    Vedi tutti
-                </a>
-            </div>
-            <div class="card-body p-0">
-                {% if miei_tickets %}
-                    <div class="list-group list-group-flush">
-                        {% for ticket in miei_tickets %}
-                            <div class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">
-                                            <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
-                                               class="text-decoration-none">
-                                                {{ ticket.numero_ticket }}
-                                            </a>
-                                        </h6>
-                                        <p class="mb-1">{{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}</p>
-                                        <small class="text-muted">
-                                            <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
-                                        </small>
+
+        <div class="col-lg-6 mb-4">
+            <div class="ticket-list-card">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-person-badge text-success me-2"></i>
+                            I Miei Ticket Assegnati
+                        </h5>
+                        <a href="{{ url_for('tickets.my_tickets') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                            <i class="bi bi-arrow-right"></i> Vedi tutti
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if miei_tickets %}
+                            <div class="ticket-list">
+                                {% for ticket in miei_tickets %}
+                                    <div class="ticket-item">
+                                        <div class="d-flex w-100 justify-content-between align-items-start">
+                                            <div class="ticket-content">
+                                                <div class="ticket-number">
+                                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" class="text-decoration-none">
+                                                        {{ ticket.numero_ticket }}
+                                                    </a>
+                                                </div>
+                                                <div class="ticket-title">{{ ticket.titolo[:45] }}{% if ticket.titolo|length > 45 %}...{% endif %}</div>
+                                                <div class="ticket-client">
+                                                    <i class="bi bi-building"></i> {{ ticket.cliente.ragione_sociale }}
+                                                </div>
+                                            </div>
+                                            <div class="ticket-meta">
+                                                <div class="ticket-status">
+                                                    <span class="badge status-{{ ticket.stato.lower().replace(' ', '-') }}">
+                                                        {{ ticket.stato }}
+                                                    </span>
+                                                </div>
+                                                <div class="ticket-time">
+                                                    {{ ticket.giorni_apertura }} giorni
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' }}">
-                                            {{ ticket.stato }}
-                                        </span>
-                                        <br>
-                                        <small class="text-muted">{{ ticket.giorni_apertura }} giorni</small>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
-                        {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <h6>Nessun ticket assegnato</h6>
+                                <p class="text-muted">I ticket assegnati appariranno qui</p>
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="card-body text-center text-muted">
-                        <i class="bi bi-check-circle fs-1"></i>
-                        <p>Nessun ticket assegnato</p>
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -207,13 +354,24 @@
 
 <!-- Alerts importanti -->
 {% if tickets_scaduti > 0 %}
-<div class="row">
-    <div class="col-12">
-        <div class="alert alert-warning d-flex align-items-center">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <div>
-                <strong>Attenzione!</strong> Ci sono {{ tickets_scaduti }} ticket scaduti che richiedono attenzione.
-                <a href="{{ url_for('tickets.list_tickets') }}?overdue=1" class="alert-link">Visualizza ticket scaduti</a>
+<div class="alert-section mb-4">
+    <div class="alert-card">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="alert-content">
+                    <div class="alert-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="alert-text">
+                        <h6 class="alert-title">Attenzione richiesta!</h6>
+                        <p class="alert-message mb-2">
+                            Ci sono <strong>{{ tickets_scaduti }} ticket scaduti</strong> che richiedono attenzione immediata.
+                        </p>
+                        <a href="{{ url_for('tickets.list_tickets') }}?overdue=1" class="alert-action">
+                            <i class="bi bi-arrow-right"></i> Visualizza ticket scaduti
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -222,71 +380,549 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+/* ===== DASHBOARD STYLES ===== */
+
+
+/* Quick Actions */
+.quick-actions {
+    margin-bottom: 2rem;
+}
+
+.quick-action-card {
+    text-decoration: none;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    text-decoration: none;
+}
+
+.quick-action-card .card {
+    transition: all 0.3s ease;
+    border-radius: 1rem;
+}
+
+.quick-action-card:hover .card {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.quick-action-card:hover .action-icon {
+    transform: scale(1.1);
+}
+
+.action-icon i {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* Stats Cards */
+.stats-section {
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.gradient-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+}
+
+.gradient-warning {
+    background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+    color: white;
+}
+
+.gradient-success {
+    background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+    color: white;
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.stats-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-change {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stats-change i {
+    font-size: 0.875rem;
+}
+
+.stats-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    opacity: 0.8;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Charts Section */
+.charts-section {
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    height: 100%;
+}
+
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+.chart-legend {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Ticket Lists */
+.tickets-section {
+    margin-bottom: 2rem;
+}
+
+.ticket-list-card {
+    height: 100%;
+}
+
+.ticket-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ticket-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.ticket-item:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+    transform: translateX(5px);
+}
+
+.ticket-item:last-child {
+    border-bottom: none;
+}
+
+.ticket-number {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #2563eb;
+    margin-bottom: 0.25rem;
+}
+
+.ticket-number a {
+    color: inherit;
+}
+
+.ticket-number a:hover {
+    color: #1d4ed8;
+}
+
+.ticket-title {
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.ticket-client {
+    font-size: 0.75rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.ticket-meta {
+    text-align: right;
+    min-width: 120px;
+}
+
+.ticket-priority .badge,
+.ticket-status .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+
+.priority-critica {
+    background-color: #dc2626 !important;
+    color: white;
+}
+
+.priority-alta {
+    background-color: #ea580c !important;
+    color: white;
+}
+
+.priority-media {
+    background-color: #ca8a04 !important;
+    color: white;
+}
+
+.priority-bassa {
+    background-color: #16a34a !important;
+    color: white;
+}
+
+.status-aperto {
+    background-color: #dc2626 !important;
+    color: white;
+}
+
+.status-in-lavorazione {
+    background-color: #ea580c !important;
+    color: white;
+}
+
+.status-risolto {
+    background-color: #16a34a !important;
+    color: white;
+}
+
+.status-chiuso {
+    background-color: #6b7280 !important;
+    color: white;
+}
+
+.ticket-time {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 0.25rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h6 {
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+/* Alert Section */
+.alert-section {
+    margin-bottom: 2rem;
+}
+
+.alert-card {
+    border-left: 4px solid #f59e0b !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.alert-icon {
+    font-size: 2rem;
+    color: #d97706;
+    flex-shrink: 0;
+}
+
+.alert-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 0.25rem;
+}
+
+.alert-message {
+    color: #78350f;
+    margin-bottom: 0.5rem;
+}
+
+.alert-action {
+    color: #92400e;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.alert-action:hover {
+    color: #78350f;
+    text-decoration: underline;
+}
+
+/* Scrollbar styling */
+.ticket-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ticket-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .welcome-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-card .card-body {
+        padding: 1rem;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+    }
+
+    .action-icon {
+        font-size: 2rem;
+    }
+
+    .alert-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-actions .col-sm-6 {
+        margin-bottom: 1rem;
+    }
+
+    .ticket-meta {
+        min-width: 100px;
+    }
+
+    .ticket-time {
+        font-size: 0.65rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-card, .quick-action-card, .chart-card, .ticket-list-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Stagger animations */
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+.quick-action-card:nth-child(1) { animation-delay: 0.1s; }
+.quick-action-card:nth-child(2) { animation-delay: 0.2s; }
+.quick-action-card:nth-child(3) { animation-delay: 0.3s; }
+.quick-action-card:nth-child(4) { animation-delay: 0.4s; }
+.quick-action-card:nth-child(5) { animation-delay: 0.5s; }
+.quick-action-card:nth-child(6) { animation-delay: 0.6s; }
+</style>
+
 <script>
 // Configurazione Chart.js
 Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+Chart.defaults.plugins.legend.labels.font.size = 12;
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+Chart.defaults.plugins.tooltip.titleColor = 'white';
+Chart.defaults.plugins.tooltip.bodyColor = 'white';
 
 // Grafico distribuzione stati
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {{ chart_data.stati.labels | safe }},
-        datasets: [{
-            data: {{ chart_data.stati.data | safe }},
-            backgroundColor: [
-                '#dc3545', // Rosso per aperti
-                '#fd7e14', // Arancione per in lavorazione
-                '#198754', // Verde per risolti
-                '#6c757d'  // Grigio per chiusi
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
-
-// Grafico top clienti
-const clientsCtx = document.getElementById('clientsChart').getContext('2d');
-new Chart(clientsCtx, {
-    type: 'bar',
-    data: {
-        labels: {{ chart_data.top_clienti.labels | safe }},
-        datasets: [{
-            label: 'Numero Ticket',
-            data: {{ chart_data.top_clienti.data | safe }},
-            backgroundColor: '#0d6efd',
-            borderColor: '#0b5ed7',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
+const statusCtx = document.getElementById('statusChart');
+if (statusCtx) {
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_data.stati.labels | safe }},
+            datasets: [{
+                data: {{ chart_data.stati.data | safe }},
+                backgroundColor: [
+                    '#ef4444', // Rosso per aperti
+                    '#f97316', // Arancione per in lavorazione
+                    '#22c55e', // Verde per risolti
+                    '#64748b'  // Grigio per chiusi
+                ],
+                borderWidth: 0,
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#fff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
                 }
             }
+        }
+    });
+}
+
+// Grafico top clienti
+const clientsCtx = document.getElementById('clientsChart');
+if (clientsCtx) {
+    new Chart(clientsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.top_clienti.labels | safe }},
+            datasets: [{
+                label: 'Numero Ticket',
+                data: {{ chart_data.top_clienti.data | safe }},
+                backgroundColor: [
+                    '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f97316'
+                ],
+                borderRadius: 8,
+                borderSkipped: false,
+                borderWidth: 0,
+                hoverBackgroundColor: [
+                    '#2563eb', '#4f46e5', '#7c3aed', '#db2777', '#ea580c'
+                ]
+            }]
         },
-        plugins: {
-            legend: {
-                display: false
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(59, 130, 246, 0.9)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: '#2563eb',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart'
             }
         }
-    }
-});
+    });
+}
 
 // Auto-refresh statistiche ogni 5 minuti
 setInterval(function() {
@@ -300,5 +936,20 @@ setInterval(function() {
             console.error('Errore aggiornamento statistiche:', error);
         });
 }, 300000); // 5 minuti
+
+// Aggiungi animazione di caricamento alle card
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stats-card, .quick-action-card, .chart-card, .ticket-list-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
 </script>
 {% endblock %}

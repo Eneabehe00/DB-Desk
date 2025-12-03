@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, IntegerField, DateTimeField, DecimalField, SubmitField, SelectMultipleField, HiddenField
+from wtforms import StringField, TextAreaField, SelectField, IntegerField, DateTimeField, DecimalField, SubmitField, SelectMultipleField, HiddenField, BooleanField
 from wtforms.validators import DataRequired, Length, Optional, NumberRange, ValidationError, Email
 from app.models.cliente import Cliente
 from app.models.user import User
@@ -47,8 +47,7 @@ class FoglioTecnicoStep1Form(FlaskForm):
     ], description='Descrivi brevemente il tipo di intervento')
     
     descrizione = TextAreaField('Descrizione Dettagliata', validators=[
-        DataRequired(message='La descrizione è obbligatoria'),
-        Length(min=10, message='Minimo 10 caratteri')
+        DataRequired(message='La descrizione è obbligatoria')
     ], description='Descrivi dettagliatamente il lavoro da svolgere o svolto')
     
     data_intervento = DateTimeField('Data e Ora Intervento', 
@@ -80,6 +79,9 @@ class FoglioTecnicoStep2Form(FlaskForm):
     macchine = SelectMultipleField('Macchine Coinvolte', choices=[], coerce=safe_int_or_none,
         validators=[Optional()], validate_choice=False,
         description='Seleziona le macchine su cui si è intervenuti')
+    
+    macchina_manuale = StringField('Aggiungi Macchina Manualmente', validators=[Optional()],
+        description='Inserisci il nome/codice di una macchina non presente nell\'elenco')
     
     tipo_operazione_macchine = SelectField('Tipo Operazione Macchine', choices=[
         ('', 'Nessuna operazione'),
@@ -127,6 +129,9 @@ class FoglioTecnicoStep3Form(FlaskForm):
         validators=[Optional()], validate_choice=False,
         description='Seleziona i ricambi utilizzati durante l\'intervento')
     
+    ricambio_manuale = StringField('Aggiungi Ricambio Manualmente', validators=[Optional()],
+        description='Inserisci il nome/codice di un ricambio non presente nell\'elenco')
+    
     note_aggiuntive = TextAreaField('Note Aggiuntive', validators=[Optional()],
         description='Eventuali note tecniche, osservazioni o raccomandazioni')
     
@@ -170,6 +175,9 @@ class FoglioTecnicoStep4Form(FlaskForm):
         Optional(),
         NumberRange(min=0, max=999999.99, message='Importo non valido')
     ], places=2)
+    
+    pagamento_immediato = BooleanField('Intervento già pagato', 
+        description='Seleziona se l\'intervento è già stato pagato dal cliente')
     
     submit = SubmitField('Avanti →')
 

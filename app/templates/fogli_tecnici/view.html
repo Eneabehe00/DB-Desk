@@ -1,17 +1,42 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }} - DB-Desk{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+{% block title %}{{ foglio.numero_foglio }} - DB-Desk{% endblock %}
+{% block page_title %}{{ foglio.numero_foglio }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">{{ foglio.titolo }}</p>{% endblock %}
+{% block page_info %}
+<div class="d-flex align-items-center flex-wrap gap-3 mt-2">
+    <span class="stato-badge
+        {% if foglio.stato == 'Bozza' %}bg-secondary
+        {% elif foglio.stato == 'In compilazione' %}bg-warning text-dark
+        {% elif foglio.stato == 'In attesa firme' %}bg-info text-dark
+        {% elif foglio.stato == 'Completato' %}bg-success
+        {% elif foglio.stato == 'Inviato' %}bg-primary
+        {% elif foglio.stato == 'Archiviato' %}bg-dark
+        {% endif %}">
+        {{ foglio.stato }}
+    </span>
+    
+    <span class="d-flex align-items-center">
+        <div class="priority-indicator 
+            {% if foglio.priorita == 'Bassa' %}bg-success
+            {% elif foglio.priorita == 'Media' %}bg-warning
+            {% elif foglio.priorita == 'Alta' %}bg-danger
+            {% elif foglio.priorita == 'Critica' %}bg-dark
+            {% endif %}"></div>
+        Priorità: {{ foglio.priorita }}
+    </span>
+    
+    <small class="text-white-50">
+        Creato: {{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}
+        {% if foglio.updated_at != foglio.created_at %}
+        | Aggiornato: {{ foglio.updated_at.strftime('%d/%m/%Y %H:%M') }}
+        {% endif %}
+    </small>
+</div>
+{% endblock %}
 
 {% block extra_head %}
 <style>
-    .foglio-header {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-    }
     
     .info-section {
         background: white;
@@ -102,12 +127,28 @@
         padding: 0.5rem;
     }
     
-    .actions-toolbar {
-        background: white;
-        padding: 1.5rem;
+    .actions-minimal {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 1rem 1.5rem;
         border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 20px rgba(0,0,0,0.08);
         margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     .progress-visual {
@@ -181,107 +222,188 @@
             grid-template-columns: 1fr;
         }
         
-        .actions-toolbar {
+        .actions-minimal {
             text-align: center;
         }
         
-        .actions-toolbar .btn {
+        .actions-minimal .btn {
             width: 100%;
             margin-bottom: 0.5rem;
         }
+    }
+    
+    /* Nuovi stili per le sezioni info */
+    .info-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .info-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .info-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .info-item-modern {
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 12px;
+        padding: 1.25rem;
+        border-left: 4px solid;
+        transition: all 0.2s ease;
+    }
+    
+    .info-item-modern:hover {
+        background: rgba(241, 245, 249, 0.9);
+        transform: translateX(4px);
+    }
+    
+    .info-item-modern.primary { border-left-color: #3b82f6; }
+    .info-item-modern.success { border-left-color: #10b981; }
+    .info-item-modern.warning { border-left-color: #f59e0b; }
+    .info-item-modern.info { border-left-color: #06b6d4; }
+    
+    .info-label-modern {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .info-value-modern {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+        line-height: 1.4;
+    }
+    
+    .signature-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 2px dashed #e2e8f0;
+        transition: all 0.3s ease;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .signature-card.signed {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-style: solid;
+    }
+    
+    .signature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .status-alert {
+        border-radius: 12px;
+        border: none;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .description-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-left: 4px solid #3b82f6;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #374151;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header Foglio -->
-    <div class="foglio-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h2 class="mb-2">
-                    <i class="bi bi-file-earmark-text me-2"></i>
-                    {{ foglio.numero_foglio }}
-                </h2>
-                <h4 class="mb-3 opacity-90">{{ foglio.titolo }}</h4>
-                <div class="d-flex align-items-center flex-wrap gap-3">
-                    <span class="stato-badge
-                        {% if foglio.stato == 'Bozza' %}bg-secondary
-                        {% elif foglio.stato == 'In compilazione' %}bg-warning text-dark
-                        {% elif foglio.stato == 'In attesa firme' %}bg-info text-dark
-                        {% elif foglio.stato == 'Completato' %}bg-success
-                        {% elif foglio.stato == 'Inviato' %}bg-primary
-                        {% elif foglio.stato == 'Archiviato' %}bg-dark
-                        {% endif %}">
-                        {{ foglio.stato }}
-                    </span>
-                    
-                    <span class="d-flex align-items-center">
-                        <div class="priority-indicator 
-                            {% if foglio.priorita == 'Bassa' %}bg-success
-                            {% elif foglio.priorita == 'Media' %}bg-warning
-                            {% elif foglio.priorita == 'Alta' %}bg-danger
-                            {% elif foglio.priorita == 'Critica' %}bg-dark
-                            {% endif %}"></div>
-                        Priorità: {{ foglio.priorita }}
-                    </span>
-                </div>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="text-white-50">
-                    <small>Creato: {{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}</small><br>
-                    {% if foglio.updated_at != foglio.created_at %}
-                    <small>Aggiornato: {{ foglio.updated_at.strftime('%d/%m/%Y %H:%M') }}</small>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Azioni Rapide -->
-    <div class="actions-toolbar">
-        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-            <div class="d-flex flex-wrap gap-2">
-                {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
-                <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
-                   class="btn btn-warning">
-                    <i class="bi bi-pencil me-1"></i>
-                    Continua Compilazione
-                </a>
-                {% endif %}
-                
-                <a href="{{ url_for('fogli_tecnici.edit', id=foglio.id) }}" 
-                   class="btn btn-outline-primary">
-                    <i class="bi bi-gear me-1"></i>
-                    Modifica Rapida
-                </a>
-                
-                {% if foglio.pdf_generato %}
-                <a href="{{ url_for('fogli_tecnici.download_pdf', id=foglio.id) }}" 
-                   class="btn btn-success">
-                    <i class="bi bi-download me-1"></i>
-                    Scarica PDF
-                </a>
-                {% else %}
-                <a href="{{ url_for('fogli_tecnici.generate_pdf', id=foglio.id) }}" 
-                   class="btn btn-outline-success">
-                    <i class="bi bi-file-earmark-pdf me-1"></i>
-                    Genera PDF
-                </a>
-                {% endif %}
-                
-                {% if foglio.stato in ['Completato', 'Inviato'] %}
-                <a href="{{ url_for('fogli_tecnici.send_email', id=foglio.id) }}" 
-                   class="btn btn-info">
-                    <i class="bi bi-envelope me-1"></i>
-                    Invia Email
-                </a>
-                {% endif %}
-            </div>
+    <!-- Azioni Minimal -->
+    <div class="actions-minimal">
+        <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
+            {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
+            <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
+               class="btn btn-warning btn-action">
+                <i class="bi bi-pencil me-1"></i>
+                Continua
+            </a>
+            {% endif %}
             
-            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('fogli_tecnici.edit', id=foglio.id) }}" 
+               class="btn btn-outline-primary btn-action">
+                <i class="bi bi-gear me-1"></i>
+                Modifica
+            </a>
+            
+            {% if foglio.pdf_generato %}
+            <a href="{{ url_for('fogli_tecnici.download_pdf', id=foglio.id) }}" 
+               class="btn btn-success btn-action">
+                <i class="bi bi-download me-1"></i>
+                PDF
+            </a>
+            {% else %}
+            <a href="{{ url_for('fogli_tecnici.generate_pdf', id=foglio.id) }}" 
+               class="btn btn-outline-success btn-action">
+                <i class="bi bi-file-earmark-pdf me-1"></i>
+                Genera PDF
+            </a>
+            {% endif %}
+            
+            {% if foglio.stato in ['Completato', 'Inviato'] %}
+            <a href="{{ url_for('fogli_tecnici.send_email', id=foglio.id) }}" 
+               class="btn btn-info btn-action">
+                <i class="bi bi-envelope me-1"></i>
+                Email
+            </a>
+            {% endif %}
+            
+            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-outline-secondary btn-action">
                 <i class="bi bi-arrow-left me-1"></i>
-                Torna alla Lista
+                Lista
             </a>
         </div>
     </div>
@@ -297,7 +419,7 @@
             <div class="step-item">
                 <div class="step-circle 
                     {% if foglio.is_step_completato(i) %}completed
-                    {% elif foglio.step_corrente == i %}current
+                    {% elif i <= foglio.step_corrente %}current
                     {% else %}pending{% endif %}">
                     {% if foglio.is_step_completato(i) %}
                         <i class="bi bi-check"></i>
@@ -314,7 +436,7 @@
                     {% endif %}
                 </small>
                 {% if i < 5 %}
-                <div class="step-line {% if foglio.is_step_completato(i) %}completed{% endif %}"></div>
+                <div class="step-line {% if foglio.is_step_completato(i) and foglio.is_step_completato(i+1) %}completed{% endif %}"></div>
                 {% endif %}
             </div>
             {% endfor %}
@@ -324,70 +446,77 @@
     <div class="row">
         <!-- Colonna Sinistra: Informazioni Principali -->
         <div class="col-lg-8">
-            <!-- Informazioni Base -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-info-circle me-2"></i>
-                    Informazioni Generali
-                </h5>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Cliente</span>
-                        <span class="info-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
+            <!-- Informazioni Generali -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                        <i class="bi bi-info-circle"></i>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Tecnico Assegnato</span>
-                        <span class="info-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</span>
+                    <h3 class="info-card-title">Informazioni Generali</h3>
+                </div>
+                
+                <div class="info-grid-modern">
+                    <div class="info-item-modern primary">
+                        <span class="info-label-modern">Cliente</span>
+                        <div class="info-value-modern">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</div>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Data Intervento</span>
-                        <span class="info-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</span>
+                    <div class="info-item-modern success">
+                        <span class="info-label-modern">Tecnico Assegnato</span>
+                        <div class="info-value-modern">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Categoria</span>
-                        <span class="info-value">{{ foglio.categoria }}</span>
+                    <div class="info-item-modern warning">
+                        <span class="info-label-modern">Data Intervento</span>
+                        <div class="info-value-modern">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </div>
+                    <div class="info-item-modern info">
+                        <span class="info-label-modern">Categoria</span>
+                        <div class="info-value-modern">{{ foglio.categoria }}</div>
                     </div>
                     {% if foglio.durata_intervento %}
-                    <div class="info-item">
-                        <span class="info-label">Durata</span>
-                        <span class="info-value">{{ foglio.durata_intervento }} minuti</span>
+                    <div class="info-item-modern primary">
+                        <span class="info-label-modern">Durata</span>
+                        <div class="info-value-modern">{{ foglio.durata_intervento }} minuti</div>
                     </div>
                     {% endif %}
                     {% if foglio.km_percorsi %}
-                    <div class="info-item">
-                        <span class="info-label">Km Percorsi</span>
-                        <span class="info-value">{{ foglio.km_percorsi }} km</span>
+                    <div class="info-item-modern success">
+                        <span class="info-label-modern">Km Percorsi</span>
+                        <div class="info-value-modern">{{ foglio.km_percorsi }} km</div>
                     </div>
                     {% endif %}
                 </div>
                 
                 {% if foglio.indirizzo_intervento %}
-                <div class="mt-3">
-                    <span class="info-label">Indirizzo Intervento</span>
-                    <div class="info-value bg-light p-2 rounded">{{ foglio.indirizzo_intervento }}</div>
+                <div class="mt-4">
+                    <span class="info-label-modern">Indirizzo Intervento</span>
+                    <div class="description-card">{{ foglio.indirizzo_intervento }}</div>
                 </div>
                 {% endif %}
             </div>
 
-            <!-- Descrizione -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-file-text me-2"></i>
-                    Descrizione Intervento
-                </h5>
-                <div class="bg-light p-3 rounded">
+            <!-- Descrizione Intervento -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <h3 class="info-card-title">Descrizione Intervento</h3>
+                </div>
+                <div class="description-card">
                     {{ foglio.descrizione|replace('\n', '<br>')|safe if foglio.descrizione else 'Nessuna descrizione disponibile' }}
                 </div>
             </div>
 
             {% if foglio.note_aggiuntive %}
             <!-- Note Aggiuntive -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-sticky me-2"></i>
-                    Note Aggiuntive
-                </h5>
-                <div class="bg-light p-3 rounded">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="bi bi-sticky"></i>
+                    </div>
+                    <h3 class="info-card-title">Note Aggiuntive</h3>
+                </div>
+                <div class="description-card">
                     {{ foglio.note_aggiuntive|replace('\n', '<br>')|safe }}
                 </div>
             </div>
@@ -395,18 +524,38 @@
 
             <!-- Macchine Coinvolte -->
             {% if foglio.macchine_collegate.count() > 0 %}
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-gear me-2"></i>
-                    Macchine Coinvolte
-                </h5>
-                <div class="row">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h3 class="info-card-title">Macchine Coinvolte</h3>
+                </div>
+                <div class="info-grid-modern">
                     {% for macchina in foglio.macchine_collegate %}
-                    <div class="col-md-6 mb-2">
-                        <div class="border rounded p-2 bg-light">
-                            <strong>{{ macchina.codice }}</strong><br>
-                            <small class="text-muted">{{ macchina.marca }} {{ macchina.modello }}</small>
-                        </div>
+                    <div class="info-item-modern primary">
+                        <span class="info-label-modern">{{ macchina.codice }}</span>
+                        <div class="info-value-modern">{{ macchina.marca }} {{ macchina.modello }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Ricambi Utilizzati -->
+            {% if foglio.ricambi_utilizzati.count() > 0 %}
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="bi bi-box"></i>
+                    </div>
+                    <h3 class="info-card-title">Ricambi Utilizzati</h3>
+                </div>
+                <div class="info-grid-modern">
+                    {% for ricambio in foglio.ricambi_utilizzati %}
+                    <div class="info-item-modern info">
+                        <span class="info-label-modern">{{ ricambio.codice }}</span>
+                        <div class="info-value-modern">{{ ricambio.descrizione }}</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -415,14 +564,16 @@
 
             <!-- Movimenti Macchine -->
             {% if movimenti_macchine %}
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-arrow-left-right me-2"></i>
-                    Movimenti Macchine
-                </h5>
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                    <h3 class="info-card-title">Movimenti Macchine</h3>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
+                    <table class="table table-hover">
+                        <thead class="table-light">
                             <tr>
                                 <th>Data</th>
                                 <th>Macchina</th>
@@ -435,7 +586,7 @@
                             {% for movimento in movimenti_macchine %}
                             <tr>
                                 <td>
-                                    <small>{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    <small class="text-muted">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
                                 </td>
                                 <td>
                                     <strong>{{ movimento.macchina.codice if movimento.macchina else 'N/A' }}</strong><br>
@@ -463,100 +614,113 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- Ricambi Utilizzati -->
-            {% if foglio.ricambi_utilizzati.count() > 0 %}
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-box me-2"></i>
-                    Ricambi Utilizzati
-                </h5>
-                <div class="row">
-                    {% for ricambio in foglio.ricambi_utilizzati %}
-                    <div class="col-md-6 mb-2">
-                        <div class="border rounded p-2 bg-light">
-                            <strong>{{ ricambio.codice }}</strong><br>
-                            <small class="text-muted">{{ ricambio.descrizione }}</small>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
         </div>
 
         <!-- Colonna Destra: Info Commerciali e Firme -->
         <div class="col-lg-4">
             <!-- Informazioni Commerciali -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-currency-euro me-2"></i>
-                    Informazioni Commerciali
-                </h5>
-                <div class="info-grid">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="bi bi-currency-euro"></i>
+                    </div>
+                    <h3 class="info-card-title">Commerciale</h3>
+                </div>
+                
+                {% if foglio.modalita_pagamento or foglio.importo_intervento or foglio.pagamento_immediato is not none %}
+                <div class="info-grid-modern">
                     {% if foglio.modalita_pagamento %}
-                    <div class="info-item">
-                        <span class="info-label">Modalità Pagamento</span>
-                        <span class="info-value">{{ foglio.modalita_pagamento }}</span>
+                    <div class="info-item-modern success">
+                        <span class="info-label-modern">Modalità Pagamento</span>
+                        <div class="info-value-modern">{{ foglio.modalita_pagamento }}</div>
                     </div>
                     {% endif %}
                     {% if foglio.importo_intervento %}
-                    <div class="info-item">
-                        <span class="info-label">Importo</span>
-                        <span class="info-value text-success"><strong>€{{ foglio.importo_intervento }}</strong></span>
+                    <div class="info-item-modern success">
+                        <span class="info-label-modern">Importo</span>
+                        <div class="info-value-modern text-success"><strong>€{{ foglio.importo_intervento }}</strong></div>
+                    </div>
+                    {% endif %}
+                    {% if foglio.pagamento_immediato is not none %}
+                    <div class="info-item-modern {{ 'success' if foglio.pagamento_immediato else 'warning' }}">
+                        <span class="info-label-modern">Stato Pagamento</span>
+                        <div class="info-value-modern">
+                            {% if foglio.pagamento_immediato %}
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>Già pagato
+                            {% else %}
+                                <i class="bi bi-clock-fill text-warning me-1"></i>Da pagare
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
                 </div>
-                
-                {% if not foglio.modalita_pagamento and not foglio.importo_intervento %}
-                <p class="text-muted mb-0">Nessuna informazione commerciale disponibile</p>
+                {% else %}
+                <p class="text-muted text-center py-3">Nessuna informazione commerciale disponibile</p>
                 {% endif %}
             </div>
 
             <!-- Stato Invio -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-send me-2"></i>
-                    Stato Invio
-                </h5>
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="bi bi-send"></i>
+                    </div>
+                    <h3 class="info-card-title">Stato Invio</h3>
+                </div>
                 
                 {% if foglio.inviato_online %}
-                <div class="alert alert-success mb-2">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong>Inviato</strong><br>
-                    <small>Email: {{ foglio.email_invio }}</small><br>
-                    <small>Data: {{ foglio.data_invio.strftime('%d/%m/%Y %H:%M') }}</small>
+                <div class="status-alert alert-success">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Inviato con successo</strong><br>
+                            <small>Email: {{ foglio.email_invio }}</small><br>
+                            <small>Data: {{ foglio.data_invio.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </div>
+                    </div>
                 </div>
                 {% else %}
-                <div class="alert alert-secondary mb-2">
-                    <i class="bi bi-clock me-2"></i>
-                    Non ancora inviato
+                <div class="status-alert alert-secondary">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Non ancora inviato</strong><br>
+                            <small class="text-muted">Il foglio non è stato ancora inviato via email</small>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
 
                 {% if foglio.pdf_generato %}
-                <div class="alert alert-info mb-0">
-                    <i class="bi bi-file-earmark-pdf me-2"></i>
-                    PDF generato e disponibile
+                <div class="status-alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-pdf me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>PDF disponibile</strong><br>
+                            <small class="text-muted">Il documento PDF è stato generato ed è pronto per il download</small>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
 
             <!-- Firme -->
-            <div class="info-section">
-                <h5>
-                    <i class="bi bi-pen me-2"></i>
-                    Firme Raccolte
-                </h5>
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="info-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="bi bi-pen"></i>
+                    </div>
+                    <h3 class="info-card-title">Firme Raccolte</h3>
+                </div>
                 
-                <div class="signature-section">
+                <div class="row g-3">
                     <!-- Firma Tecnico -->
-                    <div>
-                        <h6>Tecnico</h6>
-                        <div class="signature-box {% if foglio.firma_tecnico_path %}signed{% endif %}">
+                    <div class="col-12">
+                        <h6 class="mb-2">Firma Tecnico</h6>
+                        <div class="signature-card {% if foglio.firma_tecnico_path %}signed{% endif %}">
                             {% if foglio.firma_tecnico_path %}
                             <img src="{{ url_for('fogli_tecnici.view_signature', id=foglio.id, tipo='tecnico') }}" 
-                                 alt="Firma Tecnico" class="signature-image">
+                                 alt="Firma Tecnico" class="signature-image" style="max-width: 100%; max-height: 100px;">
                             {% else %}
                             <i class="bi bi-pen text-muted mb-2" style="font-size: 2rem;"></i>
                             <small class="text-muted">Firma non presente</small>
@@ -565,13 +729,13 @@
                     </div>
                     
                     <!-- Firma Cliente -->
-                    <div>
-                        <h6>Cliente</h6>
-                        <div class="signature-box {% if foglio.firma_cliente_path %}signed{% endif %}">
+                    <div class="col-12">
+                        <h6 class="mb-2">Firma Cliente</h6>
+                        <div class="signature-card {% if foglio.firma_cliente_path %}signed{% endif %}">
                             {% if foglio.firma_cliente_path %}
                             <img src="{{ url_for('fogli_tecnici.view_signature', id=foglio.id, tipo='cliente') }}" 
-                                 alt="Firma Cliente" class="signature-image">
-                            <small class="text-success mt-2">{{ foglio.nome_firmatario_cliente }}</small>
+                                 alt="Firma Cliente" class="signature-image" style="max-width: 100%; max-height: 100px;">
+                            <small class="text-success mt-2 fw-bold">{{ foglio.nome_firmatario_cliente }}</small>
                             {% else %}
                             <i class="bi bi-pen text-muted mb-2" style="font-size: 2rem;"></i>
                             <small class="text-muted">Firma non presente</small>

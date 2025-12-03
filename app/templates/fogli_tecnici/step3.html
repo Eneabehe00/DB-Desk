@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }} - DB-Desk{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+{% block page_title %}Ricambi{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -29,10 +29,11 @@
     }
     
     .step {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         margin: 0 0.5rem;
@@ -40,7 +41,8 @@
         position: relative;
         background-color: #28a745;
         color: white;
-        font-size: 1.2rem;
+        font-size: 1rem;
+        text-align: center;
     }
     
     .step.active {
@@ -51,6 +53,32 @@
     .step.pending {
         background-color: #e9ecef;
         color: #6c757d;
+    }
+    
+    .step.completed {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .step-label {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        color: #6c757d;
+    }
+    
+    .step.active .step-label {
+        color: #007bff;
+        font-weight: 600;
+    }
+    
+    .step.completed .step-label {
+        color: #28a745;
+        font-weight: 600;
     }
     
     .step::after {
@@ -249,9 +277,14 @@
         }
         
         .step {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
+            width: 45px;
+            height: 45px;
+            font-size: 0.9rem;
+        }
+        
+        .step-label {
+            font-size: 0.7rem;
+            top: 55px;
         }
         
         .step::after {
@@ -276,22 +309,29 @@
 
 {% block content %}
 <div class="tablet-container">
-    <!-- Header del step -->
-    <div class="step-header">
-        <h2 class="mb-3">
-            <i class="bi bi-3-circle-fill me-2"></i>
-            Ricambi Utilizzati
-        </h2>
-        <p class="mb-0 fs-5">Seleziona i ricambi utilizzati durante l'intervento</p>
-    </div>
     
     <!-- Progress indicator -->
     <div class="progress-steps">
-        <div class="step">1</div>
-        <div class="step">2</div>
-        <div class="step active">3</div>
-        <div class="step pending">4</div>
-        <div class="step pending">5</div>
+        <div class="step completed">
+            <i class="bi bi-check"></i>
+            <small class="step-label">Info Base</small>
+        </div>
+        <div class="step completed">
+            <i class="bi bi-check"></i>
+            <small class="step-label">Dettagli Tecnici</small>
+        </div>
+        <div class="step active">
+            3
+            <small class="step-label">Ricambi</small>
+        </div>
+        <div class="step pending">
+            4
+            <small class="step-label">Commerciale</small>
+        </div>
+        <div class="step pending">
+            5
+            <small class="step-label">Firme</small>
+        </div>
     </div>
     
     <!-- Riepilogo Step Precedenti -->
@@ -344,6 +384,22 @@
                     <i class="bi bi-info-circle me-1"></i>
                     Seleziona tutti i ricambi utilizzati durante l'intervento
                 </div>
+            </div>
+            
+            <!-- Ricambio Manuale -->
+            <div class="form-field">
+                {{ form.ricambio_manuale.label(class="form-label") }}
+                {{ form.ricambio_manuale(class="form-control" + (" is-invalid" if form.ricambio_manuale.errors else ""), placeholder="es. Toner HP 85A Nero") }}
+                {% if form.ricambio_manuale.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.ricambio_manuale.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-text">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        {{ form.ricambio_manuale.description }}
+                    </div>
+                {% endif %}
             </div>
             
             <!-- Note Aggiuntive -->

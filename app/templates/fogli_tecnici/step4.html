@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }} - DB-Desk{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+{% block page_title %}Commerciale{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -29,10 +29,11 @@
     }
     
     .step {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         margin: 0 0.5rem;
@@ -40,7 +41,8 @@
         position: relative;
         background-color: #28a745;
         color: white;
-        font-size: 1.2rem;
+        font-size: 1rem;
+        text-align: center;
     }
     
     .step.active {
@@ -51,6 +53,32 @@
     .step.pending {
         background-color: #e9ecef;
         color: #6c757d;
+    }
+    
+    .step.completed {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .step-label {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        color: #6c757d;
+    }
+    
+    .step.active .step-label {
+        color: #007bff;
+        font-weight: 600;
+    }
+    
+    .step.completed .step-label {
+        color: #28a745;
+        font-weight: 600;
     }
     
     .step::after {
@@ -175,6 +203,23 @@
         padding-left: 2.5rem;
     }
     
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    
+    .form-check-input:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .form-check-label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-left: 0.5rem;
+    }
+    
     /* Mobile optimizations */
     @media (max-width: 768px) {
         .tablet-container {
@@ -190,9 +235,14 @@
         }
         
         .step {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
+            width: 45px;
+            height: 45px;
+            font-size: 0.9rem;
+        }
+        
+        .step-label {
+            font-size: 0.7rem;
+            top: 55px;
         }
         
         .step::after {
@@ -209,22 +259,29 @@
 
 {% block content %}
 <div class="tablet-container">
-    <!-- Header del step -->
-    <div class="step-header">
-        <h2 class="mb-3">
-            <i class="bi bi-4-circle-fill me-2"></i>
-            Informazioni Commerciali
-        </h2>
-        <p class="mb-0 fs-5">Definisci modalità di pagamento e importo dell'intervento</p>
-    </div>
     
     <!-- Progress indicator -->
     <div class="progress-steps">
-        <div class="step">1</div>
-        <div class="step">2</div>
-        <div class="step">3</div>
-        <div class="step active">4</div>
-        <div class="step pending">5</div>
+        <div class="step completed">
+            <i class="bi bi-check"></i>
+            <small class="step-label">Info Base</small>
+        </div>
+        <div class="step completed">
+            <i class="bi bi-check"></i>
+            <small class="step-label">Dettagli Tecnici</small>
+        </div>
+        <div class="step completed">
+            <i class="bi bi-check"></i>
+            <small class="step-label">Ricambi</small>
+        </div>
+        <div class="step active">
+            4
+            <small class="step-label">Commerciale</small>
+        </div>
+        <div class="step pending">
+            5
+            <small class="step-label">Firme</small>
+        </div>
     </div>
     
     <!-- Riepilogo Step Precedenti -->
@@ -295,6 +352,24 @@
                     <div class="form-text">
                         <i class="bi bi-calculator me-1"></i>
                         Importo totale dell'intervento comprensivo di manodopera e ricambi (opzionale)
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Stato Pagamento -->
+            <div class="form-field">
+                <div class="form-check form-switch">
+                    {{ form.pagamento_immediato(class="form-check-input" + (" is-invalid" if form.pagamento_immediato.errors else ""), id="pagamento_immediato") }}
+                    {{ form.pagamento_immediato.label(class="form-check-label", for="pagamento_immediato") }}
+                </div>
+                {% if form.pagamento_immediato.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.pagamento_immediato.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-text">
+                        <i class="bi bi-cash-coin me-1"></i>
+                        {{ form.pagamento_immediato.description }}
                     </div>
                 {% endif %}
             </div>

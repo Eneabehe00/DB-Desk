@@ -42,6 +42,12 @@ def create_app(config_name='default'):
     def inject_csrf_token():
         from flask_wtf.csrf import generate_csrf
         return dict(csrf_token=generate_csrf)
+
+    # Context processor per la data/ora corrente
+    @app.context_processor
+    def inject_now():
+        from datetime import datetime
+        return dict(now=datetime.utcnow())
     
     # Registra i blueprint
     from app.routes.auth import auth_bp

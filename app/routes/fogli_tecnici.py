@@ -188,6 +188,7 @@ def step2(id):
         form.durata_intervento.data = foglio.durata_intervento
         form.km_percorsi.data = foglio.km_percorsi
         form.tipo_operazione_macchine.data = foglio.tipo_operazione_macchine
+        form.macchina_manuale.data = foglio.macchina_manuale
         
         # Pre-seleziona macchine già collegate
         macchine_ids = [m.id for m in foglio.macchine_collegate]
@@ -201,6 +202,7 @@ def step2(id):
         foglio.durata_intervento = form.durata_intervento.data
         foglio.km_percorsi = form.km_percorsi.data
         foglio.tipo_operazione_macchine = form.tipo_operazione_macchine.data
+        foglio.macchina_manuale = form.macchina_manuale.data
         foglio.updated_at = datetime.utcnow()
         
         # Aggiorna macchine collegate
@@ -374,6 +376,7 @@ def step3(id):
     if request.method == 'GET':
         # Pre-popola form con dati esistenti
         form.note_aggiuntive.data = foglio.note_aggiuntive
+        form.ricambio_manuale.data = foglio.ricambio_manuale
         
         # Pre-seleziona ricambi già collegati
         ricambi_ids = [r.id for r in foglio.ricambi_utilizzati]
@@ -382,6 +385,7 @@ def step3(id):
     if form.validate_on_submit():
         # Aggiorna foglio
         foglio.note_aggiuntive = form.note_aggiuntive.data
+        foglio.ricambio_manuale = form.ricambio_manuale.data
         foglio.updated_at = datetime.utcnow()
         
         # Aggiorna ricambi utilizzati
@@ -432,11 +436,13 @@ def step4(id):
         # Pre-popola form con dati esistenti
         form.modalita_pagamento.data = foglio.modalita_pagamento
         form.importo_intervento.data = foglio.importo_intervento
+        form.pagamento_immediato.data = foglio.pagamento_immediato
     
     if form.validate_on_submit():
         # Aggiorna foglio
         foglio.modalita_pagamento = form.modalita_pagamento.data
         foglio.importo_intervento = form.importo_intervento.data
+        foglio.pagamento_immediato = form.pagamento_immediato.data
         foglio.updated_at = datetime.utcnow()
         
         # Marca step come completato
@@ -592,6 +598,100 @@ def view(id):
         foglio=foglio,
         movimenti_macchine=movimenti_macchine,
         title=f'Foglio {foglio.numero_foglio}'
+    )
+
+
+@fogli_tecnici_bp.route('/test_design')
+@login_required
+def test_design():
+    """Route di test per visualizzare il nuovo design"""
+    from datetime import datetime
+    
+    # Crea un oggetto mock per testare il design
+    class MockFoglio:
+        def __init__(self):
+            self.id = 1
+            self.numero_foglio = "FT-2024-0001"
+            self.titolo = "Test Riparazione Stampante HP"
+            self.descrizione = "Riparazione stampante HP LaserJet che non stampa correttamente. Problema con il toner e alimentazione carta."
+            self.stato = "Completato"
+            self.priorita = "Alta"
+            self.categoria = "Riparazione"
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
+            self.data_intervento = datetime.now()
+            self.indirizzo_intervento = "Via Roma 123, Milano"
+            self.durata_intervento = 120
+            self.km_percorsi = 25
+            self.modalita_pagamento = "Bonifico bancario"
+            self.importo_intervento = 150.00
+            self.note_aggiuntive = "Cliente molto soddisfatto del servizio. Richiesta preventivo per nuova stampante."
+            self.step_corrente = 5
+            self.step_completati = [1, 2, 3, 4, 5]
+            self.pdf_generato = True
+            self.inviato_online = True
+            self.email_invio = "cliente@test.com"
+            self.data_invio = datetime.now()
+            self.firma_tecnico_path = None
+            self.firma_cliente_path = None
+            self.nome_firmatario_cliente = None
+            
+        def is_step_completato(self, step):
+            return step in self.step_completati
+            
+        @property
+        def cliente(self):
+            class MockCliente:
+                ragione_sociale = "Test Cliente S.r.l."
+            return MockCliente()
+            
+        @property
+        def tecnico(self):
+            class MockTecnico:
+                first_name = "Mario"
+                last_name = "Rossi"
+            return MockTecnico()
+            
+        @property
+        def macchine_collegate(self):
+            class MockMacchine:
+                def count(self):
+                    return 2
+                def __iter__(self):
+                    class MockMacchina:
+                        def __init__(self, codice, marca, modello):
+                            self.codice = codice
+                            self.marca = marca
+                            self.modello = modello
+                    return iter([
+                        MockMacchina("HP001", "HP", "LaserJet Pro 400"),
+                        MockMacchina("HP002", "HP", "DeskJet 2700")
+                    ])
+            return MockMacchine()
+            
+        @property
+        def ricambi_utilizzati(self):
+            class MockRicambi:
+                def count(self):
+                    return 1
+                def __iter__(self):
+                    class MockRicambio:
+                        def __init__(self, codice, descrizione):
+                            self.codice = codice
+                            self.descrizione = descrizione
+                    return iter([
+                        MockRicambio("TNR001", "Toner HP 85A Nero")
+                    ])
+            return MockRicambi()
+    
+    foglio = MockFoglio()
+    movimenti_macchine = []
+    
+    return render_template(
+        'fogli_tecnici/view.html',
+        foglio=foglio,
+        movimenti_macchine=movimenti_macchine,
+        title=f'Test Design - {foglio.numero_foglio}'
     )
 
 
