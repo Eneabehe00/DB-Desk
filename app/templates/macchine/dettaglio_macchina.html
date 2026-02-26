@@ -5,28 +5,98 @@
 
 {% block extra_head %}
 <style>
-    .info-card {
-        background: #f8fafc;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid #e2e8f0;
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     }
 
-    .info-card h5 {
+    .detail-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #edf2f7;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .nav-pills-custom .nav-link {
+        color: #64748b;
+        font-weight: 500;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        margin-right: 0.5rem;
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+        border-color: #e2e8f0;
+    }
+
+    .nav-pills-custom .nav-link:hover:not(.active) {
+        background-color: #f8fafc;
         color: var(--dark-color);
-        margin-bottom: 1rem;
+    }
+
+    .badge-soft {
         font-weight: 600;
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 0.5rem;
+        padding: 0.4em 0.8em;
+        border-radius: 6px;
+    }
+
+    .badge-soft-primary { background: #e0e7ff; color: #4338ca; }
+    .badge-soft-success { background: #dcfce7; color: #15803d; }
+    .badge-soft-warning { background: #fef9c3; color: #a16207; }
+    .badge-soft-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-secondary { background: #f1f5f9; color: #64748b; }
+
+    .bg-soft-primary { background-color: #e0e7ff !important; }
+    .bg-soft-success { background-color: #dcfce7 !important; }
+    .bg-soft-warning { background-color: #fef9c3 !important; }
+    .bg-soft-danger { background-color: #fee2e2 !important; }
+    .bg-soft-info { background-color: #e0f2fe !important; }
+    .bg-soft-secondary { background-color: #f1f5f9 !important; }
+
+    /* Custom scrollbar per le tab */
+    .nav-tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 5px;
+    }
+    .nav-tabs-container::-webkit-scrollbar {
+        display: none;
     }
 
     .info-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #e2e8f0;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
     }
 
     .info-row:last-child {
@@ -35,45 +105,14 @@
 
     .info-label {
         font-weight: 600;
-        color: #374151;
-        flex: 0 0 40%;
-    }
-
-    .info-value {
-        flex: 1;
-        text-align: right;
-    }
-
-    .status-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 1rem;
-        font-weight: 600;
-        text-transform: uppercase;
+        color: #64748b;
         font-size: 0.875rem;
     }
 
-    .status-disponibile {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-prestito {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-riparazione {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .status-venduta {
-        background: #e5e7eb;
-        color: #374151;
-    }
-
-    .action-btn {
-        margin: 0.25rem;
+    .info-value {
+        font-weight: 500;
+        color: #1e293b;
+        text-align: right;
     }
 
     .movimento-item {
@@ -82,430 +121,467 @@
         padding: 1rem;
         margin-bottom: 0.5rem;
         border-radius: 0.5rem;
+        transition: transform 0.2s;
     }
-
-    .movimento-item.success {
-        border-left-color: var(--success-color);
-    }
-
-    .movimento-item.warning {
-        border-left-color: var(--warning-color);
-    }
-
-    .movimento-item.danger {
-        border-left-color: var(--danger-color);
+    
+    .movimento-item:hover {
+        transform: translateX(5px);
     }
 
     .ticket-item {
         border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
+        border-radius: 0.75rem;
         padding: 1rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         background: white;
+        transition: all 0.2s;
     }
 
     .ticket-item:hover {
         background: #f8fafc;
         border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">{{ macchina.marca }} {{ macchina.modello }}</h4>
-                <small class="text-muted">Codice: {{ macchina.codice }}</small>
-            </div>
-            <div>
-                <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Torna alla Lista
-                </a>
-                <a href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-info me-2">
-                    <i class="bi bi-clock-history"></i> Movimenti
-                </a>
-                <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}" class="btn btn-primary me-2">
-                    <i class="bi bi-pencil"></i> Modifica
-                </a>
-                {% if current_user.has_permission('can_manage_system') %}
-                <button class="btn btn-danger" onclick="confirmDeleteMacchina()">
-                    <i class="bi bi-trash"></i> Elimina
-                </button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="row">
-    <!-- Colonna principale -->
-    <div class="col-lg-8">
-        <!-- Informazioni Base -->
-        <div class="info-card">
-            <h5><i class="bi bi-info-circle"></i> Informazioni Base</h5>
-            <div class="info-row">
-                <span class="info-label">Codice Macchina:</span>
-                <span class="info-value fw-bold">{{ macchina.codice }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Marca:</span>
-                <span class="info-value">{{ macchina.marca }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Modello:</span>
-                <span class="info-value">{{ macchina.modello }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Tipo:</span>
-                <span class="info-value">
-                    {% if macchina.tipo_macchina %}
-                        {{ macchina.tipo_macchina.nome }}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Numero di Serie:</span>
-                <span class="info-value">
-                    {% if macchina.numero_serie %}
-                        {{ macchina.numero_serie }}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Reparto:</span>
-                <span class="info-value">
-                    {% if macchina.department %}
-                        {{ macchina.department.display_name }}
-                    {% else %}
-                        <span class="text-muted">Non assegnato</span>
-                    {% endif %}
-                </span>
-            </div>
-        </div>
-
-        <!-- Stato e Ubicazione -->
-        <div class="info-card">
-            <h5><i class="bi bi-geo-alt"></i> Stato e Ubicazione</h5>
-            <div class="info-row">
-                <span class="info-label">Stato:</span>
-                <span class="info-value">
-                    {% if macchina.stato == 'Disponibile' %}
-                        <span class="status-badge status-disponibile">{{ macchina.stato }}</span>
-                    {% elif macchina.stato == 'In prestito' %}
-                        <span class="status-badge status-prestito">{{ macchina.stato }}</span>
-                    {% elif macchina.stato == 'In riparazione' %}
-                        <span class="status-badge status-riparazione">{{ macchina.stato }}</span>
-                    {% elif macchina.stato == 'Attiva' %}
-                        <span class="status-badge status-venduta">{{ macchina.stato }}</span>
-                    {% else %}
-                        <span class="status-badge">{{ macchina.stato }}</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Ubicazione:</span>
-                <span class="info-value">
-                    {% if macchina.ubicazione %}
-                        {{ macchina.ubicazione }}
-                    {% else %}
-                        <span class="text-muted">Non specificata</span>
-                    {% endif %}
-                </span>
-            </div>
-            {% if macchina.cliente %}
-            <div class="info-row">
-                <span class="info-label">Cliente Assegnato:</span>
-                <span class="info-value">
-                    <a href="{{ url_for('clients.view_client', id=macchina.cliente.id) }}" class="text-decoration-none">
-                        {{ macchina.cliente.ragione_sociale }}
-                    </a>
-                </span>
-            </div>
-            {% endif %}
-            {% if macchina.data_assegnazione %}
-            <div class="info-row">
-                <span class="info-label">Data Assegnazione:</span>
-                <span class="info-value">{{ macchina.data_assegnazione.strftime('%d/%m/%Y') }}</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Caratteristiche Tecniche -->
-        <div class="info-card">
-            <h5><i class="bi bi-cpu"></i> Caratteristiche Tecniche</h5>
-            <div class="info-row">
-                <span class="info-label">Anno Produzione:</span>
-                <span class="info-value">
-                    {% if macchina.anno_produzione %}
-                        {{ macchina.anno_produzione }}
-                        {% if macchina.eta_anni %}
-                            <small class="text-muted">({{ macchina.eta_anni }} anni)</small>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Peso:</span>
-                <span class="info-value">
-                    {% if macchina.peso %}
-                        {{ macchina.peso }} kg
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Dimensioni:</span>
-                <span class="info-value">
-                    {% if macchina.dimensioni %}
-                        {{ macchina.dimensioni }}
-                    {% else %}
-                        <span class="text-muted">Non specificate</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Alimentazione:</span>
-                <span class="info-value">
-                    {% if macchina.alimentazione %}
-                        {{ macchina.alimentazione }}
-                    {% else %}
-                        <span class="text-muted">Non specificata</span>
-                    {% endif %}
-                </span>
+    <div class="col-lg-12 mb-4">
+        <!-- Modern Header -->
+        <div class="card detail-card border-0 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
+                            <span class="badge-soft badge-soft-primary fs-6">{{ macchina.codice }}</span>
+                            <span class="badge-soft badge-soft-{{ 'success' if macchina.stato == 'Disponibile' or macchina.stato == 'Attiva' else 'warning' if macchina.stato == 'In prestito' else 'danger' if macchina.stato == 'In riparazione' else 'secondary' }}">
+                                <i class="bi bi-circle-fill me-1 small"></i>{{ macchina.stato }}
+                            </span>
+                            {% if macchina.tipo_macchina %}
+                            <span class="text-muted ms-2"><i class="bi bi-tag me-1"></i>{{ macchina.tipo_macchina.nome }}</span>
+                            {% endif %}
+                        </div>
+                        <h2 class="fw-bold mb-3">{{ macchina.marca }} {{ macchina.modello }}</h2>
+                        <div class="d-flex align-items-center text-muted flex-wrap gap-3">
+                            {% if macchina.cliente %}
+                            <div>
+                                <i class="bi bi-building me-1"></i>
+                                <a href="{{ url_for('clients.view_client', id=macchina.cliente.id) }}" class="text-decoration-none text-reset fw-medium">
+                                    {{ macchina.cliente.ragione_sociale }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <i class="bi bi-geo-alt me-1"></i>
+                                {{ macchina.ubicazione or 'Magazzino' }}
+                            </div>
+                            {% if macchina.numero_serie %}
+                            <div>
+                                <i class="bi bi-hash me-1"></i>
+                                S/N: {{ macchina.numero_serie }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex flex-column align-items-md-end gap-2">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}" class="btn btn-white border-end" title="Modifica">
+                                    <i class="bi bi-pencil-fill text-muted"></i>
+                                </a>
+                                <a href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id) }}" class="btn btn-white border-end" title="Storico Movimenti">
+                                    <i class="bi bi-clock-history text-muted"></i>
+                                </a>
+                                {% if current_user.has_permission('can_manage_system') %}
+                                <button class="btn btn-white" onclick="confirmDeleteMacchina()" title="Elimina">
+                                    <i class="bi bi-trash-fill text-danger"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-2">
+                                {% if macchina.is_disponibile %}
+                                <button class="btn btn-warning btn-sm rounded-pill px-3" onclick="openAssignModal()">
+                                    <i class="bi bi-arrow-right-circle me-1"></i>Assegna
+                                </button>
+                                {% endif %}
+                                {% if macchina.is_in_prestito %}
+                                <button class="btn btn-info btn-sm rounded-pill px-3" onclick="openReturnModal()">
+                                    <i class="bi bi-arrow-left-circle me-1"></i>Rientro
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- Informazioni Commerciali -->
-        <div class="info-card">
-            <h5><i class="bi bi-currency-euro"></i> Informazioni Commerciali</h5>
-            <div class="info-row">
-                <span class="info-label">Fornitore:</span>
-                <span class="info-value">
-                    {% if macchina.fornitore %}
-                        {{ macchina.fornitore }}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Data Acquisto:</span>
-                <span class="info-value">
-                    {% if macchina.data_acquisto %}
-                        {{ macchina.data_acquisto.strftime('%d/%m/%Y') }}
-                    {% else %}
-                        <span class="text-muted">Non specificata</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Prezzo Acquisto:</span>
-                <span class="info-value">
-                    {% if macchina.prezzo_acquisto %}
-                        €{{ "%.2f"|format(macchina.prezzo_acquisto) }}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Prezzo Vendita:</span>
-                <span class="info-value">
-                    {% if macchina.prezzo_vendita %}
-                        €{{ "%.2f"|format(macchina.prezzo_vendita) }}
-                    {% else %}
-                        <span class="text-muted">Non specificato</span>
-                    {% endif %}
-                </span>
-            </div>
-            {% if macchina.data_vendita %}
-            <div class="info-row">
-                <span class="info-label">Data Vendita:</span>
-                <span class="info-value">{{ macchina.data_vendita.strftime('%d/%m/%Y') }}</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Garanzia e Manutenzione -->
-        <div class="info-card">
-            <h5><i class="bi bi-shield-check"></i> Garanzia e Manutenzione</h5>
-            <div class="info-row">
-                <span class="info-label">Scadenza Garanzia:</span>
-                <span class="info-value">
-                    {% if macchina.data_scadenza_garanzia %}
-                        {{ macchina.data_scadenza_garanzia.strftime('%d/%m/%Y') }}
-                        {% if macchina.garanzia_scaduta %}
-                            <span class="badge bg-danger ms-2">Scaduta</span>
-                        {% else %}
-                            <span class="badge bg-success ms-2">Attiva</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-muted">Non specificata</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Prossima Manutenzione:</span>
-                <span class="info-value">
-                    {% if macchina.prossima_manutenzione %}
-                        {{ macchina.prossima_manutenzione.strftime('%d/%m/%Y') }}
-                        {% if macchina.necessita_manutenzione %}
-                            <span class="badge bg-warning ms-2">Richiesta</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-muted">Non programmata</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Intervallo Manutenzione:</span>
-                <span class="info-value">
-                    {% if macchina.intervallo_manutenzione_giorni %}
-                        {{ macchina.intervallo_manutenzione_giorni }} giorni
-                    {% else %}
-                        <span class="text-muted">Non configurato</span>
-                    {% endif %}
-                </span>
-            </div>
-        </div>
-
-        <!-- Note -->
-        {% if macchina.note %}
-        <div class="info-card">
-            <h5><i class="bi bi-journal-text"></i> Note</h5>
-            <p class="mb-0">{{ macchina.note }}</p>
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Colonna laterale -->
-    <div class="col-lg-4">
-        <!-- Azioni Rapide -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-lightning"></i> Azioni Rapide</h6>
+    <!-- Quick Stats Row -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-primary">
+                <i class="bi bi-calendar-check text-primary fs-5"></i>
             </div>
-            <div class="card-body">
-                {% if macchina.is_disponibile %}
-                <button class="btn btn-warning action-btn w-100 mb-2" onclick="openAssignModal()">
-                    <i class="bi bi-arrow-right-circle"></i> Assegna a Cliente
-                </button>
-                <button class="btn btn-danger action-btn w-100 mb-2" onclick="openRepairModal()">
-                    <i class="bi bi-tools"></i> Invia in Riparazione
-                </button>
-                {% endif %}
-
-                {% if macchina.is_in_prestito %}
-                <button class="btn btn-info action-btn w-100 mb-2" onclick="openReturnModal()">
-                    <i class="bi bi-arrow-left-circle"></i> Rientro in Magazzino
-                </button>
-                <button class="btn btn-danger action-btn w-100 mb-2" onclick="openRepairModal()">
-                    <i class="bi bi-tools"></i> Invia in Riparazione
-                </button>
-                {% endif %}
-
-                {% if macchina.is_in_riparazione %}
-                <button class="btn btn-success action-btn w-100 mb-2" onclick="openCompleteRepairModal()">
-                    <i class="bi bi-check-circle"></i> Completa Riparazione
-                </button>
-                {% endif %}
-
-                {% if macchina.is_disponibile or macchina.is_in_prestito %}
-                <button class="btn btn-dark action-btn w-100 mb-2" onclick="openSellModal()">
-                    <i class="bi bi-currency-euro"></i> Vendi Macchina
-                </button>
+            <h6 class="text-muted mb-1">Età Macchina</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ macchina.eta_anni or 0 }}</h4>
+                <span class="small text-muted">anni</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ [100, (macchina.eta_anni or 0) * 10] | min }}%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-info">
+                <i class="bi bi-shield-check text-info fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Garanzia</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ 'Attiva' if not macchina.garanzia_scaduta else 'Scaduta' }}</h4>
+            </div>
+            <div class="mt-3 small">
+                {% if macchina.data_scadenza_garanzia %}
+                <span class="text-muted">Scade: {{ macchina.data_scadenza_garanzia.strftime('%d/%m/%Y') }}</span>
+                {% else %}
+                <span class="text-muted">Non specificata</span>
                 {% endif %}
             </div>
         </div>
+    </div>
 
-        <!-- Movimenti Recenti -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Movimenti Recenti</h6>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-warning">
+                <i class="bi bi-tools text-warning fs-5"></i>
             </div>
-            <div class="card-body p-0">
-                {% if movimenti %}
-                    {% for movimento in movimenti %}
-                    <div class="movimento-item {{ 'success' if movimento.tipo_movimento == 'Assegnazione' else 'warning' if movimento.tipo_movimento == 'Riparazione' else 'danger' }}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <small class="text-muted">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
-                                <p class="mb-1 fw-bold">{{ movimento.tipo_movimento }}</p>
-                                <p class="mb-0 small">{{ movimento.descrizione_movimento }}</p>
+            <h6 class="text-muted mb-1">Manutenzione</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ 'Necessaria' if macchina.necessita_manutenzione else 'Regolare' }}</h4>
+            </div>
+            <div class="mt-3 small">
+                {% if macchina.prossima_manutenzione %}
+                <span class="text-muted">Prossima: {{ macchina.prossima_manutenzione.strftime('%d/%m/%Y') }}</span>
+                {% else %}
+                <span class="text-muted">Non programmata</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-success">
+                <i class="bi bi-ticket-perforated text-success fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Ticket Totali</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ tickets_collegati | length }}</h4>
+                <span class="small text-muted">interventi</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Main Tabs Area -->
+        <div class="card detail-card border-0">
+            <div class="card-header bg-white border-0 pb-0 pt-4 px-4">
+                <div class="nav-tabs-container">
+                    <ul class="nav nav-pills nav-pills-custom" id="macchinaDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                                <i class="bi bi-info-circle me-2"></i>Specifiche Tecniche
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">
+                                <i class="bi bi-ticket-detailed me-2"></i>Interventi
+                                {% if tickets_collegati %}
+                                    <span class="badge rounded-pill bg-primary ms-1">{{ tickets_collegati|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="movimenti-tab" data-bs-toggle="tab" data-bs-target="#movimenti" type="button" role="tab">
+                                <i class="bi bi-clock-history me-2"></i>Movimenti
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="commerciale-tab" data-bs-toggle="tab" data-bs-target="#commerciale" type="button" role="tab">
+                                <i class="bi bi-currency-euro me-2"></i>Dati Commerciali
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="tab-content" id="macchinaDetailTabsContent">
+                    <!-- Tab Info -->
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Identificazione</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-primary">
+                                    <div class="info-row">
+                                        <span class="info-label">Codice:</span>
+                                        <span class="info-value">{{ macchina.codice }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Marca/Modello:</span>
+                                        <span class="info-value">{{ macchina.marca }} {{ macchina.modello }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">S/N:</span>
+                                        <span class="info-value">{{ macchina.numero_serie or 'N/D' }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="badge bg-{{ 'success' if movimento.tipo_movimento == 'Assegnazione' else 'warning' if movimento.tipo_movimento == 'Riparazione' else 'danger' }} rounded-pill">
-                                #{{ movimento.id }}
-                            </span>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Caratteristiche</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-info">
+                                    <div class="info-row">
+                                        <span class="info-label">Peso:</span>
+                                        <span class="info-value">{{ macchina.peso }} kg</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Dimensioni:</span>
+                                        <span class="info-value">{{ macchina.dimensioni or 'N/D' }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Alimentazione:</span>
+                                        <span class="info-value">{{ macchina.alimentazione or 'N/D' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if macchina.note %}
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Note Tecniche</h6>
+                                <div class="alert alert-warning border-0 rounded-3 shadow-sm">
+                                    <i class="bi bi-journal-text me-2"></i>
+                                    {{ macchina.note | replace('\n', '<br>') | safe }}
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="p-3 text-center text-muted">
-                        <i class="bi bi-info-circle"></i><br>
-                        Nessun movimento registrato
-                    </div>
-                {% endif %}
-            </div>
-        </div>
 
-        <!-- Ticket Collegati -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-ticket"></i> Ticket Collegati</h6>
-            </div>
-            <div class="card-body p-0">
-                {% if tickets_collegati %}
-                    {% for ticket in tickets_collegati %}
-                    <div class="ticket-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" class="text-decoration-none fw-bold">
-                                    {{ ticket.numero_ticket }}
+                    <!-- Tab Ticket -->
+                    <div class="tab-pane fade" id="tickets" role="tabpanel">
+                        {% if tickets_collegati %}
+                            {% for ticket in tickets_collegati %}
+                            <div class="ticket-item" onclick="window.location.href='{{ url_for('tickets.view_ticket', id=ticket.id) }}'" style="cursor: pointer;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-soft-primary rounded-3 p-2 me-3 text-center" style="width: 50px;">
+                                            <i class="bi bi-ticket-detailed text-primary fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ ticket.numero_ticket }}</div>
+                                            <div class="small text-muted text-truncate" style="max-width: 300px;">{{ ticket.titolo }}</div>
+                                            <div class="small text-muted">{{ ticket.created_at.strftime('%d/%m/%Y') }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge-soft badge-soft-{{ 'success' if ticket.stato == 'Chiuso' or ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }} d-block mb-1">
+                                            {{ ticket.stato }}
+                                        </span>
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-ticket-perforated fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessun intervento registrato per questa macchina.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab Movimenti -->
+                    <div class="tab-pane fade" id="movimenti" role="tabpanel">
+                        {% if movimenti %}
+                            {% for movimento in movimenti %}
+                            <div class="movimento-item {{ 'success' if movimento.tipo_movimento == 'Assegnazione' else 'warning' if movimento.tipo_movimento == 'Riparazione' else 'info' }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="small text-muted mb-1">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                                        <div class="fw-bold text-dark">{{ movimento.tipo_movimento }}</div>
+                                        <div class="small text-muted">{{ movimento.descrizione_movimento }}</div>
+                                    </div>
+                                    <span class="badge bg-light text-dark border rounded-pill">#{{ movimento.id }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id) }}" class="btn btn-light btn-sm rounded-pill px-4">
+                                    Vedi storico completo
                                 </a>
-                                <p class="mb-1 small">{{ ticket.titolo }}</p>
-                                <small class="text-muted">{{ ticket.created_at.strftime('%d/%m/%Y') }}</small>
                             </div>
-                            <span class="badge bg-{{ 'success' if ticket.stato == 'Chiuso' else 'warning' if ticket.stato == 'In Lavorazione' else 'primary' }} rounded-pill">
-                                {{ ticket.stato }}
-                            </span>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-clock-history fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessun movimento registrato.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab Commerciale -->
+                    <div class="tab-pane fade" id="commerciale" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Acquisto</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-success">
+                                    <div class="info-row">
+                                        <span class="info-label">Fornitore:</span>
+                                        <span class="info-value">{{ macchina.fornitore or 'N/D' }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Data Acquisto:</span>
+                                        <span class="info-value">{{ macchina.data_acquisto.strftime('%d/%m/%Y') if macchina.data_acquisto else 'N/D' }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Prezzo:</span>
+                                        <span class="info-value">€ {{ "%.2f"|format(macchina.prezzo_acquisto or 0) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Vendita/Valore</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-warning">
+                                    <div class="info-row">
+                                        <span class="info-label">Prezzo Vendita:</span>
+                                        <span class="info-value">€ {{ "%.2f"|format(macchina.prezzo_vendita or 0) }}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Data Vendita:</span>
+                                        <span class="info-value">{{ macchina.data_vendita.strftime('%d/%m/%Y') if macchina.data_vendita else 'N/D' }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="p-3 text-center text-muted">
-                        <i class="bi bi-info-circle"></i><br>
-                        Nessun ticket collegato
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Azioni Gestionali</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-grid gap-2">
+                    {% if macchina.is_disponibile %}
+                    <button class="btn btn-primary rounded-pill" onclick="openAssignModal()">
+                        <i class="bi bi-person-check me-2"></i>Assegna a Cliente
+                    </button>
+                    <button class="btn btn-outline-warning rounded-pill" onclick="openRepairModal()">
+                        <i class="bi bi-tools me-2"></i>Invia in Riparazione
+                    </button>
+                    {% endif %}
+
+                    {% if macchina.is_in_prestito %}
+                    <button class="btn btn-info text-white rounded-pill" onclick="openReturnModal()">
+                        <i class="bi bi-arrow-left-circle me-2"></i>Rientro Magazzino
+                    </button>
+                    <button class="btn btn-outline-warning rounded-pill" onclick="openRepairModal()">
+                        <i class="bi bi-tools me-2"></i>Invia in Riparazione
+                    </button>
+                    {% endif %}
+
+                    {% if macchina.is_in_riparazione %}
+                    <button class="btn btn-success rounded-pill" onclick="openCompleteRepairModal()">
+                        <i class="bi bi-check-circle me-2"></i>Ripristina Macchina
+                    </button>
+                    {% endif %}
+
+                    {% if macchina.is_disponibile or macchina.is_in_prestito %}
+                    <button class="btn btn-dark rounded-pill" onclick="openSellModal()">
+                        <i class="bi bi-currency-euro me-2"></i>Segna come Venduta
+                    </button>
+                    {% endif %}
+                    
+                    <hr class="my-3 opacity-25">
+                    
+                    <a href="{{ url_for('tickets.new_ticket') }}?macchina={{ macchina.id }}{{ '&cliente=' + macchina.cliente.id|string if macchina.cliente else '' }}" class="btn btn-light rounded-pill">
+                        <i class="bi bi-plus-circle me-2"></i>Apri Ticket Intervento
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location/Owner Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Stato Attuale</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-soft-primary rounded-circle p-3 me-3">
+                        <i class="bi {{ 'bi-building' if macchina.cliente else 'bi-box-seam' }} fs-3 text-primary"></i>
                     </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ macchina.cliente.ragione_sociale if macchina.cliente else 'Magazzino Centrale' }}</h5>
+                        <div class="small text-muted">{{ macchina.ubicazione or 'Posizione non definita' }}</div>
+                    </div>
+                </div>
+                
+                {% if macchina.department %}
+                <div class="border-top pt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Reparto:</span>
+                        <span class="small fw-bold">{{ macchina.department.display_name }}</span>
+                    </div>
+                </div>
                 {% endif %}
+                
+                {% if macchina.data_assegnazione %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Dalla data:</span>
+                    <span class="small fw-bold">{{ macchina.data_assegnazione.strftime('%d/%m/%Y') }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info Alert -->
+        <div class="alert alert-info border-0 rounded-4 shadow-sm p-4">
+            <div class="d-flex">
+                <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+                <div>
+                    <h6 class="fw-bold">Promemoria</h6>
+                    <p class="small mb-0 opacity-75">La garanzia e la manutenzione programmata vengono monitorate automaticamente dal sistema. Assicurati che le date siano aggiornate.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modali per le azioni -->
-<!-- Modale Assegnazione -->
+<!-- Modal Assegnazione -->
 <div class="modal fade" id="assignModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Assegna Macchina</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Assegna Macchina</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('macchine.assegna_macchina', macchina_id=macchina.id) }}">
-                <div class="modal-body">
-                    <p>Assegnare la macchina <strong>{{ macchina.codice }}</strong> a un cliente?</p>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Cliente</label>
-                        <select class="form-select" name="cliente_id" required>
+                        <label class="form-label fw-bold">Cliente</label>
+                        <select class="form-select rounded-3" name="cliente_id" required>
                             <option value="">Seleziona cliente...</option>
                             {% for cliente in clienti %}
                             <option value="{{ cliente.id }}">{{ cliente.ragione_sociale }}</option>
@@ -513,29 +589,46 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tipo Assegnazione</label>
-                        <select class="form-select" name="stato">
-                            <option value="In prestito">In prestito</option>
-                            <option value="Attiva">Attiva</option>
+                        <label class="form-label fw-bold">Tipo Assegnazione</label>
+                        <select class="form-select rounded-3" name="stato">
+                            <option value="In prestito">In prestito (Temporanea)</option>
+                            <option value="Attiva">Attiva (Installazione)</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Note</label>
-                        <textarea class="form-control" name="note" rows="2"></textarea>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Note</label>
+                        <textarea class="form-control rounded-3" name="note" rows="3" placeholder="Aggiungi dettagli sul movimento..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Assegna</button>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Conferma</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Altri modali simili per rientro, riparazione, vendita... -->
-
+{% block extra_js %}
 <script>
+function confirmDeleteMacchina() {
+    if (confirm('Sei sicuro di voler eliminare la macchina {{ macchina.codice }}?\n\nQuesta azione non può essere annullata e eliminerà anche tutti i movimenti associati.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("macchine.delete_macchina", macchina_id=macchina.id) }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
 function openAssignModal() {
     new bootstrap.Modal(document.getElementById('assignModal')).show();
 }
@@ -545,6 +638,13 @@ function openReturnModal() {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ url_for("macchine.rientro_macchina", macchina_id=macchina.id) }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
         document.body.appendChild(form);
         form.submit();
     }
@@ -556,6 +656,12 @@ function openRepairModal() {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ url_for("macchine.invia_riparazione", macchina_id=macchina.id) }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
         
         const noteInput = document.createElement('input');
         noteInput.type = 'hidden';
@@ -574,6 +680,12 @@ function openCompleteRepairModal() {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ url_for("macchine.completa_riparazione", macchina_id=macchina.id) }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
         
         const noteInput = document.createElement('input');
         noteInput.type = 'hidden';
@@ -595,6 +707,12 @@ function openSellModal() {
         form.method = 'POST';
         form.action = '{{ url_for("macchine.attiva_macchina", macchina_id=macchina.id) }}';
         
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
         if (prezzo) {
             const prezzoInput = document.createElement('input');
             prezzoInput.type = 'hidden';
@@ -610,24 +728,6 @@ function openSellModal() {
             noteInput.value = note;
             form.appendChild(noteInput);
         }
-        
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
-
-function confirmDeleteMacchina() {
-    if (confirm('Sei sicuro di voler eliminare la macchina {{ macchina.codice }}?\n\nQuesta azione non può essere annullata e eliminerà anche tutti i movimenti associati.')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ url_for("macchine.delete_macchina", macchina_id=macchina.id) }}';
-        
-        // Aggiungi token CSRF
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = '{{ csrf_token() }}';
-        form.appendChild(csrfInput);
         
         document.body.appendChild(form);
         form.submit();

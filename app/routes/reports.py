@@ -97,6 +97,14 @@ def tickets_report():
         Ticket.due_date < datetime.utcnow(),
         Ticket.stato.in_(['Aperto', 'In Lavorazione', 'In Attesa Cliente'])
     ).all()
+
+    # Aggiungi informazioni sui giorni di ritardo per ogni ticket scaduto
+    today = datetime.utcnow().date()
+    for ticket in tickets_scaduti:
+        if ticket.due_date:
+            ticket.days_overdue = (today - ticket.due_date.date()).days
+        else:
+            ticket.days_overdue = 0
     
     return render_template('reports/tickets.html',
                          total_tickets=total_tickets,

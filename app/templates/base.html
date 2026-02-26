@@ -106,8 +106,8 @@
         .sidebar.collapsed .nav-link {
             justify-content: center !important;
             align-items: center !important;
-            padding: 12px 8px !important;
-            margin: 4px 12px !important;
+            padding: 12px 4px !important;
+            margin: 4px 8px !important;
             width: 60px !important;
             height: 48px !important;
             border-radius: 8px !important;
@@ -146,6 +146,42 @@
         }
         
         .sidebar.collapsed .nav-link:hover i {
+            color: #ffffff !important;
+        }
+        
+        /* Logo centering nella sidebar collapsed */
+        .sidebar.collapsed .sidebar-logo-container {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            height: 48px !important;
+            margin: 4px 12px !important;
+            width: 60px !important;
+            border-radius: 8px !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+
+        .sidebar.collapsed .sidebar-logo-container i {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 20px !important;
+            line-height: 20px !important;
+            color: #cbd5e1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            flex-shrink: 0 !important;
+        }
+
+        .sidebar.collapsed .sidebar-logo-container:hover {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+        }
+
+        .sidebar.collapsed .sidebar-logo-container:hover i {
             color: #ffffff !important;
         }
         
@@ -202,8 +238,12 @@
         }
         
         .sidebar-toggle i {
-            transition: transform 0.3s ease;
-            transform-origin: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Cambia direzione freccia quando sidebar è collapsed */
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: scaleX(-1); /* Inverte orizzontalmente la freccia */
         }
         
         .sidebar.collapsed .sidebar-toggle {
@@ -352,8 +392,8 @@
                 padding: 0 24px;
             }
             .main-content.sidebar-collapsed {
-                margin-left: 85px;
-                width: calc(100% - 85px);
+                margin-left: 95px;
+                width: calc(100% - 95px);
             }
         }
         
@@ -440,7 +480,6 @@
         }
         .table tbody tr:hover {
             background-color: rgba(59, 130, 246, 0.05);
-            transform: scale(1.001);
         }
         .table th {
             background-color: #f8fafc;
@@ -554,10 +593,10 @@
                 
                 <div class="position-sticky pt-2">
                     <div class="text-center mb-3">
-                        <h5 class="text-white">
-                            <i class="bi bi-pc-display text-white"></i>
-                            <span class="sidebar-brand-text">DB-Desk</span>
-                        </h5>
+                        <div class="sidebar-logo-container">
+                            <i class="bi bi-pc-display text-white h4" title="DB-Desk"></i>
+                            <span class="sidebar-brand-text text-white h4">DB-Desk</span>
+                        </div>
                     </div>
                     
                     <ul class="nav flex-column">

@@ -5,149 +5,160 @@
 
 {% block extra_head %}
 <style>
-    .table-responsive {
-        border-radius: 0.375rem;
-        overflow: hidden;
-    }
+/* Cursore pointer solo per gli header ordinabili */
+.sortable-header {
+    cursor: pointer !important;
+    user-select: none !important;
+    position: relative;
+    transition: all 0.2s ease;
+}
 
-    .table th {
-        border-top: none;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.875rem;
-        letter-spacing: 0.025em;
-    }
+.sortable-header:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-    .table td {
-        vertical-align: middle;
-    }
+.type-row {
+    transition: all 0.2s ease;
+}
 
-    .btn-group .btn {
-        margin-right: 0.25rem;
-    }
-
-    .btn-group .btn:last-child {
-        margin-right: 0;
-    }
-
-    .badge {
-        font-size: 0.75rem;
-    }
-
-    .text-decoration-none:hover {
-        text-decoration: underline !important;
-    }
+.badge-machine-count {
+    padding: 0.35rem 0.65rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">Tipi di Macchina</h4>
-                <small class="text-muted">Gestisci i tipi di macchina del sistema</small>
-            </div>
-            <div>
-                <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Torna alle Macchine
-                </a>
-                <a href="{{ url_for('macchine.create_tipo_macchina') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Nuovo Tipo
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nome</th>
-                                <th>Descrizione</th>
-                                <th>Macchine</th>
-                                <th>Creato</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if tipi %}
-                                {% for tipo in tipi %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ tipo.nome }}</strong>
-                                    </td>
-                                    <td>
-                                        {% if tipo.descrizione %}
-                                            <span title="{{ tipo.descrizione }}">{{ tipo.descrizione|truncate(50) }}</span>
-                                        {% else %}
-                                            <em class="text-muted">Nessuna descrizione</em>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">
-                                            <i class="bi bi-gear"></i> {{ tipo.macchine.count() }}
-                                        </span>
-                                        {% if tipo.macchine.count() > 0 %}
-                                        <div class="mt-1">
-                                            <small class="text-muted">
-                                                {% for macchina in tipo.macchine.limit(3) %}
-                                                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
-                                                   class="text-decoration-none">{{ macchina.codice }}</a>
-                                                {% if not loop.last %}, {% endif %}
-                                                {% endfor %}
-                                                {% if tipo.macchine.count() > 3 %}
-                                                <span>+{{ tipo.macchine.count() - 3 }} altre</span>
-                                                {% endif %}
-                                            </small>
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            {{ tipo.created_at.strftime('%d/%m/%Y') }}
-                                            {% if tipo.updated_at != tipo.created_at %}
-                                            <br><em>Aggiornato: {{ tipo.updated_at.strftime('%d/%m/%Y') }}</em>
-                                            {% endif %}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ url_for('macchine.edit_tipo_macchina', tipo_id=tipo.id) }}"
-                                               class="btn btn-sm btn-outline-primary" title="Modifica">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="deleteTipo({{ tipo.id }}, '{{ tipo.nome }}')"
-                                                    title="Elimina">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-5">
-                                        <i class="bi bi-gear display-4 text-muted"></i>
-                                        <h5 class="mt-3 text-muted">Nessun tipo di macchina</h5>
-                                        <p class="text-muted">Inizia creando il primo tipo di macchina</p>
-                                        <a href="{{ url_for('macchine.create_tipo_macchina') }}" class="btn btn-primary">
-                                            <i class="bi bi-plus-circle"></i> Crea Primo Tipo
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+<div style="padding-bottom: 50px;">
+    <!-- Filtri e azioni -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    Configurazione Tipi Macchina
+                </h5>
+                <div class="btn-group">
+                    <a href="{{ url_for('macchine.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        Torna alle Macchine
+                    </a>
+                    <a href="{{ url_for('macchine.create_tipo_macchina') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuovo Tipo
+                    </a>
                 </div>
             </div>
+        </div>
+        <div class="card-body py-3">
+            <p class="text-muted small mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Gestisci le categorie di macchine utilizzate nel sistema per una migliore organizzazione e reportistica.
+            </p>
+        </div>
+    </div>
+
+    <!-- Lista tipi -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    Lista Tipi di Macchina
+                    <span class="badge bg-secondary">{{ tipi|length if tipi else 0 }} totali</span>
+                </h5>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 25%">Nome</th>
+                        <th style="width: 35%">Descrizione</th>
+                        <th style="width: 15%">Macchine Associate</th>
+                        <th style="width: 15%">Data Creazione</th>
+                        <th style="width: 10%" class="text-end">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if tipi %}
+                        {% for tipo in tipi %}
+                        <tr class="type-row">
+                            <td>
+                                <div class="fw-bold text-dark">{{ tipo.nome }}</div>
+                            </td>
+                            <td>
+                                {% if tipo.descrizione %}
+                                    <div class="small text-muted" title="{{ tipo.descrizione }}">
+                                        {{ tipo.descrizione|truncate(60) }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small italic">Nessuna descrizione</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge badge-machine-count bg-primary bg-opacity-10 text-primary me-2">
+                                        <i class="bi bi-gear-fill small me-1"></i> {{ tipo.macchine.count() }}
+                                    </a>
+                                    {% if tipo.macchine.count() > 0 %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for macchina in tipo.macchine.limit(2) %}
+                                        <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
+                                           class="badge bg-light text-dark border-0 small text-decoration-none" 
+                                           style="font-size: 0.7rem;" title="{{ macchina.marca }} {{ macchina.modello }}">
+                                            {{ macchina.codice }}
+                                        </a>
+                                        {% endfor %}
+                                        {% if tipo.macchine.count() > 2 %}
+                                        <span class="text-muted small" style="font-size: 0.65rem;">+{{ tipo.macchine.count() - 2 }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small text-muted">
+                                    {{ tipo.created_at.strftime('%d/%m/%Y') }}
+                                    {% if tipo.updated_at != tipo.created_at %}
+                                    <div class="italic" style="font-size: 0.7rem;">Agg: {{ tipo.updated_at.strftime('%d/%m/%Y') }}</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('macchine.edit_tipo_macchina', tipo_id=tipo.id) }}"
+                                       class="btn btn-outline-secondary" title="Modifica">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-outline-danger"
+                                            onclick="deleteTipo({{ tipo.id }}, '{{ tipo.nome }}')"
+                                            title="Elimina">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-gear-wide-connected fs-1 text-muted"></i>
+                                <h5 class="text-muted mt-3">Nessun tipo di macchina configurato</h5>
+                                <p class="text-muted small">Inizia definendo il primo tipo di macchina per il sistema.</p>
+                                <a href="{{ url_for('macchine.create_tipo_macchina') }}" class="btn btn-primary btn-sm mt-2">
+                                    <i class="bi bi-plus-circle"></i> Crea Primo Tipo
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -155,21 +166,21 @@
 <!-- Modal di conferma eliminazione -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Conferma Eliminazione</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Conferma Eliminazione</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p>Sei sicuro di voler eliminare il tipo <strong id="tipoName"></strong>?</p>
-                <p class="text-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Questa operazione non può essere annullata e eliminerà anche tutte le macchine associate.
-                </p>
+            <div class="modal-body px-4">
+                <p class="text-muted">Sei sicuro di voler eliminare il tipo <strong id="tipoName" class="text-dark"></strong>?</p>
+                <div class="alert alert-danger border-0 small mt-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Attenzione:</strong> Questa operazione non può essere annullata e <u>eliminerà anche tutte le macchine associate</u> a questo tipo.
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Elimina</button>
+            <div class="modal-footer border-top-0 pb-4 px-4">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmDelete">Elimina Definitivamente</button>
             </div>
         </div>
     </div>
@@ -179,7 +190,8 @@
 function deleteTipo(tipoId, tipoNome) {
     document.getElementById('tipoName').textContent = tipoNome;
 
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const modalElement = document.getElementById('deleteModal');
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
     document.getElementById('confirmDelete').onclick = function() {
@@ -193,17 +205,15 @@ function deleteTipo(tipoId, tipoNome) {
         .then(response => {
             if (response.ok) {
                 location.reload();
-            } else if (response.status === 400) {
-                return response.json().then(data => {
-                    alert('Errore: ' + (data.message || 'Impossibile eliminare il tipo. Potrebbe avere macchine associate.'));
-                });
             } else {
-                alert('Errore durante l\'eliminazione');
+                return response.json().then(data => {
+                    showToast(data.message || 'Errore durante l\'eliminazione', 'danger');
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Errore durante l\'eliminazione');
+            showToast('Errore di rete durante l\'eliminazione', 'danger');
         });
 
         modal.hide();

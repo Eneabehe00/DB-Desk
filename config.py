@@ -28,7 +28,7 @@ class Config:
     ATTACHMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'attachments')
     DOCS_FOLDER = os.path.join(UPLOAD_FOLDER, 'docs')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH_BYTES') or 25 * 1024 * 1024)  # 25MB di default
-    ALLOWED_DOC_EXTENSIONS = set((os.environ.get('ALLOWED_DOC_EXTENSIONS') or 'pdf,doc,docx,xls,xlsx,ppt,pptx,txt,md,png,jpg,jpeg,gif').split(','))
+    ALLOWED_DOC_EXTENSIONS = set((os.environ.get('ALLOWED_DOC_EXTENSIONS') or 'pdf,doc,docx,xls,xlsx,ppt,pptx,txt,md,png,jpg,jpeg,gif,zip,rar,7z,tar,gz,bz2').split(','))
     ALLOWED_ATTACHMENT_EXTENSIONS = set((os.environ.get('ALLOWED_ATTACHMENT_EXTENSIONS') or 'pdf,txt,md,png,jpg,jpeg,gif,zip,rar,7z,log,json,xml').split(','))
 
     # Email Import (IMAP - Outlook/Office365)

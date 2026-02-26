@@ -3,118 +3,152 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Firme{% endblock %}
 
+{% block page_subtitle %}
+<div style="font-size: 0.95rem; line-height: 1.4;">
+    <div class="d-flex flex-wrap gap-3 mb-1">
+        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:25] }}{% if foglio.cliente.ragione_sociale|length > 25 %}...{% endif %}</span>
+        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:25] }}{% if foglio.titolo|length > 25 %}...{% endif %}</span>
+        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-3 mb-1">
+        <span><i class="bi bi-flag me-1"></i><strong>Priorità:</strong> {{ foglio.priorita or 'Priorità N/A' }}</span>
+        {% if foglio.macchine_collegate %}
+        <span><i class="bi bi-gear me-1"></i><strong>Macchine:</strong> {{ foglio.macchine_collegate.count() }}</span>
+        {% endif %}
+        {% if foglio.durata_intervento %}
+        <span><i class="bi bi-clock me-1"></i><strong>Durata:</strong> {{ foglio.durata_intervento }} min</span>
+        {% endif %}
+    </div>
+    <div class="d-flex flex-wrap gap-3">
+        {% if foglio.ricambi_utilizzati %}
+        <span><i class="bi bi-wrench me-1"></i><strong>Ricambi:</strong> {{ foglio.ricambi_utilizzati.count() }}</span>
+        {% endif %}
+        <span><i class="bi bi-check-circle me-1" style="color: #28a745;"></i><strong>Firme:</strong> Da completare</span>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_head %}
 <style>
-    /* Stili ottimizzati per tablet */
-    .tablet-container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
-    
+
+    /* HEADER STEP */
     .step-header {
         background: linear-gradient(135deg, #28a745, #1e7e34);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .progress-steps {
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
         display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        padding: 0 1rem;
-    }
-    
-    .step {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        margin: 0 0.5rem;
-        font-weight: bold;
-        position: relative;
-        background-color: #28a745;
-        color: white;
-        font-size: 1rem;
-        text-align: center;
+        justify-content: space-between;
+        gap: 1.5rem;
     }
-    
-    .step.active {
-        background-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+
+    .step-header-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
     }
-    
-    .step.completed {
-        background-color: #28a745;
-        color: white;
+
+    .step-header-sub {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin: 0.2rem 0 0;
     }
-    
-    .step-label {
-        position: absolute;
-        top: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.75rem;
-        font-weight: 500;
+
+    .step-header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .step-header-badge {
+        background: rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         white-space: nowrap;
-        color: #6c757d;
     }
     
-    .step.active .step-label {
-        color: #007bff;
-        font-weight: 600;
-    }
-    
-    .step.completed .step-label {
-        color: #28a745;
-        font-weight: 600;
-    }
-    
-    .step::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 100%;
-        width: 30px;
-        height: 3px;
-        background-color: #28a745;
-        margin-top: -1.5px;
-    }
-    
-    .step:last-child::after {
-        display: none;
-    }
     
     .signature-container {
         background: white;
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    
-    .signature-section {
-        margin-bottom: 3rem;
-    }
-    
-    .signature-section h4 {
-        color: #2c3e50;
+        padding: 1.75rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.08);
         margin-bottom: 1.5rem;
+    }
+
+    /* GRIGLIA PER TABLET LANDSCAPE */
+    .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-field {
+        width: 100%;
+    }
+
+    .form-label {
+        font-size: 1.05rem;
         font-weight: 600;
+        color: #1f2933;
+        margin-bottom: 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .form-label i {
+        font-size: 1rem;
+        color: #2563eb;
+    }
+
+    .form-control {
+        font-size: 1.05rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 10px;
+        border: 1.8px solid #e5e7eb;
+    }
+
+    .form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.15);
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .signatures-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .signature-section {
+        margin-bottom: 0;
+    }
+
+    .signature-section h4 {
+        color: #1f2933;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
     }
     
     .signature-canvas-container {
-        border: 3px solid #e9ecef;
-        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
         background: #fafafa;
-        padding: 1rem;
-        margin: 1rem 0;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
         position: relative;
     }
     
@@ -189,23 +223,77 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
     
-    .navigation-buttons {
+    /* AZIONI DEL FORM */
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-actions-container {
         display: flex;
         justify-content: space-between;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 15px;
-        margin-top: 2rem;
-        flex-wrap: wrap;
+        align-items: center;
         gap: 1rem;
     }
-    
-    .btn-step {
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
-        border-radius: 10px;
+
+    .form-actions-left,
+    .form-actions-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .btn-ghost {
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        font-weight: 500;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-success-large {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        color: white;
         font-weight: 600;
-        min-width: 150px;
+        font-size: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-success-large:hover:not(:disabled) {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-success-large:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
+
+    .navigation-hint {
+        font-size: 0.85rem;
+        color: #6b7280;
+        display: none;
     }
     
     .signature-status {
@@ -227,113 +315,79 @@
         color: #721c24;
     }
     
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .tablet-container {
-            padding: 0.5rem;
+    /* TABLET LANDSCAPE: griglia 2 colonne */
+    @media (min-width: 900px) {
+        .form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            column-gap: 1.5rem;
+            row-gap: 1.25rem;
         }
-        
-        .signature-container {
-            padding: 1.5rem;
+
+        .grid-span-2 {
+            grid-column: 1 / -1;
         }
-        
-        .signature-canvas {
-            height: 200px;
+
+        .navigation-hint {
+            display: block;
         }
-        
-        .signature-controls {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .signature-actions {
-            justify-content: center;
-        }
-        
-        .navigation-buttons {
-            flex-direction: column;
-        }
-        
-        .btn-step {
-            min-width: unset;
-        }
-    }
-    
-    /* Desktop optimizations */
-    @media (min-width: 768px) {
+
         .signature-canvas {
             height: 250px;
         }
     }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="tablet-container">
-    
-    <!-- Progress indicator -->
-    <div class="progress-steps">
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Info Base</small>
-        </div>
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Dettagli Tecnici</small>
-        </div>
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Ricambi</small>
-        </div>
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Commerciale</small>
-        </div>
-        <div class="step active">
-            5
-            <small class="step-label">Firme</small>
-        </div>
-    </div>
-    
+
     <!-- Form -->
     <form method="POST" id="step5Form">
         {{ form.hidden_tag() }}
-        
+
         <div class="signature-container">
-            <!-- Nome firmatario cliente -->
-            <div class="form-field">
-                {{ form.nome_firmatario_cliente.label(class="form-label") }}
-                {{ form.nome_firmatario_cliente(class="form-control" + (" is-invalid" if form.nome_firmatario_cliente.errors else ""), placeholder="Nome e cognome del cliente") }}
-                {% if form.nome_firmatario_cliente.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.nome_firmatario_cliente.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% endif %}
+            <div class="form-grid">
+                <!-- Nome firmatario cliente (full width) -->
+                <div class="form-field grid-span-2">
+                    <label class="form-label" for="nome_firmatario_cliente">
+                        <i class="bi bi-person-check"></i>
+                        {{ form.nome_firmatario_cliente.label.text }}
+                    </label>
+                    {{ form.nome_firmatario_cliente(class="form-control" + (" is-invalid" if form.nome_firmatario_cliente.errors else ""), placeholder="Nome e cognome del cliente", value=foglio.cliente.ragione_sociale) }}
+                    {% if form.nome_firmatario_cliente.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.nome_firmatario_cliente.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
             
+            <div class="signatures-grid">
             <!-- Firma Tecnico -->
             <div class="signature-section">
                 <h4>
                     <i class="bi bi-person-workspace me-2"></i>
                     Firma del Tecnico
                 </h4>
-                <p class="text-muted mb-3">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</p>
+                    <p class="text-muted mb-2 small">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</p>
                 
                 <div class="signature-canvas-container" id="tecnicoCanvasContainer">
-                    <canvas id="tecnicoCanvas" class="signature-canvas" width="600" height="200"></canvas>
+                        <canvas id="tecnicoCanvas" class="signature-canvas" width="400" height="150"></canvas>
                     <div class="signature-placeholder" id="tecnicoPlaceholder">
-                        <i class="bi bi-pen d-block mb-2" style="font-size: 2rem;"></i>
-                        Tocca e trascina per firmare
+                            <i class="bi bi-pen d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Firma qui
                     </div>
                 </div>
                 
                 <div class="signature-controls">
                     <div class="signature-status unsigned" id="tecnicoStatus">
-                        <i class="bi bi-x-circle me-2"></i>
-                        Firma non presente
+                            <i class="bi bi-x-circle me-1"></i>
+                            Non firmata
                     </div>
                     <div class="signature-actions">
-                        <button type="button" class="btn btn-outline-secondary btn-signature" id="clearTecnico">
+                            <button type="button" class="btn btn-outline-secondary btn-signature btn-sm" id="clearTecnico">
                             <i class="bi bi-eraser me-1"></i>
                             Cancella
                         </button>
@@ -347,49 +401,56 @@
                     <i class="bi bi-person-check me-2"></i>
                     Firma del Cliente
                 </h4>
-                <p class="text-muted mb-3">Il cliente conferma la presa in carico dell'intervento</p>
+                    <p class="text-muted mb-2 small">Conferma presa in carico</p>
                 
                 <div class="signature-canvas-container" id="clienteCanvasContainer">
-                    <canvas id="clienteCanvas" class="signature-canvas" width="600" height="200"></canvas>
+                        <canvas id="clienteCanvas" class="signature-canvas" width="400" height="150"></canvas>
                     <div class="signature-placeholder" id="clientePlaceholder">
-                        <i class="bi bi-pen d-block mb-2" style="font-size: 2rem;"></i>
-                        Il cliente deve firmare qui
+                            <i class="bi bi-pen d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Firma cliente
                     </div>
                 </div>
                 
                 <div class="signature-controls">
                     <div class="signature-status unsigned" id="clienteStatus">
-                        <i class="bi bi-x-circle me-2"></i>
-                        Firma non presente
+                            <i class="bi bi-x-circle me-1"></i>
+                            Non firmata
                     </div>
                     <div class="signature-actions">
-                        <button type="button" class="btn btn-outline-secondary btn-signature" id="clearCliente">
+                            <button type="button" class="btn btn-outline-secondary btn-signature btn-sm" id="clearCliente">
                             <i class="bi bi-eraser me-1"></i>
                             Cancella
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Hidden fields per le firme -->
         {{ form.firma_tecnico_data() }}
         {{ form.firma_cliente_data() }}
-        
-        <!-- Navigazione -->
-        <div class="navigation-buttons">
-            <a href="{{ url_for('fogli_tecnici.step4', id=foglio.id) }}" class="btn btn-outline-secondary btn-step">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
-            </a>
-            
-            <button type="submit" class="btn btn-success btn-step" id="saveButton" disabled>
-                <i class="bi bi-check-circle me-2"></i>
-                Salva Firme
-            </button>
-        </div>
     </form>
+
+    <!-- Azioni del Form -->
+    <div class="form-actions">
+        <div class="form-actions-container">
+            <div class="form-actions-left">
+                <a href="{{ url_for('fogli_tecnici.step4', id=foglio.id) }}" class="btn btn-ghost">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Indietro
+                </a>
+            </div>
+            <div class="form-actions-right">
+                <button type="submit" form="step5Form" class="btn btn-success-large" id="saveButton" disabled>
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span>Salva Firme</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <!-- JavaScript per gestione firme -->
 <script>

@@ -291,7 +291,7 @@
                             {% for ticket in tickets_scaduti %}
                             <tr class="table-warning">
                                 <td>
-                                    <a href="{{ url_for('tickets.detail', id=ticket.id) }}" 
+                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}"
                                        class="text-decoration-none">
                                         #{{ ticket.numero_ticket }}
                                     </a>
@@ -303,8 +303,7 @@
                                 </td>
                                 <td>{{ ticket.due_date.strftime('%d/%m/%Y') if ticket.due_date }}</td>
                                 <td>
-                                    {% set days_overdue = (moment().date() - ticket.due_date.date()).days if ticket.due_date else 0 %}
-                                    <span class="badge bg-danger">+{{ days_overdue }} giorni</span>
+                                    <span class="badge bg-danger">+{{ ticket.days_overdue }} giorni</span>
                                 </td>
                             </tr>
                             {% endfor %}

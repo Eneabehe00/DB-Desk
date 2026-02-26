@@ -307,7 +307,7 @@
                         <th>Stato</th>
                         <th>Tecnico</th>
                         <th>Progresso</th>
-                        <th>Azioni</th>
+                        <th>Continua</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -351,54 +351,28 @@
                             <div>{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
                         </td>
                         <td>
-                            {% set progress = (foglio.step_completati|length / 5 * 100)|int %}
+                            {# Calcolo progress dinamico con fallback su step_corrente e stato finale #}
+                            {% set total_steps = 5 %}
+                            {% set completed_steps = (foglio.step_completati|length if foglio.step_completati else 0) %}
+                            {% set inferred_completed = foglio.step_corrente - 1 if foglio.step_corrente and foglio.step_corrente > 1 else 0 %}
+                            {% set base_completed = [completed_steps, inferred_completed]|max %}
+                            {% if foglio.stato in ['Completato', 'Inviato', 'Archiviato'] %}
+                                {% set progress = 100 %}
+                            {% else %}
+                                {% set progress = ((base_completed / total_steps) * 100)|round(0, 'floor') %}
+                            {% endif %}
                             <div class="progress-mini" title="Progresso: {{ progress }}%">
                                 <div class="progress-mini-bar" style="width: {{ progress }}%"></div>
                             </div>
                             <small class="text-muted">{{ progress }}%</small>
                         </td>
                         <td onclick="event.stopPropagation()">
-                            <div class="action-buttons">
-                                <!-- Visualizza -->
-                                <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" 
-                                   class="btn-action btn-view" title="Visualizza">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                
-                                <!-- Continua/Modifica -->
-                                {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
-                                <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
-                                   class="btn-action btn-continue" title="Continua">
-                                    <i class="bi bi-play-fill"></i>
-                                </a>
-                                {% endif %}
-                                
-                                <!-- Modifica rapida -->
-                                <a href="{{ url_for('fogli_tecnici.edit', id=foglio.id) }}" 
-                                   class="btn-action btn-edit" title="Modifica">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                
-                                <!-- PDF -->
-                                {% if foglio.pdf_generato %}
-                                <a href="{{ url_for('fogli_tecnici.download_pdf', id=foglio.id) }}" 
-                                   class="btn-action btn-pdf" title="Scarica PDF">
-                                    <i class="bi bi-download"></i>
-                                </a>
-                                {% else %}
-                                <a href="{{ url_for('fogli_tecnici.generate_pdf', id=foglio.id) }}" 
-                                   class="btn-action btn-pdf" title="Genera PDF">
-                                    <i class="bi bi-file-earmark-pdf"></i>
-                                </a>
-                                {% endif %}
-                                
-                                <!-- Elimina -->
-                                <button type="button" class="btn-action btn-delete" 
-                                        onclick="deleteSheet({{ foglio.id }}, '{{ foglio.numero_foglio }}')" 
-                                        title="Elimina">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                            {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
+                            <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
+                               class="btn-action btn-continue" title="Continua">
+                                <i class="bi bi-play-fill"></i>
+                            </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -504,48 +478,5 @@ document.addEventListener('DOMContentLoaded', function() {
             element.style.cursor = 'help';
         }
     });
-});
-
-// Funzione per eliminare un foglio tecnico
-function deleteSheet(id, numero) {
-    // Mostra dialog di conferma personalizzato
-    const confirmed = confirm(
-        `Sei sicuro di voler eliminare il foglio tecnico ${numero}?\n\n` +
-        `⚠️ ATTENZIONE: Questa azione è irreversibile!\n\n` +
-        `Verranno eliminati:\n` +
-        `• Il foglio tecnico e tutti i suoi dati\n` +
-        `• Le associazioni con macchine e ricambi\n` +
-        `• Le firme raccolte\n` +
-        `• Il PDF generato (se presente)\n\n` +
-        `Clicca OK per confermare l'eliminazione.`
-    );
-    
-    if (confirmed) {
-        // Crea e invia form di eliminazione
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/fogli-tecnici/delete/${id}`;
-        
-        // Aggiungi token CSRF se presente
-        const csrfToken = document.querySelector('meta[name=csrf-token]');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token';
-            csrfInput.value = csrfToken.getAttribute('content');
-            form.appendChild(csrfInput);
-        }
-        
-        // Mostra indicatore di caricamento
-        const button = document.querySelector(`button[onclick*="${id}"]`);
-        if (button) {
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
-            button.disabled = true;
-        }
-        
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
 </script>
 {% endblock %}

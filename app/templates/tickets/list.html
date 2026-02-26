@@ -8,8 +8,8 @@
 
 /* Cursore pointer solo per gli header ordinabili */
 .sortable-header {
-    cursor:pointer !important;
-    user-select: pointer !important;
+    cursor: pointer !important;
+    user-select: none !important;
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
     -ms-user-select: none !important;
@@ -17,12 +17,17 @@
     transition: all 0.2s ease;
 }
 
+.sortable-header,
 .sortable-header * {
     cursor: pointer !important;
-    user-select: pointer !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
+}
+
+.sortable-header:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer !important;
 }
 
 .sortable-header:hover {
@@ -72,6 +77,7 @@
 {% endblock %}
 
 {% block content %}
+<div style="padding-bottom: 50px;">
 <!-- Filtri e azioni -->
 <div class="card mb-4">
     <div class="card-header">

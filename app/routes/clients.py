@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
 from flask_login import login_required, current_user
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from app import db
 from app.models.cliente import Cliente
 from app.models.ticket import Ticket
@@ -299,3 +299,33 @@ def clients_stats():
                          clienti_per_provincia=clienti_per_provincia,
                          clienti_per_settore=clienti_per_settore,
                          top_clienti=top_clienti)
+
+
+@clients_bp.route('/api/search')
+@login_required
+def api_search_clients():
+    """API per la ricerca dei clienti"""
+    query = request.args.get('q', '').strip()
+    
+    # Se la query è vuota, restituisci tutti i clienti attivi (limitati)
+    if not query:
+        clienti = Cliente.query.filter_by(is_active=True).order_by(Cliente.ragione_sociale).limit(50).all()
+    else:
+        search_pattern = f"%{query}%"
+        clienti = Cliente.query.filter(
+            and_(
+                Cliente.is_active == True,
+                or_(
+                    Cliente.ragione_sociale.like(search_pattern),
+                    Cliente.email.like(search_pattern),
+                    Cliente.partita_iva.like(search_pattern)
+                )
+            )
+        ).order_by(Cliente.ragione_sociale).limit(20).all()
+    
+    return jsonify([{
+        'id': c.id,
+        'ragione_sociale': c.ragione_sociale,
+        'email': c.email,
+        'text': c.ragione_sociale
+    } for c in clienti])

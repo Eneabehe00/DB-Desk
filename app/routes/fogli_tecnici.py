@@ -111,7 +111,6 @@ def step1():
         # Crea nuovo foglio tecnico
         foglio = FoglioTecnico(
             titolo=form.titolo.data,
-            descrizione=form.descrizione.data,
             data_intervento=form.data_intervento.data,
             cliente_id=form.cliente.data,
             tecnico_id=current_user.id,  # Il tecnico corrente
@@ -145,7 +144,7 @@ def step1():
                 try:
                     db.session.add(foglio)
                     db.session.commit()
-                    
+
                     flash('Step 1 completato! Procedi con i dettagli tecnici.', 'success')
                     return redirect(url_for('fogli_tecnici.step2', id=foglio.id))
                     
@@ -185,8 +184,6 @@ def step2(id):
     
     if request.method == 'GET':
         # Pre-popola form con dati esistenti
-        form.durata_intervento.data = foglio.durata_intervento
-        form.km_percorsi.data = foglio.km_percorsi
         form.tipo_operazione_macchine.data = foglio.tipo_operazione_macchine
         form.macchina_manuale.data = foglio.macchina_manuale
         
@@ -199,8 +196,6 @@ def step2(id):
         from app.models.foglio_tecnico import foglio_macchine
         
         # Aggiorna foglio
-        foglio.durata_intervento = form.durata_intervento.data
-        foglio.km_percorsi = form.km_percorsi.data
         foglio.tipo_operazione_macchine = form.tipo_operazione_macchine.data
         foglio.macchina_manuale = form.macchina_manuale.data
         foglio.updated_at = datetime.utcnow()
@@ -436,13 +431,17 @@ def step4(id):
         # Pre-popola form con dati esistenti
         form.modalita_pagamento.data = foglio.modalita_pagamento
         form.importo_intervento.data = foglio.importo_intervento
-        form.pagamento_immediato.data = foglio.pagamento_immediato
+        form.pagamento_immediato.data = False  # Sempre non checkato di default
+        form.durata_intervento.data = foglio.durata_intervento
+        form.km_percorsi.data = foglio.km_percorsi
     
     if form.validate_on_submit():
         # Aggiorna foglio
         foglio.modalita_pagamento = form.modalita_pagamento.data
         foglio.importo_intervento = form.importo_intervento.data
         foglio.pagamento_immediato = form.pagamento_immediato.data
+        foglio.durata_intervento = form.durata_intervento.data
+        foglio.km_percorsi = form.km_percorsi.data
         foglio.updated_at = datetime.utcnow()
         
         # Marca step come completato

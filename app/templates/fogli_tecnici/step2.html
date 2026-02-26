@@ -3,339 +3,285 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Dettagli Tecnici{% endblock %}
 
+{% block page_subtitle %}
+<div style="font-size: 0.95rem; line-height: 1.4;">
+    <div class="d-flex flex-wrap gap-3">
+        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:35] }}{% if foglio.cliente.ragione_sociale|length > 35 %}...{% endif %}</span>
+        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:35] }}{% if foglio.titolo|length > 35 %}...{% endif %}</span>
+        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_head %}
 <style>
-    /* Stili ottimizzati per tablet - Step 2 */
-    .tablet-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
-    
+
+    /* HEADER STEP */
     .step-header {
         background: linear-gradient(135deg, #007bff, #0056b3);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .progress-steps {
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
         display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        padding: 0 1rem;
-    }
-    
-    .step {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        margin: 0 0.5rem;
-        font-weight: bold;
-        position: relative;
-        background-color: #28a745;
-        color: white;
-        font-size: 1rem;
-        text-align: center;
+        justify-content: space-between;
+        gap: 1.5rem;
     }
-    
-    .step.active {
-        background-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+
+    .step-header-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
     }
-    
-    .step.pending {
-        background-color: #e9ecef;
-        color: #6c757d;
+
+    .step-header-sub {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin: 0.2rem 0 0;
     }
-    
-    .step.completed {
-        background-color: #28a745;
-        color: white;
+
+    .step-header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.85rem;
     }
-    
-    .step-label {
-        position: absolute;
-        top: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.75rem;
-        font-weight: 500;
+
+    .step-header-badge {
+        background: rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         white-space: nowrap;
-        color: #6c757d;
     }
     
-    .step.active .step-label {
-        color: #007bff;
-        font-weight: 600;
-    }
     
-    .step.completed .step-label {
-        color: #28a745;
-        font-weight: 600;
-    }
-    
-    .step::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 100%;
-        width: 30px;
-        height: 3px;
-        background-color: #28a745;
-        margin-top: -1.5px;
-    }
-    
-    .step.pending::after {
-        background-color: #e9ecef;
-    }
-    
-    .step:last-child::after {
-        display: none;
-    }
-    
+    /* CARD FORM */
     .form-container {
         background: white;
-        padding: 2.5rem;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
+        padding: 1.75rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1.5rem;
     }
-    
+
+    /* GRIGLIA PER TABLET LANDSCAPE */
+    .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
     .form-field {
-        margin-bottom: 2.5rem;
+        width: 100%;
     }
-    
+
     .form-label {
-        font-size: 1.3rem;
+        font-size: 1.05rem;
         font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.75rem;
-        display: block;
+        color: #1f2933;
+        margin-bottom: 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
     }
-    
-    .form-control, .form-select {
-        font-size: 1.2rem;
-        padding: 1rem 1.25rem;
-        border-radius: 10px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-    
-    .form-text {
+
+    .form-label i {
         font-size: 1rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
+        color: #2563eb;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1.05rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 10px;
+        border: 1.8px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.15);
+    }
+
+    .form-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
     }
     
     .machine-selector {
-        border: 2px solid #e9ecef;
-        border-radius: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
         background: #f8f9fa;
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
-        padding: 1rem;
+        padding: 0.5rem;
     }
-    
+
     .machine-item {
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        margin-bottom: 0.25rem;
         background: white;
-        border: 2px solid transparent;
+        border: 1px solid transparent;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
+        font-size: 0.9rem;
     }
-    
+
     .machine-item:hover {
         border-color: #007bff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        background: #f0f8ff;
     }
-    
+
     .machine-item.selected {
         border-color: #28a745;
         background: #f8fff8;
+        font-weight: 500;
     }
-    
+
     .machine-checkbox {
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
         accent-color: #28a745;
     }
-    
+
     .machine-info {
         flex: 1;
+        min-width: 0;
     }
-    
+
     .machine-code {
         font-weight: 600;
         color: #2c3e50;
-        font-size: 1.1rem;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
+
     .machine-details {
         color: #6c757d;
-        font-size: 1rem;
-        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        margin-top: 0.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
-    .navigation-buttons {
-        display: flex;
-        justify-content: space-between;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 15px;
+    /* AZIONI DEL FORM */
+    .form-actions {
         margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
     }
-    
-    .btn-step {
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
-        border-radius: 10px;
-        font-weight: 600;
-        min-width: 150px;
-    }
-    
-    .summary-card {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 1.5rem;
-        border-radius: 0 10px 10px 0;
-        margin-bottom: 2rem;
-    }
-    
-    .summary-card h6 {
-        color: #1976d2;
-        margin-bottom: 1rem;
-    }
-    
-    .summary-item {
+
+    .form-actions-container {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
+        align-items: center;
+        gap: 1rem;
     }
-    
-    .summary-label {
+
+    .form-actions-left,
+    .form-actions-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .btn-ghost {
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        color: #6b7280;
         font-weight: 500;
-        color: #555;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-primary-large {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary-large:hover:not(:disabled) {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-primary-large:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    }
+
+    .navigation-hint {
+        font-size: 0.85rem;
+        color: #6b7280;
+        display: none;
     }
     
-    .summary-value {
-        color: #333;
-    }
     
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .tablet-container {
-            padding: 0.5rem;
+    /* TABLET LANDSCAPE: griglia 2 colonne */
+    @media (min-width: 900px) {
+        .form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            column-gap: 1.5rem;
+            row-gap: 1.25rem;
         }
-        
-        .step-header {
-            padding: 1.5rem;
+
+        .grid-span-2 {
+            grid-column: 1 / -1;
         }
-        
-        .form-container {
-            padding: 1.5rem;
-        }
-        
-        .step {
-            width: 45px;
-            height: 45px;
-            font-size: 0.9rem;
-        }
-        
-        .step-label {
-            font-size: 0.7rem;
-            top: 55px;
-        }
-        
-        .step::after {
-            width: 20px;
-        }
-        
-        .navigation-buttons {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .machine-selector {
-            max-height: 250px;
-        }
-        
-        .machine-item {
-            padding: 0.75rem;
+
+        .navigation-hint {
+            display: block;
         }
     }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="tablet-container">
-    
-    <!-- Progress indicator -->
-    <div class="progress-steps">
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Info Base</small>
-        </div>
-        <div class="step active">
-            2
-            <small class="step-label">Dettagli Tecnici</small>
-        </div>
-        <div class="step pending">
-            3
-            <small class="step-label">Ricambi</small>
-        </div>
-        <div class="step pending">
-            4
-            <small class="step-label">Commerciale</small>
-        </div>
-        <div class="step pending">
-            5
-            <small class="step-label">Firme</small>
-        </div>
-    </div>
-    
-    <!-- Riepilogo Step Precedente -->
-    <div class="summary-card">
-        <h6>
-            <i class="bi bi-check-circle me-2"></i>
-            Riepilogo Informazioni Base
-        </h6>
-        <div class="summary-item">
-            <span class="summary-label">Cliente:</span>
-            <span class="summary-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Titolo:</span>
-            <span class="summary-value">{{ foglio.titolo }}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Descrizione:</span>
-            <span class="summary-value">{{ foglio.descrizione[:100] }}{% if foglio.descrizione|length > 100 %}...{% endif %}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Data Intervento:</span>
-            <span class="summary-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</span>
-        </div>
-    </div>
-    
+
+
     <!-- Operazioni in Corso -->
     <div class="alert alert-info" id="operazioniInCorso" style="display: none;">
         <h6>
@@ -352,143 +298,101 @@
             </button>
         </div>
     </div>
-    
+
     <!-- Form -->
     <form method="POST" id="step2Form">
         {{ form.hidden_tag() }}
-        
+
         <div class="form-container">
-            <!-- Macchine Coinvolte -->
-            <div class="form-field">
-                <label class="form-label">
-                    <i class="bi bi-gear me-1"></i>
-                    Macchine Coinvolte
-                </label>
-                <div class="machine-selector" id="machineSelector">
-                    <div id="machinesList">
-                        <!-- Le macchine verranno caricate dinamicamente -->
-                        <div class="text-center text-muted p-4">
-                            <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
-                            Caricamento macchine del cliente...
+            <div class="form-grid">
+                <!-- Macchine Coinvolte (full width) -->
+                <div class="form-field grid-span-2">
+                    <label class="form-label">
+                        <i class="bi bi-gear"></i>
+                        Macchine Coinvolte
+                    </label>
+                    <div class="machine-selector" id="machineSelector">
+                        <div id="machinesList">
+                            <!-- Le macchine verranno caricate dinamicamente -->
+                            <div class="text-center text-muted p-4">
+                                <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
+                                Caricamento macchine del cliente...
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-text">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Seleziona le macchine su cui è stato effettuato l'intervento
+
+                <!-- Macchina Manuale (full width) -->
+                <div class="form-field grid-span-2">
+                    <label class="form-label" for="macchina_manuale">
+                        <i class="bi bi-plus-circle"></i>
+                        {{ form.macchina_manuale.label.text }}
+                    </label>
+                    {{ form.macchina_manuale(class="form-control" + (" is-invalid" if form.macchina_manuale.errors else ""), placeholder="es. Stampante HP LaserJet Pro 400") }}
+                    {% if form.macchina_manuale.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.macchina_manuale.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
-            
-            <!-- Macchina Manuale -->
-            <div class="form-field">
-                {{ form.macchina_manuale.label(class="form-label") }}
-                {{ form.macchina_manuale(class="form-control" + (" is-invalid" if form.macchina_manuale.errors else ""), placeholder="es. Stampante HP LaserJet Pro 400") }}
-                {% if form.macchina_manuale.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.macchina_manuale.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-plus-circle me-1"></i>
-                        {{ form.macchina_manuale.description }}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Tipo Operazione Macchine -->
-            <div class="form-field">
-                {{ form.tipo_operazione_macchine.label(class="form-label") }}
-                {{ form.tipo_operazione_macchine(class="form-select" + (" is-invalid" if form.tipo_operazione_macchine.errors else "")) }}
-                {% if form.tipo_operazione_macchine.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.tipo_operazione_macchine.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-tools me-1"></i>
-                        {{ form.tipo_operazione_macchine.description }}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Durata Intervento -->
-            <div class="form-field">
-                {{ form.durata_intervento.label(class="form-label") }}
-                <div class="input-group">
-                    {{ form.durata_intervento(class="form-control" + (" is-invalid" if form.durata_intervento.errors else ""), placeholder="es. 120") }}
-                    <span class="input-group-text">minuti</span>
+
+                <!-- Tipo Operazione Macchine (full width) -->
+                <div class="form-field grid-span-2">
+                    <label class="form-label" for="tipo_operazione_macchine">
+                        <i class="bi bi-tools"></i>
+                        {{ form.tipo_operazione_macchine.label.text }}
+                    </label>
+                    {{ form.tipo_operazione_macchine(class="form-select" + (" is-invalid" if form.tipo_operazione_macchine.errors else "")) }}
+                    {% if form.tipo_operazione_macchine.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.tipo_operazione_macchine.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                {% if form.durata_intervento.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.durata_intervento.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-clock me-1"></i>
-                        Tempo impiegato per completare l'intervento (opzionale)
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Km Percorsi -->
-            <div class="form-field">
-                {{ form.km_percorsi.label(class="form-label") }}
-                <div class="input-group">
-                    {{ form.km_percorsi(class="form-control" + (" is-invalid" if form.km_percorsi.errors else ""), placeholder="es. 25") }}
-                    <span class="input-group-text">km</span>
-                </div>
-                {% if form.km_percorsi.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.km_percorsi.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-geo-alt me-1"></i>
-                        Kilometri percorsi per raggiungere il cliente (opzionale)
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Macchine Sostitutive (visibile solo per riparazione con prestito) -->
-            <div class="form-field" id="macchineSubstituteSection" style="display: none;">
-                <label class="form-label">
-                    <i class="bi bi-arrow-repeat me-1"></i>
-                    Macchine Sostitutive
-                </label>
-                <div class="machine-selector" id="substituteMachineSelector">
-                    <div id="substituteMachinesList">
-                        <!-- Le macchine sostitutive verranno caricate dinamicamente -->
-                        <div class="text-center text-muted p-4">
-                            <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
-                            Caricamento macchine disponibili...
+
+                <!-- Macchine Sostitutive (visibile solo per riparazione con prestito) -->
+                <div class="form-field" id="macchineSubstituteSection" style="display: none;">
+                    <label class="form-label">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Macchine Sostitutive
+                    </label>
+                    <div class="machine-selector" id="substituteMachineSelector">
+                        <div id="substituteMachinesList">
+                            <!-- Le macchine sostitutive verranno caricate dinamicamente -->
+                            <div class="text-center text-muted p-4">
+                                <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
+                                Caricamento macchine disponibili...
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="form-text">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Seleziona le macchine da dare in prestito durante la riparazione
                 </div>
             </div>
         </div>
-        
+
         <!-- Hidden fields per macchine selezionate -->
         <input type="hidden" name="macchine" id="selectedMachines" value="">
         <input type="hidden" name="macchine_sostitutive" id="selectedSubstituteMachines" value="">
-        
-        <!-- Navigazione -->
-        <div class="navigation-buttons">
-            <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-outline-secondary btn-step">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
-            </a>
-            
-            <button type="submit" class="btn btn-primary btn-step" id="nextButton">
-                Avanti
-                <i class="bi bi-arrow-right ms-2"></i>
-            </button>
-        </div>
     </form>
+
+    <!-- Azioni del Form -->
+    <div class="form-actions">
+        <div class="form-actions-container">
+            <div class="form-actions-left">
+                <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-ghost">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Indietro
+                </a>
+            </div>
+            <div class="form-actions-right">
+                <button type="submit" form="step2Form" class="btn btn-primary-large" id="nextButton">
+                    <span>Avanti</span>
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

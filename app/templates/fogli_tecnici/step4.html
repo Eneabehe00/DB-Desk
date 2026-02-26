@@ -3,187 +3,208 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Commerciale{% endblock %}
 
+{% block page_subtitle %}
+<div style="font-size: 0.95rem; line-height: 1.4;">
+    <div class="d-flex flex-wrap gap-3 mb-1">
+        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:30] }}{% if foglio.cliente.ragione_sociale|length > 30 %}...{% endif %}</span>
+        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:30] }}{% if foglio.titolo|length > 30 %}...{% endif %}</span>
+        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-3">
+        <span><i class="bi bi-flag me-1"></i><strong>Priorità:</strong> {{ foglio.priorita or 'Priorità N/A' }}</span>
+        {% if foglio.macchine_collegate %}
+        <span><i class="bi bi-gear me-1"></i><strong>Macchine:</strong> {{ foglio.macchine_collegate.count() }}</span>
+        {% endif %}
+        {% if foglio.durata_intervento %}
+        <span><i class="bi bi-clock me-1"></i><strong>Durata:</strong> {{ foglio.durata_intervento }} min</span>
+        {% endif %}
+        {% if foglio.ricambi_utilizzati %}
+        <span><i class="bi bi-wrench me-1"></i><strong>Ricambi:</strong> {{ foglio.ricambi_utilizzati.count() }}</span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_head %}
 <style>
-    /* Stili ottimizzati per tablet - Step 4 */
-    .tablet-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
-    
+
+    /* HEADER STEP */
     .step-header {
         background: linear-gradient(135deg, #007bff, #0056b3);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .progress-steps {
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
         display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        padding: 0 1rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .step-header-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .step-header-sub {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin: 0.2rem 0 0;
+    }
+
+    .step-header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .step-header-badge {
+        background: rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
     }
     
-    .step {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
+    
+    /* CARD FORM */
+    .form-container {
+        background: white;
+        padding: 1.75rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1.5rem;
+    }
+
+    /* GRIGLIA PER TABLET LANDSCAPE */
+    .form-grid {
         display: flex;
         flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-field {
+        width: 100%;
+    }
+
+    .form-label {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1f2933;
+        margin-bottom: 0.35rem;
+        display: flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 0.5rem;
-        font-weight: bold;
-        position: relative;
-        background-color: #28a745;
-        color: white;
+        gap: 0.4rem;
+    }
+
+    .form-label i {
         font-size: 1rem;
-        text-align: center;
+        color: #2563eb;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1.05rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 10px;
+        border: 1.8px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.15);
+    }
+
+    .form-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
     }
     
-    .step.active {
-        background-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    /* AZIONI DEL FORM */
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
     }
-    
-    .step.pending {
-        background-color: #e9ecef;
-        color: #6c757d;
+
+    .form-actions-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
     }
-    
-    .step.completed {
-        background-color: #28a745;
-        color: white;
+
+    .form-actions-left,
+    .form-actions-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
-    
-    .step-label {
-        position: absolute;
-        top: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.75rem;
+
+    .btn-ghost {
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        color: #6b7280;
         font-weight: 500;
-        white-space: nowrap;
-        color: #6c757d;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
     }
-    
-    .step.active .step-label {
-        color: #007bff;
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-primary-large {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        color: white;
         font-weight: 600;
+        font-size: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
-    
-    .step.completed .step-label {
-        color: #28a745;
-        font-weight: 600;
+
+    .btn-primary-large:hover:not(:disabled) {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
     }
-    
-    .step::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 100%;
-        width: 30px;
-        height: 3px;
-        background-color: #28a745;
-        margin-top: -1.5px;
+
+    .btn-primary-large:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
     }
-    
-    .step.pending::after {
-        background-color: #e9ecef;
-    }
-    
-    .step:last-child::after {
+
+    .navigation-hint {
+        font-size: 0.85rem;
+        color: #6b7280;
         display: none;
     }
     
-    .form-container {
-        background: white;
-        padding: 2.5rem;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    
-    .form-field {
-        margin-bottom: 2.5rem;
-    }
-    
-    .form-label {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-    
-    .form-control, .form-select {
-        font-size: 1.2rem;
-        padding: 1rem 1.25rem;
-        border-radius: 10px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-    
-    .form-text {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .navigation-buttons {
-        display: flex;
-        justify-content: space-between;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 15px;
-        margin-top: 2rem;
-    }
-    
-    .btn-step {
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
-        border-radius: 10px;
-        font-weight: 600;
-        min-width: 150px;
-    }
-    
-    .summary-card {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 1.5rem;
-        border-radius: 0 10px 10px 0;
-        margin-bottom: 2rem;
-    }
-    
-    .summary-card h6 {
-        color: #1976d2;
-        margin-bottom: 1rem;
-    }
-    
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-    }
-    
-    .summary-label {
-        font-weight: 500;
-        color: #555;
-    }
-    
-    .summary-value {
-        color: #333;
-    }
     
     .currency-input {
         position: relative;
@@ -220,188 +241,154 @@
         margin-left: 0.5rem;
     }
     
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .tablet-container {
-            padding: 0.5rem;
+    /* TABLET LANDSCAPE: griglia 2 colonne */
+    @media (min-width: 900px) {
+        .form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            column-gap: 1.5rem;
+            row-gap: 1.25rem;
         }
-        
-        .step-header {
-            padding: 1.5rem;
+
+        .grid-span-2 {
+            grid-column: 1 / -1;
         }
-        
-        .form-container {
-            padding: 1.5rem;
-        }
-        
-        .step {
-            width: 45px;
-            height: 45px;
-            font-size: 0.9rem;
-        }
-        
-        .step-label {
-            font-size: 0.7rem;
-            top: 55px;
-        }
-        
-        .step::after {
-            width: 20px;
-        }
-        
-        .navigation-buttons {
-            flex-direction: column;
-            gap: 1rem;
+
+        .navigation-hint {
+            display: block;
         }
     }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="tablet-container">
-    
-    <!-- Progress indicator -->
-    <div class="progress-steps">
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Info Base</small>
-        </div>
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Dettagli Tecnici</small>
-        </div>
-        <div class="step completed">
-            <i class="bi bi-check"></i>
-            <small class="step-label">Ricambi</small>
-        </div>
-        <div class="step active">
-            4
-            <small class="step-label">Commerciale</small>
-        </div>
-        <div class="step pending">
-            5
-            <small class="step-label">Firme</small>
-        </div>
-    </div>
-    
-    <!-- Riepilogo Step Precedenti -->
-    <div class="summary-card">
-        <h6>
-            <i class="bi bi-check-circle me-2"></i>
-            Riepilogo Intervento
-        </h6>
-        <div class="summary-item">
-            <span class="summary-label">Cliente:</span>
-            <span class="summary-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Categoria:</span>
-            <span class="summary-value">{{ foglio.categoria or 'N/A' }}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Durata:</span>
-            <span class="summary-value">
-                {% if foglio.durata_intervento %}
-                    {{ foglio.durata_intervento }} minuti
-                {% else %}
-                    Non specificata
-                {% endif %}
-            </span>
-        </div>
-        {% if foglio.ricambi_utilizzati %}
-        <div class="summary-item">
-            <span class="summary-label">Ricambi:</span>
-            <span class="summary-value">{{ foglio.ricambi_utilizzati.count() }} utilizzati</span>
-        </div>
-        {% endif %}
-    </div>
-    
+
+
     <!-- Form -->
     <form method="POST" id="step4Form">
         {{ form.hidden_tag() }}
-        
+
         <div class="form-container">
-            <!-- Modalità di Pagamento -->
-            <div class="form-field">
-                {{ form.modalita_pagamento.label(class="form-label") }}
-                {{ form.modalita_pagamento(class="form-select" + (" is-invalid" if form.modalita_pagamento.errors else "")) }}
-                {% if form.modalita_pagamento.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.modalita_pagamento.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-credit-card me-1"></i>
-                        Seleziona come verrà effettuato il pagamento (opzionale)
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Importo Intervento -->
-            <div class="form-field">
-                {{ form.importo_intervento.label(class="form-label") }}
-                <div class="currency-input">
-                    <span class="currency-symbol">€</span>
-                    {{ form.importo_intervento(class="form-control" + (" is-invalid" if form.importo_intervento.errors else ""), placeholder="0,00", step="0.01") }}
+            <div class="form-grid">
+                <!-- Modalità di Pagamento (colonna sinistra) -->
+                <div class="form-field">
+                    <label class="form-label" for="modalita_pagamento">
+                        <i class="bi bi-credit-card"></i>
+                        {{ form.modalita_pagamento.label.text }}
+                    </label>
+                    {{ form.modalita_pagamento(class="form-select" + (" is-invalid" if form.modalita_pagamento.errors else "")) }}
+                    {% if form.modalita_pagamento.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.modalita_pagamento.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                {% if form.importo_intervento.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.importo_intervento.errors %}{{ error }}{% endfor %}
+
+                <!-- Importo Intervento (colonna destra) -->
+                <div class="form-field">
+                    <label class="form-label" for="importo_intervento">
+                        <i class="bi bi-calculator"></i>
+                        {{ form.importo_intervento.label.text }}
+                    </label>
+                    <div class="currency-input">
+                        <span class="currency-symbol">€</span>
+                        {{ form.importo_intervento(class="form-control" + (" is-invalid" if form.importo_intervento.errors else ""), placeholder="0,00", step="0.01") }}
                     </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-calculator me-1"></i>
-                        Importo totale dell'intervento comprensivo di manodopera e ricambi (opzionale)
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Stato Pagamento -->
-            <div class="form-field">
-                <div class="form-check form-switch">
-                    {{ form.pagamento_immediato(class="form-check-input" + (" is-invalid" if form.pagamento_immediato.errors else ""), id="pagamento_immediato") }}
-                    {{ form.pagamento_immediato.label(class="form-check-label", for="pagamento_immediato") }}
+                    {% if form.importo_intervento.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.importo_intervento.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                {% if form.pagamento_immediato.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.pagamento_immediato.errors %}{{ error }}{% endfor %}
+
+                <!-- Durata Intervento (colonna sinistra) -->
+                <div class="form-field">
+                    <label class="form-label" for="durata_intervento">
+                        <i class="bi bi-clock"></i>
+                        Durata intervento
+                    </label>
+                    <div class="input-group">
+                        {{ form.durata_intervento(class="form-control" + (" is-invalid" if form.durata_intervento.errors else ""), placeholder="es. 120") }}
+                        <span class="input-group-text">minuti</span>
                     </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-cash-coin me-1"></i>
-                        {{ form.pagamento_immediato.description }}
+                    {% if form.durata_intervento.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.durata_intervento.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Km Percorsi (colonna destra) -->
+                <div class="form-field">
+                    <label class="form-label" for="km_percorsi">
+                        <i class="bi bi-geo-alt"></i>
+                        Km percorsi
+                    </label>
+                    <div class="input-group">
+                        {{ form.km_percorsi(class="form-control" + (" is-invalid" if form.km_percorsi.errors else ""), placeholder="es. 25") }}
+                        <span class="input-group-text">km</span>
                     </div>
-                {% endif %}
+                    {% if form.km_percorsi.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.km_percorsi.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Intervento già pagato (full width) -->
+                <div class="form-field grid-span-2">
+                    <div class="form-check form-switch">
+                        {{ form.pagamento_immediato(class="form-check-input" + (" is-invalid" if form.pagamento_immediato.errors else ""), id="pagamento_immediato") }}
+                        <label class="form-check-label" for="pagamento_immediato">
+                            Intervento già pagato
+                        </label>
+                    </div>
+                    {% if form.pagamento_immediato.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.pagamento_immediato.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        
-        <!-- Navigazione -->
-        <div class="navigation-buttons">
-            <a href="{{ url_for('fogli_tecnici.step3', id=foglio.id) }}" class="btn btn-outline-secondary btn-step">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
-            </a>
-            
-            <button type="submit" class="btn btn-primary btn-step" id="nextButton">
-                Avanti
-                <i class="bi bi-arrow-right ms-2"></i>
-            </button>
         </div>
     </form>
+
+    <!-- Azioni del Form -->
+    <div class="form-actions">
+        <div class="form-actions-container">
+            <div class="form-actions-left">
+                <a href="{{ url_for('fogli_tecnici.step3', id=foglio.id) }}" class="btn btn-ghost">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Indietro
+                </a>
+            </div>
+            <div class="form-actions-right">
+                <button type="submit" form="step4Form" class="btn btn-primary-large" id="nextButton">
+                    <span>Avanti</span>
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const importoInput = document.getElementById('importo_intervento');
-    
+    const durataInput = document.getElementById('durata_intervento');
+    const kmInput = document.getElementById('km_percorsi');
+
     // Formattazione automatica importo
     if (importoInput) {
         importoInput.addEventListener('input', function() {
             let value = this.value.replace(/[^\d.,]/g, '');
-            
+
             // Sostituisce virgole con punti per la validazione
             value = value.replace(',', '.');
-            
+
             // Limita a 2 decimali
             if (value.includes('.')) {
                 const parts = value.split('.');
@@ -409,10 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = parts[0] + '.' + parts[1].substring(0, 2);
                 }
             }
-            
+
             this.value = value;
         });
-        
+
         // Formatta il valore quando perde il focus
         importoInput.addEventListener('blur', function() {
             if (this.value && !isNaN(parseFloat(this.value))) {
@@ -421,7 +408,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
+    // Formattazione automatica durata (solo numeri interi)
+    if (durataInput) {
+        durataInput.addEventListener('input', function() {
+            let value = this.value.replace(/[^\d]/g, '');
+            this.value = value;
+        });
+    }
+
+    // Formattazione automatica km (solo numeri, permette decimali)
+    if (kmInput) {
+        kmInput.addEventListener('input', function() {
+            let value = this.value.replace(/[^\d.,]/g, '');
+
+            // Sostituisce virgole con punti
+            value = value.replace(',', '.');
+
+            // Limita a 1 decimale
+            if (value.includes('.')) {
+                const parts = value.split('.');
+                if (parts[1] && parts[1].length > 1) {
+                    value = parts[0] + '.' + parts[1].substring(0, 1);
+                }
+            }
+
+            this.value = value;
+        });
+
+        // Formatta il valore quando perde il focus
+        kmInput.addEventListener('blur', function() {
+            if (this.value && !isNaN(parseFloat(this.value))) {
+                const num = parseFloat(this.value);
+                this.value = num.toFixed(1);
+            }
+        });
+    }
+
     // Auto-focus sul primo campo
     const modalitaSelect = document.getElementById('modalita_pagamento');
     if (modalitaSelect) {

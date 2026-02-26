@@ -3,424 +3,515 @@
 {% block title %}{{ cliente.ragione_sociale }} - DB-Desk{% endblock %}
 {% block page_title %}Dettaglio Cliente{% endblock %}
 
+{% block extra_head %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .detail-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #edf2f7;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .nav-pills-custom .nav-link {
+        color: #64748b;
+        font-weight: 500;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        margin-right: 0.5rem;
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+        border-color: #e2e8f0;
+    }
+
+    .nav-pills-custom .nav-link:hover:not(.active) {
+        background-color: #f8fafc;
+        color: var(--dark-color);
+    }
+
+    .badge-soft {
+        font-weight: 600;
+        padding: 0.4em 0.8em;
+        border-radius: 6px;
+    }
+
+    .badge-soft-primary { background: #e0e7ff; color: #4338ca; }
+    .badge-soft-success { background: #dcfce7; color: #15803d; }
+    .badge-soft-warning { background: #fef9c3; color: #a16207; }
+    .badge-soft-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-secondary { background: #f1f5f9; color: #64748b; }
+
+    .bg-soft-primary { background-color: #e0e7ff !important; }
+    .bg-soft-success { background-color: #dcfce7 !important; }
+    .bg-soft-warning { background-color: #fef9c3 !important; }
+    .bg-soft-danger { background-color: #fee2e2 !important; }
+    .bg-soft-info { background-color: #e0f2fe !important; }
+    .bg-soft-secondary { background-color: #f1f5f9 !important; }
+
+    /* Custom scrollbar per le tab */
+    .nav-tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 5px;
+    }
+    .nav-tabs-container::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-lg-8">
-        <!-- Informazioni cliente -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4 class="card-title mb-1">{{ cliente.ragione_sociale }}</h4>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="badge bg-{{ 'success' if cliente.is_active else 'secondary' }}">
+    <div class="col-lg-12 mb-4">
+        <!-- Modern Header -->
+        <div class="card detail-card border-0 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
+                            <span class="badge-soft {{ 'badge-soft-success' if cliente.is_active else 'badge-soft-secondary' }} fs-6">
                                 {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
                             </span>
                             {% if cliente.settore %}
-                                <span class="badge bg-info">{{ cliente.settore }}</span>
+                                <span class="badge-soft badge-soft-info">
+                                    <i class="bi bi-tag-fill me-1"></i>{{ cliente.settore }}
+                                </span>
                             {% endif %}
                             {% if cliente.provincia %}
-                                <span class="badge bg-light text-dark">{{ cliente.provincia }}</span>
+                                <span class="badge-soft badge-soft-primary">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>{{ cliente.provincia }}
+                                </span>
                             {% endif %}
                         </div>
-                    </div>
-                    <div class="btn-group">
-                        <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" 
-                           class="btn btn-primary btn-sm">
-                            <i class="bi bi-pencil"></i>
-                            Modifica
-                        </a>
-                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" 
-                                data-bs-toggle="dropdown">
-                            <span class="visually-hidden">Toggle Dropdown</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}">
-                                    <i class="bi bi-plus-circle"></i> Nuovo ticket
+                        <h2 class="fw-bold mb-3">{{ cliente.ragione_sociale }}</h2>
+                        <div class="d-flex align-items-center text-muted flex-wrap gap-3">
+                            <div>
+                                <i class="bi bi-envelope me-1"></i>
+                                <a href="mailto:{{ cliente.email }}" class="text-decoration-none text-reset fw-medium">
+                                    {{ cliente.email }}
                                 </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="mailto:{{ cliente.email }}">
-                                    <i class="bi bi-envelope"></i> Invia email
-                                </a>
-                            </li>
+                            </div>
                             {% if cliente.telefono %}
-                            <li>
-                                <a class="dropdown-item" href="tel:{{ cliente.telefono }}">
-                                    <i class="bi bi-telephone"></i> Chiama
+                            <div>
+                                <i class="bi bi-telephone me-1"></i>
+                                <a href="tel:{{ cliente.telefono }}" class="text-decoration-none text-reset fw-medium">
+                                    {{ cliente.telefono }}
                                 </a>
-                            </li>
+                            </div>
                             {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button class="dropdown-item toggle-status" 
+                            <div>
+                                <i class="bi bi-calendar-check me-1"></i>
+                                Cliente dal {{ cliente.created_at.strftime('%d %b %Y') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex flex-column align-items-md-end gap-2">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-white border-end" title="Nuovo Ticket">
+                                    <i class="bi bi-plus-lg text-primary"></i>
+                                </a>
+                                <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" class="btn btn-white border-end" title="Modifica">
+                                    <i class="bi bi-pencil-fill text-muted"></i>
+                                </a>
+                                <button class="btn btn-white border-end toggle-status" 
                                         data-client-id="{{ cliente.id }}"
-                                        data-current-status="{{ cliente.is_active }}">
-                                    <i class="bi bi-toggle-{{ 'off' if cliente.is_active else 'on' }}"></i>
-                                    {{ 'Disattiva' if cliente.is_active else 'Attiva' }}
+                                        data-current-status="{{ cliente.is_active }}"
+                                        title="{{ 'Disattiva' if cliente.is_active else 'Attiva' }}">
+                                    <i class="bi bi-power {{ 'text-success' if cliente.is_active else 'text-danger' }}"></i>
                                 </button>
-                            </li>
-                            {% if current_user.is_admin and cliente.ticket_count == 0 %}
-                            <li>
-                                <button class="dropdown-item text-danger delete-client" 
+                                {% if current_user.is_admin and cliente.ticket_count == 0 %}
+                                <button class="btn btn-white delete-client" 
                                         data-client-id="{{ cliente.id }}" 
-                                        data-client-name="{{ cliente.ragione_sociale }}">
-                                    <i class="bi bi-trash"></i> Elimina
+                                        data-client-name="{{ cliente.ragione_sociale }}"
+                                        title="Elimina">
+                                    <i class="bi bi-trash-fill text-danger"></i>
                                 </button>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Informazioni di Contatto</h6>
-                        <dl class="row">
-                            <dt class="col-sm-4">Email:</dt>
-                            <dd class="col-sm-8">
-                                <a href="mailto:{{ cliente.email }}" class="text-decoration-none">
-                                    <i class="bi bi-envelope"></i> {{ cliente.email }}
-                                </a>
-                            </dd>
-                            
-                            {% if cliente.telefono %}
-                            <dt class="col-sm-4">Telefono:</dt>
-                            <dd class="col-sm-8">
-                                <a href="tel:{{ cliente.telefono }}" class="text-decoration-none">
-                                    <i class="bi bi-telephone"></i> {{ cliente.telefono }}
-                                </a>
-                            </dd>
-                            {% endif %}
-                            
-                            {% if cliente.cellulare %}
-                            <dt class="col-sm-4">Cellulare:</dt>
-                            <dd class="col-sm-8">
-                                <a href="tel:{{ cliente.cellulare }}" class="text-decoration-none">
-                                    <i class="bi bi-phone"></i> {{ cliente.cellulare }}
-                                </a>
-                            </dd>
-                            {% endif %}
-                        </dl>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Informazioni Fiscali</h6>
-                        <dl class="row">
-                            {% if cliente.codice_fiscale %}
-                            <dt class="col-sm-4">Codice Fiscale:</dt>
-                            <dd class="col-sm-8"><code>{{ cliente.codice_fiscale }}</code></dd>
-                            {% endif %}
-                            
-                            {% if cliente.partita_iva %}
-                            <dt class="col-sm-4">Partita IVA:</dt>
-                            <dd class="col-sm-8"><code>{{ cliente.partita_iva }}</code></dd>
-                            {% endif %}
-                            
-                            {% if not cliente.codice_fiscale and not cliente.partita_iva %}
-                            <dd class="col-sm-12 text-muted">Nessuna informazione fiscale disponibile</dd>
-                            {% endif %}
-                        </dl>
-                    </div>
-                </div>
-                
-                {% if cliente.indirizzo_completo %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-muted">Indirizzo</h6>
-                        <p class="mb-0">
-                            <i class="bi bi-geo-alt"></i>
-                            {{ cliente.indirizzo_completo }}
-                        </p>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if cliente.note %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-muted">Note</h6>
-                        <div class="bg-light p-3 rounded">
-                            {{ cliente.note | replace('\n', '<br>') | safe }}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
-        </div>
-        
-        <!-- Ticket del cliente -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-ticket-detailed"></i>
-                    Ticket del Cliente
-                    <span class="badge bg-primary">{{ tickets_stats.totali }}</span>
-                </h5>
-                <div>
-                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle"></i>
-                        Nuovo Ticket
-                    </a>
-                    {% if tickets_stats.totali > 0 %}
-                    <a href="{{ url_for('clients.client_tickets', id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-list"></i>
-                        Vedi Tutti
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if ultimi_tickets %}
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Numero</th>
-                                <th>Titolo</th>
-                                <th>Stato</th>
-                                <th>Priorità</th>
-                                <th>Creato</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ticket in ultimi_tickets %}
-                            <tr>
-                                <td>
-                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
-                                       class="text-decoration-none fw-bold">
-                                        {{ ticket.numero_ticket }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}
-                                    {% if ticket.is_scaduto %}
-                                        <i class="bi bi-exclamation-triangle text-danger" title="Scaduto"></i>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }}">
-                                        {{ ticket.stato }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
-                                        {{ ticket.priorita }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <small>{{ ticket.created_at.strftime('%d/%m/%Y') }}</small>
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('tickets.view_ticket', id=ticket.id) }}" 
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% else %}
-            <div class="card-body text-center">
-                <i class="bi bi-ticket fs-1 text-muted"></i>
-                <h6 class="text-muted mt-2">Nessun ticket presente</h6>
-                <p class="text-muted">Questo cliente non ha ancora ticket associati.</p>
-                <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    Crea il primo ticket
-                </a>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Macchine assegnate al cliente -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-gear"></i>
-                    Macchine Assegnate
-                    <span class="badge bg-primary">{{ macchine_assegnate|length }}</span>
-                </h5>
-                {% if macchine_assegnate %}
-                <a href="{{ url_for('macchine.index') }}?cliente_id={{ cliente.id }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-list"></i>
-                    Vedi Tutte
-                </a>
-                {% endif %}
-            </div>
-
-            {% if macchine_assegnate %}
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Codice</th>
-                                <th>Modello</th>
-                                <th>Marca</th>
-                                <th>Stato</th>
-                                <th>Assegnata il</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for macchina in macchine_assegnate %}
-                            <tr>
-                                <td>
-                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
-                                       class="text-decoration-none fw-bold">
-                                        {{ macchina.codice }}
-                                    </a>
-                                </td>
-                                <td>{{ macchina.modello }}</td>
-                                <td>{{ macchina.marca }}</td>
-                                <td>
-                                    <span class="badge bg-{{ 'success' if macchina.stato == 'In prestito' else 'warning' if macchina.stato == 'In riparazione' else 'info' if macchina.stato == 'Attiva' else 'secondary' }}">
-                                        {{ macchina.stato }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <small>{{ macchina.data_assegnazione.strftime('%d/%m/%Y') if macchina.data_assegnazione else 'N/D' }}</small>
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% else %}
-            <div class="card-body text-center">
-                <i class="bi bi-gear fs-1 text-muted"></i>
-                <h6 class="text-muted mt-2">Nessuna macchina assegnata</h6>
-                <p class="text-muted">Questo cliente non ha macchine assegnate al momento.</p>
-                <a href="{{ url_for('macchine.index') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    Assegna Macchina
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
 
-    <!-- Sidebar con statistiche -->
+    <!-- Quick Stats Row -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-primary">
+                <i class="bi bi-ticket-detailed text-primary fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Ticket Totali</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ tickets_stats.totali }}</h4>
+                <span class="small text-muted">interventi</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-warning">
+                <i class="bi bi-exclamation-circle text-warning fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Ticket Aperti</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ tickets_stats.aperti }}</h4>
+                <span class="small {{ 'text-danger' if tickets_stats.aperti > 0 else 'text-success' }}">
+                    {{ 'Da gestire' if tickets_stats.aperti > 0 else 'Tutto ok' }}
+                </span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                {% set open_perc = (tickets_stats.aperti / tickets_stats.totali * 100) | int if tickets_stats.totali > 0 else 0 %}
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ open_perc }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-success">
+                <i class="bi bi-gear text-success fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Macchine</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ macchine_assegnate|length }}</h4>
+                <span class="small text-muted">attive</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-info">
+                <i class="bi bi-check-all text-info fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Ticket Risolti</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ tickets_stats.risolti }}</h4>
+                <span class="small text-muted">conclusi</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                {% set resolved_perc = (tickets_stats.risolti / tickets_stats.totali * 100) | int if tickets_stats.totali > 0 else 0 %}
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ resolved_perc }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Main Tabs Area -->
+        <div class="card detail-card border-0">
+            <div class="card-header bg-white border-0 pb-0 pt-4 px-4">
+                <div class="nav-tabs-container">
+                    <ul class="nav nav-pills nav-pills-custom" id="clientDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">
+                                <i class="bi bi-ticket-detailed me-2"></i>Ultimi Ticket
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="macchine-tab" data-bs-toggle="tab" data-bs-target="#macchine" type="button" role="tab">
+                                <i class="bi bi-gear me-2"></i>Parco Macchine
+                                <span class="badge rounded-pill bg-light text-dark ms-1">{{ macchine_assegnate|length }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                                <i class="bi bi-info-circle me-2"></i>Anagrafica Completa
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="tab-content" id="clientDetailTabsContent">
+                    <!-- Tab Ticket -->
+                    <div class="tab-pane fade show active" id="tickets" role="tabpanel">
+                        {% if ultimi_tickets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 rounded-start">Numero</th>
+                                        <th class="border-0">Titolo</th>
+                                        <th class="border-0">Stato</th>
+                                        <th class="border-0">Priorità</th>
+                                        <th class="border-0 rounded-end text-end">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ticket in ultimi_tickets %}
+                                    <tr onclick="window.location.href='{{ url_for('tickets.view_ticket', id=ticket.id) }}'" style="cursor: pointer;">
+                                        <td><span class="fw-bold text-primary">{{ ticket.numero_ticket }}</span></td>
+                                        <td>
+                                            {{ ticket.titolo[:50] }}{% if ticket.titolo|length > 50 %}...{% endif %}
+                                            {% if ticket.is_scaduto %}
+                                                <i class="bi bi-exclamation-triangle text-danger" title="Scaduto"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge-soft badge-soft-{{ 'success' if ticket.stato == 'Risolto' else 'warning' if ticket.stato == 'In Lavorazione' else 'danger' if ticket.stato == 'Aperto' else 'secondary' }}">
+                                                {{ ticket.stato }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-soft badge-soft-{{ 'danger' if ticket.priorita == 'Critica' else 'warning' if ticket.priorita == 'Alta' else 'info' if ticket.priorita == 'Media' else 'secondary' }}">
+                                                {{ ticket.priorita }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <i class="bi bi-chevron-right text-muted"></i>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if tickets_stats.totali > 10 %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('clients.client_tickets', id=cliente.id) }}" class="btn btn-light rounded-pill px-4">
+                                Vedi tutti i {{ tickets_stats.totali }} ticket
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-ticket fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessun ticket presente per questo cliente.</p>
+                            <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary rounded-pill px-4">
+                                Crea il primo ticket
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab Macchine -->
+                    <div class="tab-pane fade" id="macchine" role="tabpanel">
+                        {% if macchine_assegnate %}
+                        <div class="row">
+                            {% for macchina in macchine_assegnate %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border rounded-3 h-100 hover-shadow transition">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-soft-success rounded-3 p-2 me-3">
+                                                    <i class="bi bi-gear-fill text-success fs-4"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ macchina.codice }}</div>
+                                                    <div class="small text-muted">{{ macchina.marca }} {{ macchina.modello }}</div>
+                                                </div>
+                                            </div>
+                                            <span class="badge-soft badge-soft-{{ 'success' if macchina.stato == 'Attiva' else 'warning' if macchina.stato == 'In prestito' else 'danger' if macchina.stato == 'In riparazione' else 'secondary' }}">
+                                                {{ macchina.stato }}
+                                            </span>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="small text-muted">S/N</div>
+                                                <div class="small fw-medium">{{ macchina.numero_serie or 'N/D' }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="small text-muted">Ubicazione</div>
+                                                <div class="small fw-medium text-truncate">{{ macchina.ubicazione or 'Presso Cliente' }}</div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-sm btn-light w-100 rounded-pill">
+                                            Vedi Dettagli
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-gpu-card fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessuna macchina assegnata.</p>
+                            <a href="{{ url_for('macchine.index') }}" class="btn btn-primary rounded-pill px-4">
+                                Assegna Macchina
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab Info -->
+                    <div class="tab-pane fade" id="info" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Dettagli Contatto</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-primary">
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Email Principale</small>
+                                        <a href="mailto:{{ cliente.email }}" class="text-decoration-none fw-medium">
+                                            <i class="bi bi-envelope me-1"></i>{{ cliente.email }}
+                                        </a>
+                                    </div>
+                                    {% if cliente.telefono %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Telefono Fisso</small>
+                                        <a href="tel:{{ cliente.telefono }}" class="text-decoration-none fw-medium">
+                                            <i class="bi bi-telephone me-1"></i>{{ cliente.telefono }}
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    {% if cliente.cellulare %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Cellulare</small>
+                                        <a href="tel:{{ cliente.cellulare }}" class="text-decoration-none fw-medium">
+                                            <i class="bi bi-phone me-1"></i>{{ cliente.cellulare }}
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Dati Fiscali</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-info">
+                                    {% if cliente.codice_fiscale %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Codice Fiscale</small>
+                                        <code class="fw-bold">{{ cliente.codice_fiscale }}</code>
+                                    </div>
+                                    {% endif %}
+                                    {% if cliente.partita_iva %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Partita IVA</small>
+                                        <code class="fw-bold">{{ cliente.partita_iva }}</code>
+                                    </div>
+                                    {% endif %}
+                                    {% if not cliente.codice_fiscale and not cliente.partita_iva %}
+                                    <p class="text-muted small mb-0">Nessun dato fiscale inserito.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if cliente.indirizzo_completo %}
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Indirizzo Sede</h6>
+                                <div class="bg-light p-3 rounded-3 border-start border-4 border-success">
+                                    <i class="bi bi-geo-alt-fill text-success me-2"></i>
+                                    <span class="fw-medium">{{ cliente.indirizzo_completo }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if cliente.note %}
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Note Cliente</h6>
+                                <div class="alert alert-warning border-0 rounded-3 shadow-sm">
+                                    <i class="bi bi-journal-text me-2"></i>
+                                    {{ cliente.note | replace('\n', '<br>') | safe }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
     <div class="col-lg-4">
-        <!-- Statistiche ticket -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-graph-up"></i>
-                    Statistiche Ticket
-                </h6>
+        <!-- Quick Actions Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Azioni Rapide</h6>
             </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border-end">
-                            <h4 class="text-primary mb-0">{{ tickets_stats.totali }}</h4>
-                            <small class="text-muted">Totali</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <h4 class="text-{{ 'warning' if tickets_stats.aperti > 0 else 'success' }} mb-0">{{ tickets_stats.aperti }}</h4>
-                        <small class="text-muted">Aperti</small>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="border-end">
-                            <h6 class="text-warning mb-0">{{ tickets_stats.in_lavorazione }}</h6>
-                            <small class="text-muted">In Lavorazione</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="border-end">
-                            <h6 class="text-success mb-0">{{ tickets_stats.risolti }}</h6>
-                            <small class="text-muted">Risolti</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <h6 class="text-secondary mb-0">{{ tickets_stats.chiusi }}</h6>
-                        <small class="text-muted">Chiusi</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Informazioni generali -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-info-circle"></i>
-                    Informazioni Generali
-                </h6>
-            </div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-6">Registrato:</dt>
-                    <dd class="col-sm-6">{{ cliente.created_at.strftime('%d/%m/%Y') }}</dd>
-                    
-                    <dt class="col-sm-6">Ultima modifica:</dt>
-                    <dd class="col-sm-6">{{ cliente.updated_at.strftime('%d/%m/%Y') }}</dd>
-                    
-                    {% if cliente.settore %}
-                    <dt class="col-sm-6">Settore:</dt>
-                    <dd class="col-sm-6">{{ cliente.settore }}</dd>
-                    {% endif %}
-                    
-                    <dt class="col-sm-6">Stato:</dt>
-                    <dd class="col-sm-6">
-                        <span class="badge bg-{{ 'success' if cliente.is_active else 'secondary' }}">
-                            {{ 'Attivo' if cliente.is_active else 'Inattivo' }}
-                        </span>
-                    </dd>
-                </dl>
-            </div>
-        </div>
-        
-        <!-- Azioni rapide -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-lightning"></i>
-                    Azioni Rapide
-                </h6>
-            </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle"></i>
-                        Nuovo Ticket
+                    <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-plus-circle me-2"></i>Nuovo Ticket
                     </a>
-                    <a href="mailto:{{ cliente.email }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-envelope"></i>
-                        Invia Email
+                    <a href="mailto:{{ cliente.email }}" class="btn btn-light rounded-pill">
+                        <i class="bi bi-envelope me-2"></i>Invia Email
                     </a>
                     {% if cliente.telefono %}
-                    <a href="tel:{{ cliente.telefono }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-telephone"></i>
-                        Chiama
+                    <a href="tel:{{ cliente.telefono }}" class="btn btn-light rounded-pill">
+                        <i class="bi bi-telephone me-2"></i>Chiama
                     </a>
                     {% endif %}
-                    <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-pencil"></i>
-                        Modifica Dati
+                    <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" class="btn btn-light rounded-pill">
+                        <i class="bi bi-pencil me-2"></i>Modifica Anagrafica
                     </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Riepilogo Attività</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <span class="text-muted small">In Lavorazione:</span>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ tickets_stats.in_lavorazione }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <span class="text-muted small">Chiusi/Archiviati:</span>
+                    <span class="badge bg-secondary rounded-pill">{{ tickets_stats.chiusi }}</span>
+                </div>
+                <div class="border-top pt-3 mt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Data Registrazione:</span>
+                        <span class="small fw-bold">{{ cliente.created_at.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Ultimo Aggiornamento:</span>
+                        <span class="small fw-bold">{{ cliente.updated_at.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Alert -->
+        <div class="alert alert-info border-0 rounded-4 shadow-sm p-4">
+            <div class="d-flex">
+                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                <div>
+                    <h6 class="fw-bold">Gestione Cliente</h6>
+                    <p class="small mb-0 opacity-75">Tutti i ticket creati per questo cliente verranno automaticamente assegnati al reparto dell'operatore che effettua l'apertura.</p>
                 </div>
             </div>
         </div>
@@ -429,24 +520,30 @@
 
 <!-- Modal conferma eliminazione -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Conferma Eliminazione</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Conferma Eliminazione</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                Sei sicuro di voler eliminare il cliente <strong>{{ cliente.ragione_sociale }}</strong>?
-                <br><br>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Questa azione non può essere annullata.
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-soft-danger rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
+                    </div>
+                    <h5>Stai per eliminare il cliente</h5>
+                    <div class="text-primary fw-bold fs-4">{{ cliente.ragione_sociale }}</div>
+                </div>
+                <div class="alert alert-danger border-0 rounded-3 small">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Questa azione è irreversibile e cancellerà definitivamente l'anagrafica del cliente. Questa operazione è permessa solo se non sono presenti ticket associati.
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Annulla</button>
                 <form method="POST" action="{{ url_for('clients.delete_client', id=cliente.id) }}" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Elimina</button>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">Elimina Ora</button>
                 </form>
             </div>
         </div>
@@ -460,12 +557,12 @@
 document.querySelectorAll('.toggle-status').forEach(button => {
     button.addEventListener('click', function() {
         const clientId = this.dataset.clientId;
-        const currentStatus = this.dataset.currentStatus === 'True';
         
         fetch(`{{ url_for('clients.toggle_status', id=0) }}`.replace('0', clientId), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
             }
         })
         .then(response => response.json())

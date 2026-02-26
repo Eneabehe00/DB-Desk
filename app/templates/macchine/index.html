@@ -5,485 +5,411 @@
 
 {% block extra_head %}
 <style>
-    /* Stili per le statistiche */
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .stats-card h3 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    .stats-card p {
-        margin: 0;
-        opacity: 0.9;
-    }
+/* Cursore pointer solo per gli header ordinabili */
+.sortable-header {
+    cursor: pointer !important;
+    user-select: none !important;
+    position: relative;
+    transition: all 0.2s ease;
+}
 
-    /* Stili per la tabella macchine */
-    .macchine-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        table-layout: fixed;
-    }
+.sortable-header:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-    .macchine-table thead th {
-        background: var(--dark-color);
-        color: white;
-        padding: 1rem 0.5rem;
-        font-weight: 600;
-        border: none;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+.sort-indicator {
+    margin-left: 8px;
+    font-size: 0.9em;
+    opacity: 0.6;
+}
 
-    .macchine-table tbody tr {
-        transition: all 0.2s;
-    }
+/* Badge stati personalizzati per macchine */
+.badge-disponibile { background-color: #10b981; }
+.badge-prestito { background-color: #f59e0b; }
+.badge-riparazione { background-color: #ef4444; }
+.badge-attiva { background-color: #6366f1; }
+.badge-dismessa { background-color: #6b7280; }
 
-    .macchine-table tbody tr:hover {
-        background: #f8fafc;
-        transform: scale(1.01);
-    }
+/* Stats cards minimal */
+.stat-card-minimal {
+    border: none;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    height: 100%;
+}
 
-    .macchine-table tbody td {
-        padding: 0.75rem 0.5rem;
-        border-bottom: 1px solid #e2e8f0;
-        vertical-align: middle;
-    }
+.stat-card-minimal:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
 
-    /* Badge stati */
-    .badge-disponibile {
-        background: #10b981;
-    }
-
-    .badge-prestito {
-        background: #f59e0b;
-    }
-
-    .badge-riparazione {
-        background: #ef4444;
-    }
-
-    .badge-venduta {
-        background: #6b7280;
-    }
-
-    .badge-dismessa {
-        background: #374151;
-    }
-
-    /* Card per movimenti recenti */
-    .movimento-card {
-        border-left: 4px solid var(--primary-color);
-        background: #f8fafc;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 0.5rem;
-    }
-
-    .movimento-card.success {
-        border-left-color: var(--success-color);
-    }
-
-    .movimento-card.warning {
-        border-left-color: var(--warning-color);
-    }
-
-    .movimento-card.danger {
-        border-left-color: var(--danger-color);
-    }
-
-    /* Form filtri */
-    .filter-form .form-control,
-    .filter-form .form-select {
-        border-radius: 0.5rem;
-    }
-
-    .filter-form .btn {
-        border-radius: 0.5rem;
-    }
-
-    /* Responsive table */
-    @media (max-width: 768px) {
-        .macchine-table thead {
-            display: none;
-        }
-
-        .macchine-table tbody tr {
-            display: block;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            padding: 1rem;
-        }
-
-        .macchine-table tbody td {
-            display: block;
-            border: none;
-            padding: 0.25rem 0;
-            text-align: left !important;
-        }
-
-        .macchine-table tbody td:before {
-            content: attr(data-label) ": ";
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .macchine-table .col-azioni:before {
-            content: "";
-        }
-
-        .macchine-table .col-azioni {
-            text-align: center !important;
-            margin-top: 0.5rem;
-        }
-    }
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Statistiche -->
-<div class="row mb-4">
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="stats-card">
-            <h3>{{ total_macchine }}</h3>
-            <p><i class="bi bi-gear"></i> Macchine Totali</p>
+<div style="padding-bottom: 50px;">
+    <!-- Statistiche Rapide -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card-minimal bg-white">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ total_macchine }}</h3>
+                <p class="text-muted mb-0 small text-uppercase fw-semibold ls-wide">Totali</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card-minimal bg-white">
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ macchine_disponibili }}</h3>
+                <p class="text-muted mb-0 small text-uppercase fw-semibold ls-wide">Disponibili</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card-minimal bg-white">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-arrow-right-circle"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ macchine_in_prestito }}</h3>
+                <p class="text-muted mb-0 small text-uppercase fw-semibold ls-wide">In Prestito</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card-minimal bg-white">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ macchine_in_riparazione }}</h3>
+                <p class="text-muted mb-0 small text-uppercase fw-semibold ls-wide">In Riparazione</p>
+            </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="stats-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <h3>{{ macchine_disponibili }}</h3>
-            <p><i class="bi bi-check-circle"></i> Disponibili</p>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="stats-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-            <h3>{{ macchine_in_prestito }}</h3>
-            <p><i class="bi bi-arrow-right-circle"></i> In prestito</p>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="stats-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-            <h3>{{ macchine_in_riparazione }}</h3>
-            <p><i class="bi bi-tools"></i> In riparazione</p>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    <!-- Colonna principale - Lista macchine -->
-    <div class="col-lg-9">
-        <!-- Header con azioni -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="mb-0">Lista Macchine</h4>
-                        <small class="text-muted">Gestisci tutte le macchine del sistema</small>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-outline-warning me-2">
-                            <i class="bi bi-clock-history"></i> Tracciamento
-                        </a>
-                        <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-info me-2">
-                            <i class="bi bi-gear-wide-connected"></i> Tipi
-                        </a>
-                        <a href="{{ url_for('macchine.create_macchina') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Aggiungi Macchina
-                        </a>
-                    </div>
+    <!-- Filtri e azioni -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-funnel"></i>
+                    Filtri
+                </h5>
+                <div class="btn-group">
+                    <a href="{{ url_for('macchine.create_macchina') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Nuova Macchina
+                    </a>
+                    <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-clock-history"></i>
+                        Tracciamento
+                    </a>
+                    <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear-wide-connected"></i>
+                        Tipi
+                    </a>
                 </div>
             </div>
         </div>
-
-        <!-- Form filtri -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form method="GET" class="filter-form row g-3">
-                    <div class="col-md-3">
-                        <label for="search" class="form-label">Ricerca</label>
-                        <input type="text" class="form-control" id="search" name="search"
-                               value="{{ form.search.data or '' }}" placeholder="Codice, modello, marca...">
-                    </div>
-                    <div class="col-md-2">
-                        <label for="tipo_macchina_id" class="form-label">Tipo</label>
-                        {{ form.tipo_macchina_id(class="form-select") }}
-                    </div>
-                    <div class="col-md-2">
-                        <label for="stato" class="form-label">Stato</label>
-                        {{ form.stato(class="form-select") }}
-                    </div>
-                    {% if current_user.has_permission('can_view_all_departments') %}
-                    <div class="col-md-2">
-                        <label for="department_id" class="form-label">Reparto</label>
-                        {{ form.department_id(class="form-select") }}
-                    </div>
-                    {% endif %}
-                    <div class="col-md-2">
-                        <label for="cliente_id" class="form-label">Cliente</label>
-                        {{ form.cliente_id(class="form-select") }}
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-search"></i>
+        <div class="card-body">
+            <form method="GET" class="row g-3" id="filter-form">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Ricerca</label>
+                    <input type="text" class="form-control" id="search-input" name="search"
+                           value="{{ form.search.data or '' }}" placeholder="Codice, modello, marca...">
+                </div>
+                <div class="col-md-2">
+                    <label for="tipo_macchina_id" class="form-label">Tipo</label>
+                    {{ form.tipo_macchina_id(class="form-select filter-select", id="tipo-filter") }}
+                </div>
+                <div class="col-md-2">
+                    <label for="stato" class="form-label">Stato</label>
+                    {{ form.stato(class="form-select filter-select", id="stato-filter") }}
+                </div>
+                {% if current_user.has_permission('can_view_all_departments') %}
+                <div class="col-md-2">
+                    <label for="department_id" class="form-label">Reparto</label>
+                    {{ form.department_id(class="form-select filter-select", id="dept-filter") }}
+                </div>
+                {% endif %}
+                <div class="col-md-2">
+                    <label for="cliente_id" class="form-label">Cliente</label>
+                    {{ form.cliente_id(class="form-select filter-select", id="cliente-filter") }}
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-secondary" id="reset-filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
                     </div>
-                </form>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista macchine -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    Lista Macchine
+                    <span class="badge bg-secondary">{{ pagination.total }} totali</span>
+                </h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="view" id="table-view" checked>
+                    <label class="btn btn-outline-secondary" for="table-view">
+                        <i class="bi bi-table"></i>
+                    </label>
+                    <input type="radio" class="btn-check" name="view" id="card-view">
+                    <label class="btn btn-outline-secondary" for="card-view">
+                        <i class="bi bi-grid"></i>
+                    </label>
+                </div>
             </div>
         </div>
 
-        <!-- Tabella macchine -->
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="macchine-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 10%">Codice</th>
-                                <th style="width: 15%">Modello</th>
-                                <th style="width: 12%">Marca</th>
-                                <th style="width: 12%">Tipo</th>
-                                <th style="width: 10%">Stato</th>
-                                <th style="width: 15%">Ubicazione</th>
-                                {% if current_user.has_permission('can_view_all_departments') %}
-                                <th style="width: 10%">Reparto</th>
+        {% if macchine %}
+        <!-- Vista tabella -->
+        <div id="table-view-content" class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="sortable-header" data-sort="codice">Codice</th>
+                        <th>Modello</th>
+                        <th>Marca</th>
+                        <th>Tipo</th>
+                        <th>Stato</th>
+                        <th>Ubicazione</th>
+                        {% if current_user.has_permission('can_view_all_departments') %}
+                        <th>Reparto</th>
+                        {% endif %}
+                        <th>Cliente</th>
+                        <th class="text-end">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for macchina in macchine %}
+                    <tr class="clickable-row" onclick="window.location.href='{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}'">
+                        <td><strong>{{ macchina.codice }}</strong></td>
+                        <td>{{ macchina.modello }}</td>
+                        <td>{{ macchina.marca }}</td>
+                        <td>
+                            {% if macchina.tipo_macchina %}
+                                <span class="badge bg-light text-dark border">{{ macchina.tipo_macchina.nome }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ macchina.stato.lower().replace(' ', '-') if macchina.stato else 'secondary' }}">
+                                {{ macchina.stato }}
+                            </span>
+                        </td>
+                        <td><small class="text-muted">{{ macchina.ubicazione or '-' }}</small></td>
+                        {% if current_user.has_permission('can_view_all_departments') %}
+                        <td><small>{{ macchina.department.display_name if macchina.department else '-' }}</small></td>
+                        {% endif %}
+                        <td>
+                            {% if macchina.cliente %}
+                                <span class="text-primary fw-medium">{{ macchina.cliente.ragione_sociale }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end" onclick="event.stopPropagation();">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if macchina.is_disponibile %}
+                                <button class="btn btn-outline-warning" onclick="openAssignModal({{ macchina.id }}, '{{ macchina.codice }}')" title="Assegna">
+                                    <i class="bi bi-arrow-right-circle"></i>
+                                </button>
                                 {% endif %}
-                                <th style="width: 10%">Cliente</th>
-                                <th style="width: 16%">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for macchina in macchine %}
-                            <tr>
-                                <td data-label="Codice">
-                                    <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
-                                       class="text-decoration-none fw-bold">
-                                        {{ macchina.codice }}
-                                    </a>
-                                </td>
-                                <td data-label="Modello">{{ macchina.modello }}</td>
-                                <td data-label="Marca">{{ macchina.marca }}</td>
-                                <td data-label="Tipo">
-                                    {% if macchina.tipo_macchina %}
-                                        {{ macchina.tipo_macchina.nome }}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td data-label="Stato">
-                                    {% if macchina.stato == 'Disponibile' %}
-                                        <span class="badge badge-disponibile">{{ macchina.stato }}</span>
-                                    {% elif macchina.stato == 'In prestito' %}
-                                        <span class="badge badge-prestito">{{ macchina.stato }}</span>
-                                    {% elif macchina.stato == 'In riparazione' %}
-                                        <span class="badge badge-riparazione">{{ macchina.stato }}</span>
-                                    {% elif macchina.stato == 'Attiva' %}
-                                        <span class="badge badge-venduta">{{ macchina.stato }}</span>
-                                    {% else %}
-                                        <span class="badge badge-dismessa">{{ macchina.stato }}</span>
-                                    {% endif %}
-                                </td>
-                                <td data-label="Ubicazione">
-                                    {% if macchina.ubicazione %}
-                                        {{ macchina.ubicazione }}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                {% if current_user.has_permission('can_view_all_departments') %}
-                                <td data-label="Reparto">
-                                    {% if macchina.department %}
-                                        {{ macchina.department.display_name }}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
+                                {% if macchina.is_in_prestito %}
+                                <button class="btn btn-outline-info" onclick="openReturnModal({{ macchina.id }}, '{{ macchina.codice }}')" title="Rientro">
+                                    <i class="bi bi-arrow-left-circle"></i>
+                                </button>
                                 {% endif %}
-                                <td data-label="Cliente">
-                                    {% if macchina.cliente %}
-                                        <a href="{{ url_for('clients.view_client', id=macchina.cliente.id) }}"
-                                           class="text-decoration-none">
-                                            {{ macchina.cliente.ragione_sociale }}
-                                        </a>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td data-label="Azioni" class="col-azioni">
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}"
-                                           class="btn btn-sm btn-outline-primary"
-                                           title="Visualizza">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}"
-                                           class="btn btn-sm btn-outline-secondary"
-                                           title="Modifica">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        {% if macchina.is_disponibile %}
-                                        <button class="btn btn-sm btn-outline-warning"
-                                                onclick="openAssignModal({{ macchina.id }}, '{{ macchina.codice }}')"
-                                                title="Assegna">
-                                            <i class="bi bi-arrow-right-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% if macchina.is_in_prestito %}
-                                        <button class="btn btn-sm btn-outline-info"
-                                                onclick="openReturnModal({{ macchina.id }}, '{{ macchina.codice }}')"
-                                                title="Rientro">
-                                            <i class="bi bi-arrow-left-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Paginazione -->
-            {% if pagination.pages > 1 %}
-            <div class="card-footer">
-                <nav aria-label="Navigazione pagine">
-                    <ul class="pagination justify-content-center mb-0">
-                        {% if pagination.has_prev %}
+        <!-- Vista card -->
+        <div id="card-view-content" class="d-none p-3">
+            <div class="row g-3">
+                {% for macchina in macchine %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-3">
+                            <span class="badge badge-{{ macchina.stato.lower().replace(' ', '-') if macchina.stato else 'secondary' }}">
+                                {{ macchina.stato }}
+                            </span>
+                            <small class="text-muted">#{{ macchina.codice }}</small>
+                        </div>
+                        <div class="card-body pt-2">
+                            <h6 class="card-title fw-bold mb-1">
+                                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="text-decoration-none text-dark">
+                                    {{ macchina.marca }} {{ macchina.modello }}
+                                </a>
+                            </h6>
+                            <p class="card-text small text-muted mb-2">
+                                <i class="bi bi-tag"></i> {{ macchina.tipo_macchina.nome if macchina.tipo_macchina else 'Nessun tipo' }}
+                            </p>
+                            {% if macchina.cliente %}
+                            <div class="d-flex align-items-center mt-3 p-2 bg-light rounded">
+                                <i class="bi bi-building me-2 text-primary"></i>
+                                <div class="overflow-hidden">
+                                    <small class="d-block text-muted ls-wide text-uppercase" style="font-size: 0.65rem;">Cliente attuale</small>
+                                    <div class="text-truncate fw-medium" style="font-size: 0.85rem;">{{ macchina.cliente.ragione_sociale }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center pb-3">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                            <small class="text-muted">{{ macchina.ubicazione if macchina.ubicazione else '' }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Paginazione -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Paginazione macchine">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if pagination.has_prev %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('macchine.index', page=pagination.prev_num, **request.args) }}">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
-                        </li>
-                        {% endif %}
-
-                        {% for page_num in pagination.iter_pages() %}
-                            {% if page_num %}
-                                {% if page_num == pagination.page %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ page_num }}</span>
-                                </li>
-                                {% else %}
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
                                 <li class="page-item">
                                     <a class="page-link" href="{{ url_for('macchine.index', page=page_num, **request.args) }}">{{ page_num }}</a>
                                 </li>
-                                {% endif %}
                             {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
                                 </li>
                             {% endif %}
-                        {% endfor %}
-
-                        {% if pagination.has_next %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('macchine.index', page=pagination.next_num, **request.args) }}">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
+        {% endif %}
 
-        <!-- Alert manutenzioni -->
-        {% if macchine_manutenzione > 0 %}
-        <div class="alert alert-warning mt-3" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <div>
-                    <strong>{{ macchine_manutenzione }}</strong> macchine richiedono manutenzione entro 30 giorni.
-                </div>
-            </div>
+        {% else %}
+        <div class="card-body text-center py-5">
+            <i class="bi bi-gear fs-1 text-muted"></i>
+            <h5 class="text-muted mt-3">Nessuna macchina trovata</h5>
+            <p class="text-muted">Prova a modificare i filtri di ricerca.</p>
+            <a href="{{ url_for('macchine.create_macchina') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Aggiungi la prima macchina
+            </a>
         </div>
         {% endif %}
     </div>
 
-    <!-- Sidebar - Movimenti recenti -->
-    <div class="col-lg-3">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Movimenti Recenti</h6>
+    <!-- Alert manutenzioni -->
+    {% if macchine_manutenzione > 0 %}
+    <div class="alert alert-warning mt-4 border-0 shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="bg-warning bg-opacity-20 text-warning p-2 rounded-circle me-3">
+                <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
-            <div class="card-body p-0">
-                {% if movimenti_recenti %}
-                    {% for movimento in movimenti_recenti %}
-                    <div class="movimento-card {{ 'success' if movimento.tipo_movimento == 'Assegnazione' else 'warning' if movimento.tipo_movimento == 'Riparazione' else 'danger' }}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <small class="text-muted">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
-                                <p class="mb-1 fw-bold">{{ movimento.macchina.codice }}</p>
-                                <p class="mb-0 small">{{ movimento.descrizione_movimento }}</p>
-                            </div>
-                            <span class="badge bg-{{ 'success' if movimento.tipo_movimento == 'Assegnazione' else 'warning' if movimento.tipo_movimento == 'Riparazione' else 'danger' }} rounded-pill">
-                                {{ movimento.tipo_movimento }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="p-3 text-center text-muted">
-                        <i class="bi bi-info-circle"></i><br>
-                        Nessun movimento recente
-                    </div>
-                {% endif %}
+            <div>
+                <strong>{{ macchine_manutenzione }}</strong> macchine richiedono manutenzione entro 30 giorni.
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 <!-- Modali per le azioni -->
 <!-- Modale assegnazione macchina -->
 <div class="modal fade" id="assignModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Assegna Macchina</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Assegna Macchina</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="assignForm" method="POST">
-                <div class="modal-body">
-                    <p>Assegnare la macchina <strong id="assignMachineCode"></strong> a un cliente?</p>
+                <div class="modal-body px-4">
+                    <p class="text-muted">Assegnare la macchina <strong id="assignMachineCode" class="text-dark"></strong> a un cliente?</p>
                     <div class="mb-3">
-                        <label for="assignClienteId" class="form-label">Cliente</label>
+                        <label for="assignClienteId" class="form-label small fw-bold text-uppercase ls-wide">Cliente</label>
                         <select class="form-select" id="assignClienteId" name="cliente_id" required>
                             <option value="">Seleziona cliente...</option>
-                            <!-- I clienti verranno caricati via JavaScript -->
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="assignStato" class="form-label">Tipo Assegnazione</label>
+                        <label for="assignStato" class="form-label small fw-bold text-uppercase ls-wide">Tipo Assegnazione</label>
                         <select class="form-select" id="assignStato" name="stato">
                             <option value="In prestito">In prestito</option>
                             <option value="Attiva">Attiva</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="assignNote" class="form-label">Note</label>
-                        <textarea class="form-control" id="assignNote" name="note" rows="2"></textarea>
+                        <label for="assignNote" class="form-label small fw-bold text-uppercase ls-wide">Note</label>
+                        <textarea class="form-control" id="assignNote" name="note" rows="2" placeholder="Opzionale..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Assegna</button>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary px-4">Conferma Assegnazione</button>
                 </div>
             </form>
         </div>
@@ -493,36 +419,94 @@
 <!-- Modale rientro macchina -->
 <div class="modal fade" id="returnModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Rientro Macchina</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Rientro Macchina</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="returnForm" method="POST">
-                <div class="modal-body">
-                    <p>Rientrare la macchina <strong id="returnMachineCode"></strong> in magazzino?</p>
+                <div class="modal-body px-4">
+                    <p class="text-muted">Rientrare la macchina <strong id="returnMachineCode" class="text-dark"></strong> in magazzino?</p>
                     <div class="mb-3">
-                        <label for="returnNote" class="form-label">Note</label>
-                        <textarea class="form-control" id="returnNote" name="note" rows="2" placeholder="Note sul rientro..."></textarea>
+                        <label for="returnNote" class="form-label small fw-bold text-uppercase ls-wide">Note</label>
+                        <textarea class="form-control" id="returnNote" name="note" rows="2" placeholder="Note sul rientro (opzionale)..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Conferma Rientro</button>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary px-4">Conferma Rientro</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
+// Filtri automatici
+let searchTimeout;
+const filterForm = document.getElementById('filter-form');
+
+document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', function() {
+        applyFilters();
+    });
+});
+
+document.getElementById('search-input').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 500);
+});
+
+document.getElementById('reset-filters').addEventListener('click', function() {
+    document.getElementById('search-input').value = '';
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    applyFilters();
+});
+
+function applyFilters() {
+    const url = new URL(window.location.href);
+    url.search = ''; 
+    
+    const searchValue = document.getElementById('search-input').value.trim();
+    if (searchValue) {
+        url.searchParams.set('search', searchValue);
+    }
+    
+    document.querySelectorAll('.filter-select').forEach(select => {
+        if (select.value && select.value !== '') {
+            url.searchParams.set(select.name, select.value);
+        }
+    });
+    
+    window.location.href = url.toString();
+}
+
+// Cambio vista tabella/card
+document.querySelectorAll('input[name="view"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const tableView = document.getElementById('table-view-content');
+        const cardView = document.getElementById('card-view-content');
+        
+        if (this.id === 'table-view') {
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+        } else {
+            tableView.classList.add('d-none');
+            cardView.classList.remove('d-none');
+        }
+    });
+});
+
 // Funzioni per i modali
 function openAssignModal(machineId, machineCode) {
     document.getElementById('assignMachineCode').textContent = machineCode;
-    document.getElementById('assignForm').action = `/macchine/${machineId}/assegna`;
+    document.getElementById('assignForm').action = `{{ url_for('macchine.assegna_macchina', macchina_id=0) }}`.replace('0', machineId);
 
-    // Carica clienti via AJAX
-    fetch('/clients/api/search?q=')
+    fetch('{{ url_for("clients.api_search_clients") }}?q=')
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('assignClienteId');
@@ -540,7 +524,7 @@ function openAssignModal(machineId, machineCode) {
 
 function openReturnModal(machineId, machineCode) {
     document.getElementById('returnMachineCode').textContent = machineCode;
-    document.getElementById('returnForm').action = `/macchine/${machineId}/rientro`;
+    document.getElementById('returnForm').action = `{{ url_for('macchine.rientro_macchina', macchina_id=0) }}`.replace('0', machineId);
 
     new bootstrap.Modal(document.getElementById('returnModal')).show();
 }

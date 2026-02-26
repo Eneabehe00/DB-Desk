@@ -41,14 +41,10 @@ class FoglioTecnicoStep1Form(FlaskForm):
     cliente_search = StringField('Cerca Cliente', validators=[Optional()],
         description='Digita per cercare il cliente')
     
-    titolo = StringField('Titolo Intervento', validators=[
-        DataRequired(message='Il titolo è obbligatorio'),
+    titolo = StringField('Descrizione Motivo Chiamata', validators=[
+        DataRequired(message='La descrizione motivo chiamata è obbligatoria'),
         Length(max=200, message='Massimo 200 caratteri')
-    ], description='Descrivi brevemente il tipo di intervento')
-    
-    descrizione = TextAreaField('Descrizione Dettagliata', validators=[
-        DataRequired(message='La descrizione è obbligatoria')
-    ], description='Descrivi dettagliatamente il lavoro da svolgere o svolto')
+    ], description='Descrivi brevemente il motivo della chiamata')
     
     data_intervento = DateTimeField('Data e Ora Intervento', 
         validators=[DataRequired(message='Data intervento obbligatoria')],
@@ -99,18 +95,8 @@ class FoglioTecnicoStep2Form(FlaskForm):
     
     # Campo per macchine sostitutive (quando si fa riparazione con prestito)
     macchine_sostitutive = SelectMultipleField('Macchine Sostitutive', choices=[], coerce=safe_int_or_none,
-        validators=[Optional()], validate_choice=False, 
+        validators=[Optional()], validate_choice=False,
         description='Seleziona le macchine da dare in prestito durante la riparazione (solo per "Riparazione in sede con prestito")')
-    
-    durata_intervento = IntegerField('Durata Intervento (minuti)', validators=[
-        Optional(),
-        NumberRange(min=1, max=1440, message='Da 1 a 1440 minuti (24 ore)')
-    ])
-    
-    km_percorsi = IntegerField('Kilometri Percorsi', validators=[
-        Optional(),
-        NumberRange(min=0, max=9999, message='Da 0 a 9999 km')
-    ])
     
     submit = SubmitField('Avanti →')
     
@@ -176,9 +162,20 @@ class FoglioTecnicoStep4Form(FlaskForm):
         NumberRange(min=0, max=999999.99, message='Importo non valido')
     ], places=2)
     
-    pagamento_immediato = BooleanField('Intervento già pagato', 
+    pagamento_immediato = BooleanField('Intervento già pagato',
+        default=False,
         description='Seleziona se l\'intervento è già stato pagato dal cliente')
-    
+
+    durata_intervento = IntegerField('Durata Intervento (minuti)', validators=[
+        Optional(),
+        NumberRange(min=1, max=1440, message='Da 1 a 1440 minuti (24 ore)')
+    ])
+
+    km_percorsi = IntegerField('Kilometri Percorsi', validators=[
+        Optional(),
+        NumberRange(min=0, max=9999, message='Da 0 a 9999 km')
+    ])
+
     submit = SubmitField('Avanti →')
 
 
