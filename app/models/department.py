@@ -94,8 +94,8 @@ class Department(db.Model):
             'manager_id': self.manager_id,
             'manager_name': self.manager.full_name if self.manager else None,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at,
             'users_count': self.users.count(),
             'active_tickets_count': len(self.get_open_tickets())
         }

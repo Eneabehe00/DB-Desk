@@ -150,8 +150,8 @@
                             </span>
                             <span class="text-muted ms-2"><i class="bi bi-tag me-1"></i>{{ ticket.categoria }}</span>
                         </div>
-                        <h2 class="fw-bold mb-3">{{ ticket.titolo }}</h2>
-                        <div class="d-flex align-items-center text-muted">
+                        <h2 class="fw-bold mb-1">{{ ticket.titolo }}</h2>
+                        <div class="d-flex align-items-center text-muted mb-3">
                             <div class="me-4">
                                 <i class="bi bi-building me-1"></i>
                                 <a href="{{ url_for('clients.view_client', id=ticket.cliente.id) }}" class="text-decoration-none text-reset fw-medium">
@@ -161,6 +161,20 @@
                             <div>
                                 <i class="bi bi-calendar-event me-1"></i>
                                 {{ ticket.created_at.strftime('%d %b %Y') }}
+                            </div>
+                        </div>
+
+                        <!-- Riepilogo in Header (Secondo piano) -->
+                        <div class="d-flex gap-3 opacity-75">
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-person-badge text-muted me-1"></i>
+                                <span class="text-muted me-1">Creato da:</span>
+                                <span class="fw-medium">{{ ticket.created_by_user.full_name }}</span>
+                            </div>
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-clock-history text-muted me-1"></i>
+                                <span class="text-muted me-1">Ultima modifica:</span>
+                                <span class="fw-medium">{{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}</span>
                             </div>
                         </div>
                     </div>
@@ -173,25 +187,26 @@
                                         <div class="fw-bold">{{ ticket.assigned_to.full_name }}</div>
                                     </div>
                                     <img src="https://ui-avatars.com/api/?name={{ ticket.assigned_to.full_name }}&background=random" class="rounded-circle" width="45" height="45" alt="Avatar">
-                                {% else %}
-                                    <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="assignToMe()">
-                                        <i class="bi bi-person-plus me-1"></i>Assegna a me
-                                    </button>
                                 {% endif %}
                             </div>
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                {% if not ticket.assigned_to %}
+                                    <button class="btn btn-white border-end text-primary" onclick="assignToMe()" title="Assegna a me">
+                                        <i class="bi bi-person-plus-fill me-1"></i><span class="d-none d-xl-inline small">Prendi</span>
+                                    </button>
+                                {% endif %}
                                 {% if ticket.stato != 'In Lavorazione' and ticket.stato != 'Risolto' and ticket.stato != 'Chiuso' %}
-                                    <button class="btn btn-white border-end" onclick="changeStatus('In Lavorazione')" title="Prendi in carico">
-                                        <i class="bi bi-play-fill text-primary"></i>
+                                    <button class="btn btn-white border-end text-primary" onclick="changeStatus('In Lavorazione')" title="Prendi in carico">
+                                        <i class="bi bi-play-fill me-1"></i><span class="d-none d-xl-inline small">Inizia</span>
                                     </button>
                                 {% endif %}
                                 {% if ticket.stato != 'Risolto' and ticket.stato != 'Chiuso' %}
-                                    <button class="btn btn-white border-end" onclick="changeStatus('Risolto')" title="Risolvi">
-                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    <button class="btn btn-white border-end text-success" onclick="changeStatus('Risolto')" title="Risolvi">
+                                        <i class="bi bi-check-circle-fill me-1"></i><span class="d-none d-xl-inline small">Risolvi</span>
                                     </button>
                                 {% endif %}
                                 <a href="{{ url_for('tickets.edit_ticket', id=ticket.id) }}" class="btn btn-white border-end" title="Modifica">
-                                    <i class="bi bi-pencil-fill text-muted"></i>
+                                    <i class="bi bi-pencil-fill text-muted me-1"></i><span class="d-none d-xl-inline small text-muted">Modifica</span>
                                 </a>
                                 <button class="btn btn-white" onclick="printTicket()" title="Stampa">
                                     <i class="bi bi-printer-fill text-muted"></i>

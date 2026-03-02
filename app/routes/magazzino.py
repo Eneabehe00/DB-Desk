@@ -693,24 +693,7 @@ def api_ricambi_filter():
     ricambi = query.paginate(page=page, per_page=per_page, error_out=False)
     
     # Prepara i dati per JSON
-    results = []
-    for ricambio in ricambi.items:
-        results.append({
-            'id': ricambio.id,
-            'codice': ricambio.codice,
-            'descrizione': ricambio.descrizione,
-            'quantita_disponibile': ricambio.quantita_disponibile,
-            'quantita_prenotata': ricambio.quantita_prenotata,
-            'quantita_effettiva': ricambio.quantita_effettiva,
-            'quantita_minima': ricambio.quantita_minima,
-            'ubicazione': ricambio.ubicazione,
-            'fornitore': ricambio.fornitore,
-            'prezzo_unitario': float(ricambio.prezzo_unitario) if ricambio.prezzo_unitario else None,
-            'foto_filename': ricambio.foto_filename,
-            'is_sotto_scorta': ricambio.is_sotto_scorta,
-            'stato_disponibilita': ricambio.stato_disponibilita,
-            'created_at': ricambio.created_at.isoformat() if ricambio.created_at else None
-        })
+    results = [ricambio.to_dict() for ricambio in ricambi.items]
     
     return jsonify({
         'ricambi': results,

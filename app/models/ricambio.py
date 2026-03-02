@@ -150,8 +150,8 @@ class Ricambio(db.Model):
             'stato_disponibilita': self.stato_disponibilita,
             'is_sotto_scorta': self.is_sotto_scorta,
             'has_prenotazioni': self.has_prenotazioni,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at
         }
 
 
@@ -206,7 +206,7 @@ class MovimentoMagazzino(db.Model):
             'ticket_numero': self.ticket.numero_ticket if self.ticket else None,
             'user_id': self.user_id,
             'user_name': self.user.full_name if self.user else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
             'is_carico': self.is_carico,
             'is_scarico': self.is_scarico
         }
@@ -301,8 +301,8 @@ class PrenotazioneRicambio(db.Model):
             'ricambio_codice': self.ricambio.codice if self.ricambio else None,
             'ricambio_descrizione': self.ricambio.descrizione if self.ricambio else None,
             'quantita': self.quantita,
-            'data_prenotazione': self.data_prenotazione.isoformat() if self.data_prenotazione else None,
-            'data_scadenza': self.data_scadenza.isoformat() if self.data_scadenza else None,
+            'data_prenotazione': self.data_prenotazione.isoformat() if hasattr(self.data_prenotazione, 'isoformat') else self.data_prenotazione,
+            'data_scadenza': self.data_scadenza.isoformat() if hasattr(self.data_scadenza, 'isoformat') else self.data_scadenza,
             'ticket_id': self.ticket_id,
             'ticket_numero': self.ticket.numero_ticket if self.ticket else None,
             'user_id': self.user_id,
@@ -312,6 +312,6 @@ class PrenotazioneRicambio(db.Model):
             'is_attiva': self.is_attiva,
             'is_scaduta': self.is_scaduta,
             'giorni_alla_scadenza': self.giorni_alla_scadenza,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at
         }

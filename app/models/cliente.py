@@ -93,6 +93,6 @@ class Cliente(db.Model):
             'is_active': self.is_active,
             'ticket_count': self.ticket_count,
             'ticket_aperti': self.ticket_aperti,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at
         }

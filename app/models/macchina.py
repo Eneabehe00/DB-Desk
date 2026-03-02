@@ -42,8 +42,8 @@ class TipoMacchina(db.Model):
             'id': self.id,
             'nome': self.nome,
             'descrizione': self.descrizione,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at,
             'numero_macchine': self.macchine.count()
         }
 
@@ -472,7 +472,7 @@ class Macchina(db.Model):
             'ubicazione': self.ubicazione,
             'cliente_id': self.cliente_id,
             'cliente_nome': self.cliente.ragione_sociale if self.cliente else None,
-            'data_assegnazione': self.data_assegnazione.isoformat() if self.data_assegnazione else None,
+            'data_assegnazione': self.data_assegnazione.isoformat() if hasattr(self.data_assegnazione, 'isoformat') else self.data_assegnazione,
             'anno_produzione': self.anno_produzione,
             'eta_anni': self.eta_anni,
             'peso': float(self.peso) if self.peso else None,
@@ -481,11 +481,11 @@ class Macchina(db.Model):
             'prezzo_acquisto': float(self.prezzo_acquisto) if self.prezzo_acquisto else None,
             'prezzo_vendita': float(self.prezzo_vendita) if self.prezzo_vendita else None,
             'fornitore': self.fornitore,
-            'data_acquisto': self.data_acquisto.isoformat() if self.data_acquisto else None,
-            'data_vendita': self.data_vendita.isoformat() if self.data_vendita else None,
-            'data_scadenza_garanzia': self.data_scadenza_garanzia.isoformat() if self.data_scadenza_garanzia else None,
+            'data_acquisto': self.data_acquisto.isoformat() if hasattr(self.data_acquisto, 'isoformat') else self.data_acquisto,
+            'data_vendita': self.data_vendita.isoformat() if hasattr(self.data_vendita, 'isoformat') else self.data_vendita,
+            'data_scadenza_garanzia': self.data_scadenza_garanzia.isoformat() if hasattr(self.data_scadenza_garanzia, 'isoformat') else self.data_scadenza_garanzia,
             'garanzia_scaduta': self.garanzia_scaduta,
-            'prossima_manutenzione': self.prossima_manutenzione.isoformat() if self.prossima_manutenzione else None,
+            'prossima_manutenzione': self.prossima_manutenzione.isoformat() if hasattr(self.prossima_manutenzione, 'isoformat') else self.prossima_manutenzione,
             'giorni_alla_manutenzione': self.giorni_alla_manutenzione,
             'necessita_manutenzione': self.necessita_manutenzione,
             'intervallo_manutenzione_giorni': self.intervallo_manutenzione_giorni,
@@ -496,8 +496,8 @@ class Macchina(db.Model):
             'is_in_prestito': self.is_in_prestito,
             'is_in_riparazione': self.is_in_riparazione,
             'is_attiva': self.is_attiva,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at
         }
 
 

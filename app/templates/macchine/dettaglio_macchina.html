@@ -162,8 +162,8 @@
                             <span class="text-muted ms-2"><i class="bi bi-tag me-1"></i>{{ macchina.tipo_macchina.nome }}</span>
                             {% endif %}
                         </div>
-                        <h2 class="fw-bold mb-3">{{ macchina.marca }} {{ macchina.modello }}</h2>
-                        <div class="d-flex align-items-center text-muted flex-wrap gap-3">
+                        <h2 class="fw-bold mb-1">{{ macchina.marca }} {{ macchina.modello }}</h2>
+                        <div class="d-flex align-items-center text-muted flex-wrap gap-3 mb-3">
                             {% if macchina.cliente %}
                             <div>
                                 <i class="bi bi-building me-1"></i>
@@ -183,31 +183,43 @@
                             </div>
                             {% endif %}
                         </div>
+
+                        <!-- Riepilogo in Header (Secondo piano) -->
+                        <div class="d-flex gap-3 opacity-75">
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-calendar-check text-muted me-1"></i>
+                                <span class="text-muted me-1">Inserita il:</span>
+                                <span class="fw-medium">{{ macchina.created_at.strftime('%d/%m/%Y') }}</span>
+                            </div>
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-clock-history text-muted me-1"></i>
+                                <span class="text-muted me-1">Ultimo movimento:</span>
+                                <span class="fw-medium">{{ macchina.updated_at.strftime('%d/%m/%Y') }}</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
                         <div class="d-flex flex-column align-items-md-end gap-2">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                {% if macchina.is_disponibile %}
+                                    <button class="btn btn-white border-end text-warning" onclick="openAssignModal()" title="Assegna">
+                                        <i class="bi bi-arrow-right-circle-fill me-1"></i><span class="d-none d-xl-inline small">Assegna</span>
+                                    </button>
+                                {% endif %}
+                                {% if macchina.is_in_prestito %}
+                                    <button class="btn btn-white border-end text-info" onclick="openReturnModal()" title="Rientro">
+                                        <i class="bi bi-arrow-left-circle-fill me-1"></i><span class="d-none d-xl-inline small">Rientro</span>
+                                    </button>
+                                {% endif %}
                                 <a href="{{ url_for('macchine.edit_macchina', macchina_id=macchina.id) }}" class="btn btn-white border-end" title="Modifica">
-                                    <i class="bi bi-pencil-fill text-muted"></i>
+                                    <i class="bi bi-pencil-fill text-muted me-1"></i><span class="d-none d-xl-inline small text-muted">Modifica</span>
                                 </a>
-                                <a href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id) }}" class="btn btn-white border-end" title="Storico Movimenti">
-                                    <i class="bi bi-clock-history text-muted"></i>
+                                <a href="{{ url_for('macchine.movimenti_macchina', macchina_id=macchina.id) }}" class="btn btn-white border-end" title="Storico">
+                                    <i class="bi bi-clock-history text-muted me-1"></i><span class="d-none d-xl-inline small text-muted">Storico</span>
                                 </a>
                                 {% if current_user.has_permission('can_manage_system') %}
                                 <button class="btn btn-white" onclick="confirmDeleteMacchina()" title="Elimina">
                                     <i class="bi bi-trash-fill text-danger"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                            <div class="d-flex gap-2">
-                                {% if macchina.is_disponibile %}
-                                <button class="btn btn-warning btn-sm rounded-pill px-3" onclick="openAssignModal()">
-                                    <i class="bi bi-arrow-right-circle me-1"></i>Assegna
-                                </button>
-                                {% endif %}
-                                {% if macchina.is_in_prestito %}
-                                <button class="btn btn-info btn-sm rounded-pill px-3" onclick="openReturnModal()">
-                                    <i class="bi bi-arrow-left-circle me-1"></i>Rientro
                                 </button>
                                 {% endif %}
                             </div>

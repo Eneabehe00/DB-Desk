@@ -116,8 +116,8 @@
                                 </span>
                             {% endif %}
                         </div>
-                        <h2 class="fw-bold mb-3">{{ cliente.ragione_sociale }}</h2>
-                        <div class="d-flex align-items-center text-muted flex-wrap gap-3">
+                        <h2 class="fw-bold mb-1">{{ cliente.ragione_sociale }}</h2>
+                        <div class="d-flex align-items-center text-muted flex-wrap gap-3 mb-3">
                             <div>
                                 <i class="bi bi-envelope me-1"></i>
                                 <a href="mailto:{{ cliente.email }}" class="text-decoration-none text-reset fw-medium">
@@ -132,26 +132,36 @@
                                 </a>
                             </div>
                             {% endif %}
-                            <div>
-                                <i class="bi bi-calendar-check me-1"></i>
-                                Cliente dal {{ cliente.created_at.strftime('%d %b %Y') }}
+                        </div>
+
+                        <!-- Riepilogo in Header (Secondo piano) -->
+                        <div class="d-flex gap-3 opacity-75">
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-calendar-check text-muted me-1"></i>
+                                <span class="text-muted me-1">Cliente dal:</span>
+                                <span class="fw-medium">{{ cliente.created_at.strftime('%d/%m/%Y') }}</span>
+                            </div>
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-clock-history text-muted me-1"></i>
+                                <span class="text-muted me-1">Ultima attività:</span>
+                                <span class="fw-medium">{{ cliente.updated_at.strftime('%d/%m/%Y') }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
                         <div class="d-flex flex-column align-items-md-end gap-2">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-white border-end" title="Nuovo Ticket">
-                                    <i class="bi bi-plus-lg text-primary"></i>
+                                <a href="{{ url_for('tickets.new_ticket') }}?cliente={{ cliente.id }}" class="btn btn-white border-end text-primary" title="Nuovo Ticket">
+                                    <i class="bi bi-plus-lg me-1"></i><span class="d-none d-xl-inline small">Nuovo Ticket</span>
                                 </a>
                                 <a href="{{ url_for('clients.edit_client', id=cliente.id) }}" class="btn btn-white border-end" title="Modifica">
-                                    <i class="bi bi-pencil-fill text-muted"></i>
+                                    <i class="bi bi-pencil-fill text-muted me-1"></i><span class="d-none d-xl-inline small text-muted">Modifica</span>
                                 </a>
                                 <button class="btn btn-white border-end toggle-status" 
                                         data-client-id="{{ cliente.id }}"
                                         data-current-status="{{ cliente.is_active }}"
                                         title="{{ 'Disattiva' if cliente.is_active else 'Attiva' }}">
-                                    <i class="bi bi-power {{ 'text-success' if cliente.is_active else 'text-danger' }}"></i>
+                                    <i class="bi bi-power {{ 'text-success' if cliente.is_active else 'text-danger' }} me-1"></i><span class="d-none d-xl-inline small text-muted">{{ 'Sospendi' if cliente.is_active else 'Riattiva' }}</span>
                                 </button>
                                 {% if current_user.is_admin and cliente.ticket_count == 0 %}
                                 <button class="btn btn-white delete-client" 
