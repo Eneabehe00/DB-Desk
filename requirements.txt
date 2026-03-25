@@ -16,6 +16,9 @@ python-dotenv==1.0.0
 email-validator==2.0.0
 imapclient==2.3.1
 
+# PDF Generation
+reportlab>=4.4.3
+
 # Scheduler
 APScheduler==3.10.4
 

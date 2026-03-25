@@ -1084,28 +1084,9 @@ def generate_pdf(id):
 @fogli_tecnici_bp.route('/preview_html/<int:id>')
 @login_required
 def preview_html(id):
-    """Anteprima HTML del foglio tecnico con il nuovo design moderno"""
-    foglio = FoglioTecnico.query.get_or_404(id)
-    
-    if not PermissionManager.can_view_foglio_tecnico(current_user, foglio):
-        abort(403)
-    
-    try:
-        from app.services.pdf_generator import get_signature_base64
-        from datetime import datetime
-        
-        # Render del template HTML direttamente
-        return render_template(
-            'fogli_tecnici/pdf_template.html',
-            foglio=foglio,
-            timestamp=datetime.now().strftime('%d/%m/%Y alle %H:%M'),
-            is_html=True,
-            get_signature_base64=get_signature_base64
-        )
-        
-    except Exception as e:
-        flash(f'Errore nella generazione dell\'anteprima: {str(e)}', 'error')
-        return redirect(url_for('fogli_tecnici.view', id=foglio.id))
+    """Anteprima HTML non più disponibile - genera direttamente PDF"""
+    flash('Anteprima HTML non disponibile. Generazione PDF...', 'info')
+    return redirect(url_for('fogli_tecnici.generate_pdf', id=id))
 
 
 @fogli_tecnici_bp.route('/send_email/<int:id>', methods=['GET', 'POST'])
