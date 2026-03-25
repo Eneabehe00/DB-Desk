@@ -68,8 +68,22 @@ FLUSH PRIVILEGES;
 
 ### 5. Configura variabili d'ambiente
 
-Crea un file `.env` nella directory root:
+Crea un file `.env` nella directory root copiando `.env.example`:
+
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+Modifica il file `.env` con le tue configurazioni:
+
 ```env
+# Security - IMPORTANTE: Genera una chiave sicura per produzione!
+SECRET_KEY=your-secret-key-here-change-in-production
+
 # Database Configuration
 DB_HOST=localhost
 DB_USER=root
@@ -78,10 +92,22 @@ DB_NAME=dbdesk
 DB_PORT=3306
 
 # Flask Configuration
-SECRET_KEY=cambia-questa-chiave-segreta-in-produzione
-FLASK_HOST=0.0.0.0
+FLASK_HOST=192.168.191.74  # IP ZeroTier per produzione
 FLASK_PORT=5000
-FLASK_DEBUG=true
+FLASK_DEBUG=False
+
+# Ambiente Flask
+FLASK_CONFIG=production  # o 'development' per sviluppo
+
+# Waitress Configuration (solo per produzione)
+WAITRESS_THREADS=4
+WAITRESS_CHANNEL_TIMEOUT=120
+WAITRESS_CONNECTION_LIMIT=100
+```
+
+**Per generare una SECRET_KEY sicura:**
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ### 6. Inizializza il database
@@ -97,11 +123,27 @@ python init_data.py
 ## 🎯 Utilizzo
 
 ### Avvio dell'applicazione
+
+#### Modalità Sviluppo (con auto-reload)
 ```bash
+# Windows
+start_development.bat
+
+# Oppure manualmente
 python run.py
 ```
 
+#### Modalità Produzione (con Waitress)
+```bash
+# Windows
+start_production.bat
+
+# Oppure manualmente
+python wsgi.py
+```
+
 L'applicazione sarà accessibile su:
+- **Rete ZeroTier**: http://192.168.191.74:5000 (predefinito per produzione)
 - **Locale**: http://localhost:5000
 - **Rete locale**: http://[IP_TUA_MACCHINA]:5000
 
@@ -151,10 +193,15 @@ DB-Desk/
 │   │   ├── ticket.py
 │   │   └── cliente.py
 │   ├── templates/            # Template HTML
-│   └── static/               # File statici (CSS, JS, immagini)
+│   ├── static/               # File statici (CSS, JS, immagini)
+│   └── services/             # Servizi (email, scheduler, PDF)
 ├── config.py                 # Configurazioni
-├── run.py                    # Entry point
+├── run.py                    # Entry point sviluppo
+├── wsgi.py                   # Entry point produzione (Waitress)
+├── start_development.bat     # Script avvio sviluppo
+├── start_production.bat      # Script avvio produzione
 ├── requirements.txt          # Dipendenze Python
+├── .env.example              # Template variabili d'ambiente
 ├── init_data.py             # Script dati di test
 ├── db_setup.sql             # Setup database
 └── README.md                # Questo file
@@ -162,19 +209,105 @@ DB-Desk/
 
 ## 🔧 Configurazione Avanzata
 
-### Configurazione per Produzione
+### Configurazione per Produzione con Waitress
 
-1. **Modifica `.env`**:
-   ```env
-   FLASK_DEBUG=false
-   SECRET_KEY=chiave-molto-sicura-e-lunga
-   ```
+L'applicazione utilizza **Waitress** come server WSGI per la produzione, che offre migliori performance e stabilità rispetto al server di sviluppo Flask.
 
-2. **Usa un server web** (Nginx + Gunicorn):
-   ```bash
-   pip install gunicorn
-   gunicorn -w 4 -b 0.0.0.0:5000 run:app
-   ```
+#### 1. File di configurazione
+
+Modifica `.env` per produzione:
+```env
+FLASK_CONFIG=production
+FLASK_HOST=192.168.191.74  # IP ZeroTier
+FLASK_PORT=5000
+FLASK_DEBUG=False
+SECRET_KEY=chiave-molto-sicura-e-lunga
+```
+
+#### 2. Configurazione Waitress
+
+Puoi personalizzare le performance di Waitress tramite variabili d'ambiente:
+
+```env
+# Numero di thread worker (default: 4)
+# Aumenta per gestire più richieste concorrenti
+WAITRESS_THREADS=4
+
+# Timeout in secondi per i canali (default: 120)
+# Aumenta se hai operazioni lunghe (es. upload file grandi)
+WAITRESS_CHANNEL_TIMEOUT=120
+
+# Limite di connessioni simultanee (default: 100)
+WAITRESS_CONNECTION_LIMIT=100
+```
+
+#### 3. Servizio Windows (Consigliato per Produzione)
+
+Per eseguire DB-Desk come servizio Windows affidabile con auto-restart e logging:
+
+**Installazione Automatica:**
+1. Scarica NSSM: `winget install NSSM`
+2. Click destro su `install_service.bat` → "Esegui come amministratore"
+
+Il servizio configurato include:
+- ✅ Avvio automatico all'accensione
+- ✅ Auto-restart in caso di crash (dopo 5 secondi)
+- ✅ Logging completo su file in `logs/`
+- ✅ Rotazione automatica log (10MB max, 5 backup)
+- ✅ Visualizzazione log via web: **Settings → Log Sistema**
+
+**Gestione Servizio:**
+```bash
+# GUI: Win + R → services.msc → "DB-Desk Ticket System"
+
+# CLI con NSSM
+nssm status DBDesk    # Stato
+nssm start DBDesk     # Avvia
+nssm stop DBDesk      # Ferma
+nssm restart DBDesk   # Riavvia
+
+# PowerShell
+Get-Service DBDesk
+Start-Service DBDesk
+```
+
+**Rimozione:**
+- Esegui `uninstall_service.bat` come amministratore
+
+**Documentazione completa:** Consulta `SERVIZIO_WINDOWS.md`
+
+---
+
+#### 4. Logging e Monitoraggio
+
+**File di Log** (cartella `logs/`):
+- `app/main/dbdesk.log` - Log principale applicazione
+- `app/error/dbdesk_error.log` - Solo errori applicazione
+- `service/stdout/service_stdout.log` - Output servizio (stdout)
+- `service/stderr/service_stderr.log` - Errori servizio (stderr)
+
+**Visualizzazione Web:**
+1. Accedi a DB-Desk
+2. Vai su **Settings → Log Sistema**
+3. Funzionalità:
+   - Filtra per tipo, livello (INFO/WARNING/ERROR/CRITICAL), ricerca
+   - Auto-refresh ogni 5 secondi
+   - Statistiche real-time
+   - Download log in formato .txt
+
+---
+
+#### 5. Differenze Development vs Production
+
+| Caratteristica | Development | Production |
+|----------------|-------------|------------|
+| Server | Flask Dev Server | Waitress |
+| Auto-reload | Sì | No |
+| Debug mode | Sì | No |
+| Thread | 1 | 4+ configurabili |
+| Performance | Bassa | Alta |
+| Stabilità | Bassa | Alta |
+| Avvio | `start_development.bat` | `start_production.bat` |
 
 ### Backup del Database
 ```bash
@@ -375,6 +508,7 @@ Questo progetto è rilasciato sotto licenza MIT.
 
 ## 🔄 Versioni
 
+- **v2.0**: Migrazione a Waitress per produzione, separazione ambiente dev/prod
 - **v1.0**: Release iniziale con tutte le funzionalità base
 
 ---

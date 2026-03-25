@@ -1,0 +1,45 @@
+2026-03-25 11:36:21 - apscheduler.scheduler - INFO - [base.py:454] - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-25 11:36:21 - apscheduler.scheduler - INFO - [base.py:895] - Added job "Import Email Automatico" to job store "default"
+2026-03-25 11:36:21 - apscheduler.scheduler - INFO - [base.py:181] - Scheduler started
+2026-03-25 11:36:21 - app.services.scheduler - INFO - [scheduler.py:47] - Email import scheduler avviato - polling ogni 10 secondi
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:99] - ======================================================================
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:100] - DB-Desk - Avvio Server di Produzione (Waitress)
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:101] - ======================================================================
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:102] - Ambiente: production
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:103] - Host: 192.168.191.74
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:104] - Porta: 5000
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:105] - URL: http://192.168.191.74:5000
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:106] - Threads: 4
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:107] - Channel Timeout: 120s
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:108] - Connection Limit: 100
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:109] - Debug Mode: False
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:110] - Log Directory: C:\DB-Desk\logs
+2026-03-25 11:36:21 - __main__ - INFO - [wsgi.py:111] - ======================================================================
+2026-03-25 11:36:21 - waitress - INFO - [wasyncore.py:485] - Serving on http://192.168.191.74:5000
+2026-03-25 11:36:31 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:36:31 CET)" (scheduled at 2026-03-25 11:36:31.124755+01:00)
+2026-03-25 11:36:31 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-03-25 11:36:31 - app - INFO - [email_importer.py:619] - Trovati 338 messaggi totali nella cartella
+2026-03-25 11:36:40 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-03-25 11:36:06): 0 messaggi da processare
+2026-03-25 11:36:40 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-03-25 11:36:40 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:36:41 CET)" executed successfully
+2026-03-25 11:36:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:36:51 CET)" (scheduled at 2026-03-25 11:36:41.124755+01:00)
+2026-03-25 11:36:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-03-25 11:36:41 - app - INFO - [email_importer.py:619] - Trovati 338 messaggi totali nella cartella
+2026-03-25 11:36:47 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-03-25 11:36:31): 0 messaggi da processare
+2026-03-25 11:36:47 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-03-25 11:36:47 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:36:51 CET)" executed successfully
+2026-03-25 11:36:51 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:37:01 CET)" (scheduled at 2026-03-25 11:36:51.124755+01:00)
+2026-03-25 11:36:51 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-03-25 11:36:51 - app - INFO - [email_importer.py:619] - Trovati 338 messaggi totali nella cartella
+2026-03-25 11:37:00 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-03-25 11:36:41): 0 messaggi da processare
+2026-03-25 11:37:00 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-03-25 11:37:00 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:37:01 CET)" executed successfully
+2026-03-25 11:37:01 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:37:11 CET)" (scheduled at 2026-03-25 11:37:01.124755+01:00)
+2026-03-25 11:37:01 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-03-25 11:37:01 - app - INFO - [email_importer.py:619] - Trovati 338 messaggi totali nella cartella
+2026-03-25 11:37:08 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-03-25 11:36:51): 0 messaggi da processare
+2026-03-25 11:37:08 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-03-25 11:37:08 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:37:11 CET)" executed successfully
+2026-03-25 11:37:11 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-03-25 11:37:21 CET)" (scheduled at 2026-03-25 11:37:11.124755+01:00)
+2026-03-25 11:37:11 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-03-25 11:37:11 - app - INFO - [email_importer.py:619] - Trovati 338 messaggi totali nella cartella

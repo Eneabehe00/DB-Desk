@@ -878,27 +878,206 @@ def logs():
         flash('Non hai i permessi per accedere a questa sezione.', 'error')
         return redirect(url_for('settings.index'))
     
-    # Qui potresti implementare la lettura dei file di log
-    # Per ora mostriamo una pagina placeholder
-    log_entries = [
-        {
-            'timestamp': '2024-01-15 10:30:00',
-            'level': 'INFO',
-            'message': 'Applicazione avviata correttamente'
-        },
-        {
-            'timestamp': '2024-01-15 10:31:15',
-            'level': 'INFO',
-            'message': 'Nuovo utente registrato: mario.rossi'
-        },
-        {
-            'timestamp': '2024-01-15 10:35:22',
-            'level': 'WARNING',
-            'message': 'Tentativo di login fallito per utente: admin'
-        }
-    ]
+    import os
+    from datetime import datetime
     
-    return render_template('settings/logs.html', log_entries=log_entries)
+    # Directory dei log
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+    
+    # File di log disponibili
+    log_files = {
+        'main': os.path.join(log_dir, 'app', 'main', 'dbdesk.log'),
+        'error': os.path.join(log_dir, 'app', 'error', 'dbdesk_error.log'),
+        'service_stdout': os.path.join(log_dir, 'service', 'stdout', 'service_stdout.log'),
+        'service_stderr': os.path.join(log_dir, 'service', 'stderr', 'service_stderr.log')
+    }
+
+    # Percorsi legacy (prima della riorganizzazione)
+    legacy_log_files = {
+        'main': os.path.join(log_dir, 'dbdesk.log'),
+        'error': os.path.join(log_dir, 'dbdesk_error.log'),
+        'service_stdout': os.path.join(log_dir, 'service_stdout.log'),
+        'service_stderr': os.path.join(log_dir, 'service_stderr.log')
+    }
+    
+    # Ottieni il file di log richiesto (default: main)
+    log_type = request.args.get('type', 'main')
+    lines = int(request.args.get('lines', 500))  # Numero di righe da mostrare
+    search = request.args.get('search', '')
+    level_filter = request.args.get('level', '')  # INFO, WARNING, ERROR
+    
+    log_entries = []
+    log_file = log_files.get(log_type)
+    if log_file and not os.path.exists(log_file):
+        # Se il file nuovo non esiste, prova quelli vecchi.
+        legacy_path = legacy_log_files.get(log_type)
+        if legacy_path and os.path.exists(legacy_path):
+            log_file = legacy_path
+    
+    if log_file and os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                # Leggi le ultime N righe
+                all_lines = f.readlines()
+                recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+                
+                for line in recent_lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Applica filtro ricerca
+                    if search and search.lower() not in line.lower():
+                        continue
+                    
+                    # Applica filtro livello
+                    if level_filter and level_filter not in line:
+                        continue
+                    
+                    # Parse della riga di log (formato: YYYY-MM-DD HH:MM:SS - name - LEVEL - message)
+                    try:
+                        parts = line.split(' - ', 3)
+                        if len(parts) >= 4:
+                            log_entries.append({
+                                'timestamp': parts[0],
+                                'logger': parts[1],
+                                'level': parts[2],
+                                'message': parts[3],
+                                'raw': line
+                            })
+                        else:
+                            # Se non matcha il formato, aggiungi come raw
+                            log_entries.append({
+                                'timestamp': '',
+                                'logger': '',
+                                'level': 'INFO',
+                                'message': line,
+                                'raw': line
+                            })
+                    except:
+                        log_entries.append({
+                            'timestamp': '',
+                            'logger': '',
+                            'level': 'INFO',
+                            'message': line,
+                            'raw': line
+                        })
+        except Exception as e:
+            flash(f'Errore lettura log: {str(e)}', 'error')
+    
+    # Inverti l'ordine per mostrare i più recenti in alto
+    log_entries.reverse()
+    
+    # Info sui file di log
+    log_info = {}
+    for name, path in log_files.items():
+        legacy_path = legacy_log_files.get(name)
+        actual_path = path
+        if not os.path.exists(actual_path) and legacy_path and os.path.exists(legacy_path):
+            actual_path = legacy_path
+
+        if os.path.exists(actual_path):
+            stat = os.stat(actual_path)
+            log_info[name] = {
+                'exists': True,
+                'size': stat.st_size,
+                'size_mb': round(stat.st_size / (1024 * 1024), 2),
+                'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            }
+        else:
+            log_info[name] = {'exists': False}
+    
+    return render_template('settings/logs.html', 
+                         log_entries=log_entries,
+                         log_type=log_type,
+                         log_info=log_info,
+                         search=search,
+                         level_filter=level_filter,
+                         lines=lines)
+
+
+@settings_bp.route('/logs/api')
+@login_required
+def logs_api():
+    """API per ottenere log in formato JSON (per auto-refresh)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    import os
+    
+    # Directory dei log
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+    
+    log_type = request.args.get('type', 'main')
+    lines = int(request.args.get('lines', 100))
+    search = request.args.get('search', '')
+    level_filter = request.args.get('level', '')
+    
+    log_files = {
+        'main': os.path.join(log_dir, 'app', 'main', 'dbdesk.log'),
+        'error': os.path.join(log_dir, 'app', 'error', 'dbdesk_error.log'),
+        'service_stdout': os.path.join(log_dir, 'service', 'stdout', 'service_stdout.log'),
+        'service_stderr': os.path.join(log_dir, 'service', 'stderr', 'service_stderr.log')
+    }
+    legacy_log_files = {
+        'main': os.path.join(log_dir, 'dbdesk.log'),
+        'error': os.path.join(log_dir, 'dbdesk_error.log'),
+        'service_stdout': os.path.join(log_dir, 'service_stdout.log'),
+        'service_stderr': os.path.join(log_dir, 'service_stderr.log')
+    }
+    
+    log_entries = []
+    log_file = log_files.get(log_type)
+    if log_file and not os.path.exists(log_file):
+        legacy_path = legacy_log_files.get(log_type)
+        if legacy_path and os.path.exists(legacy_path):
+            log_file = legacy_path
+    
+    if log_file and os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                all_lines = f.readlines()
+                recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+                
+                for line in recent_lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    if search and search.lower() not in line.lower():
+                        continue
+                    
+                    if level_filter and level_filter not in line:
+                        continue
+                    
+                    try:
+                        parts = line.split(' - ', 3)
+                        if len(parts) >= 4:
+                            log_entries.append({
+                                'timestamp': parts[0],
+                                'logger': parts[1],
+                                'level': parts[2],
+                                'message': parts[3]
+                            })
+                        else:
+                            log_entries.append({
+                                'timestamp': '',
+                                'logger': '',
+                                'level': 'INFO',
+                                'message': line
+                            })
+                    except:
+                        log_entries.append({
+                            'timestamp': '',
+                            'logger': '',
+                            'level': 'INFO',
+                            'message': line
+                        })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    log_entries.reverse()
+    return jsonify({'logs': log_entries})
 
 
 @settings_bp.route('/config')

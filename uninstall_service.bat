@@ -1,51 +1,109 @@
 @echo off
-echo ======================================
-echo    Rimozione Servizio DB-Desk
-echo ======================================
+REM ==============================================================================
+REM Script per disinstallare il servizio Windows DB-Desk
+REM ==============================================================================
+REM
+REM IMPORTANTE: Questo script deve essere eseguito come Amministratore!
+REM
+REM ==============================================================================
 
-:: Verifica privilegi amministrativi
+echo ===============================================================================
+echo Disinstallazione Servizio Windows DB-Desk
+echo ===============================================================================
+echo.
+
+REM Verifica privilegi amministratore
 net session >nul 2>&1
-if %errorLevel% == 0 (
-    echo [OK] Eseguito come amministratore
-) else (
-    echo [ERROR] Questo script richiede privilegi di amministratore!
-    echo Eseguire lo script come amministratore.
+if %errorlevel% neq 0 (
+    echo ERRORE: Questo script richiede privilegi di amministratore!
+    echo.
+    echo Fai click destro su questo file e seleziona "Esegui come amministratore"
+    echo.
     pause
     exit /b 1
 )
 
-:: Termina eventuali processi DB-Desk attivi
+echo [OK] Privilegi amministratore verificati
 echo.
-echo [INFO] Terminazione eventuali processi DB-Desk attivi...
-taskkill /F /IM python.exe /FI "WINDOWTITLE eq DB-Desk Server" 2>nul
-timeout /t 2 >nul
 
-:: Rimuovi task schedulato
-echo.
-echo [INFO] Rimozione task schedulato...
-schtasks /Delete /TN "DB-Desk Server" /F
-
-if %errorLevel% == 0 (
-    echo [OK] Task schedulato rimosso con successo
-) else (
-    echo [WARN] Task schedulato non trovato o errore durante la rimozione
+REM Verifica se il servizio esiste
+sc query DBDesk >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ATTENZIONE: Il servizio DBDesk non e' installato!
+    echo.
+    pause
+    exit /b 0
 )
 
-:: Rimuovi collegamento dal menu Start
+echo Il servizio DBDesk e' attualmente installato.
 echo.
-echo [INFO] Rimozione collegamento dal menu Start...
-set "STARTUP_FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "SHORTCUT=%STARTUP_FOLDER%\DB-Desk Server.lnk"
-
-if exist "%SHORTCUT%" (
-    del "%SHORTCUT%"
-    echo [OK] Collegamento rimosso con successo
-) else (
-    echo [WARN] Collegamento non trovato
+choice /C SN /M "Vuoi procedere con la disinstallazione"
+if errorlevel 2 (
+    echo Disinstallazione annullata.
+    pause
+    exit /b 0
 )
 
 echo.
-echo [INFO] Rimozione completata!
-echo [INFO] Il server non si avvierà più automaticamente
+echo Disinstallazione in corso...
+echo.
+
+REM Verifica presenza NSSM
+where nssm >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ATTENZIONE: NSSM non trovato nel PATH!
+    echo Provo a fermare il servizio con sc...
+    
+    sc stop DBDesk
+    timeout /t 3 /nobreak >nul
+    sc delete DBDesk
+    
+    if %errorlevel% equ 0 (
+        echo [OK] Servizio rimosso
+        echo.
+        pause
+        exit /b 0
+    ) else (
+        echo ERRORE: Impossibile rimuovere il servizio
+        echo Rimuovilo manualmente da services.msc
+        pause
+        exit /b 1
+    )
+)
+
+REM Ferma il servizio
+echo Arresto servizio...
+nssm stop DBDesk
+
+if %errorlevel% equ 0 (
+    echo [OK] Servizio fermato
+) else (
+    echo [ATTENZIONE] Il servizio potrebbe essere gia' fermo
+)
+
+REM Attendi che si fermi completamente
+timeout /t 3 /nobreak >nul
+
+REM Rimuovi il servizio
+echo Rimozione servizio...
+nssm remove DBDesk confirm
+
+if %errorlevel% neq 0 (
+    echo ERRORE: Rimozione servizio fallita!
+    pause
+    exit /b 1
+)
+
+echo [OK] Servizio rimosso
+echo.
+
+echo ===============================================================================
+echo DISINSTALLAZIONE COMPLETATA!
+echo ===============================================================================
+echo.
+echo Il servizio "DBDesk" e' stato disinstallato con successo.
+echo.
+echo NOTA: I file di log in %~dp0logs sono stati mantenuti.
+echo Se vuoi eliminarli, fallo manualmente.
 echo.
 pause

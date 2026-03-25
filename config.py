@@ -67,11 +67,26 @@ class Config:
 
 
 class DevelopmentConfig(Config):
+    """Configurazione per sviluppo locale"""
     DEBUG = True
+    FLASK_DEBUG = True
 
 
 class ProductionConfig(Config):
+    """Configurazione per produzione con Waitress"""
     DEBUG = False
+    FLASK_DEBUG = False
+    
+    # In produzione, usa l'IP ZeroTier configurato nel .env
+    # Default: 192.168.191.74 (configurato nel .env)
+    FLASK_HOST = os.environ.get('FLASK_HOST') or '192.168.191.74'
+    
+    # Assicurati che la SECRET_KEY sia impostata in produzione
+    if not os.environ.get('SECRET_KEY') or os.environ.get('SECRET_KEY') == 'dev-secret-key-change-in-production':
+        import sys
+        print("ERRORE: SECRET_KEY deve essere impostata nel file .env per la produzione!")
+        print("Genera una chiave sicura con: python -c 'import secrets; print(secrets.token_hex(32))'")
+        sys.exit(1)
 
 
 config = {
