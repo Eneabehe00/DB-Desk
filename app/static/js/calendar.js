@@ -7,6 +7,12 @@ class TicketCalendar {
         this.viewMode = 'month'; // month, week, day
         this.currentDate = new Date();
         this.maxVisibleTickets = 2;
+
+        // Reparto selezionato dalla UI (admin/dev). Per utenti non admin/dev viene comunque impostato.
+        this.departmentId = (window.calendarData && window.calendarData.departmentId !== null)
+            ? window.calendarData.departmentId
+            : null;
+
         this.init();
     }
 
@@ -341,6 +347,13 @@ class TicketCalendar {
         return date.toISOString().split('T')[0];
     }
 
+    buildCalendarTicketsUrl(dateStr) {
+        const deptParam = this.departmentId
+            ? `&department_id=${encodeURIComponent(this.departmentId)}`
+            : '';
+        return `/tickets/api/calendar-tickets?date=${encodeURIComponent(dateStr)}${deptParam}`;
+    }
+
     async loadWeekTickets(weekDays) {
         const weekTickets = {};
         
@@ -348,7 +361,7 @@ class TicketCalendar {
             // Carica i ticket per ogni giorno della settimana
             for (const day of weekDays) {
                 const dateStr = this.formatDate(day);
-                const response = await fetch(`/tickets/api/calendar-tickets?date=${dateStr}`);
+                const response = await fetch(this.buildCalendarTicketsUrl(dateStr));
                 const data = await response.json();
                 
                 if (data.tickets && data.tickets.length > 0) {
@@ -365,7 +378,7 @@ class TicketCalendar {
     async loadDayTickets(date) {
         try {
             const dateStr = this.formatDate(date);
-            const response = await fetch(`/tickets/api/calendar-tickets?date=${dateStr}`);
+            const response = await fetch(this.buildCalendarTicketsUrl(dateStr));
             const data = await response.json();
             
             return data.tickets || [];
@@ -596,7 +609,7 @@ class TicketCalendar {
 
     async showDayModal(date) {
         try {
-            const response = await fetch(`/tickets/api/calendar-tickets?date=${date}`);
+            const response = await fetch(this.buildCalendarTicketsUrl(date));
             const data = await response.json();
             
             if (data.tickets) {

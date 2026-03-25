@@ -1108,6 +1108,34 @@ def export_tickets():
 @login_required
 def calendar_view():
     """Pagina calendario per la gestione dei ticket"""
+    # In base al ruolo mostriamo un calendario "per reparto":
+    # - utenti non admin/dev: sempre il loro reparto
+    # - admin/dev: il reparto è selezionabile tramite tab (department_id in querystring)
+    is_admin_dev = (
+        current_user.has_permission('can_view_all_departments') or
+        current_user.has_permission('can_manage_system')
+    )
+
+    accessible_departments = current_user.get_accessible_departments() if is_admin_dev else []
+
+    selected_department_id = current_user.department_id
+    if is_admin_dev:
+        selected_department_id = request.args.get('department_id', type=int)
+        if selected_department_id is None:
+            # Fallback: se l'admin/dev non ha un reparto assegnato usiamo il primo disponibile
+            selected_department_id = current_user.department_id or (accessible_departments[0].id if accessible_departments else None)
+        if selected_department_id is not None and not current_user.can_access_department(selected_department_id):
+            abort(403)
+
+    # Nome reparto selezionato (per evitare mismatch di tipo in Jinja)
+    selected_department_name = ''
+    if is_admin_dev and selected_department_id is not None:
+        selected_department_id_str = str(selected_department_id)
+        for dept in accessible_departments:
+            if str(dept.id) == selected_department_id_str:
+                selected_department_name = dept.display_name or ''
+                break
+
     # Get current date parameters
     year = request.args.get('year', datetime.now().year, type=int)
     month = request.args.get('month', datetime.now().month, type=int)
@@ -1119,18 +1147,24 @@ def calendar_view():
     else:
         end_date = datetime(year, month + 1, 1) - timedelta(days=1)
     
-    # Get tickets for the month - filtra per reparto accessibile
-    tickets_with_dates_query = filter_by_department_access(Ticket.query, Ticket)
-    tickets_with_dates = tickets_with_dates_query.filter(
-        Ticket.due_date.between(start_date, end_date + timedelta(days=1))
-    ).order_by(Ticket.due_date).all()
+    # Get tickets for the month - filtra per reparto selezionato
+    if selected_department_id is not None:
+        tickets_with_dates = Ticket.query.filter(
+            Ticket.department_id == selected_department_id,
+            Ticket.due_date.between(start_date, end_date + timedelta(days=1))
+        ).order_by(Ticket.due_date).all()
+    else:
+        tickets_with_dates = []
     
-    # Get open tickets without dates for drag and drop (tutti gli stati attivi) - filtra per reparto accessibile
-    open_tickets_query = filter_by_department_access(Ticket.query, Ticket)
-    open_tickets = open_tickets_query.filter(
-        Ticket.stato.in_(Ticket.get_stati_aperti()),
-        Ticket.due_date.is_(None)
-    ).order_by(Ticket.created_at.desc()).all()
+    # Get open tickets without dates for drag and drop (tutti gli stati attivi) - filtra per reparto selezionato
+    if selected_department_id is not None:
+        open_tickets = Ticket.query.filter(
+            Ticket.department_id == selected_department_id,
+            Ticket.stato.in_(Ticket.get_stati_aperti()),
+            Ticket.due_date.is_(None)
+        ).order_by(Ticket.created_at.desc()).all()
+    else:
+        open_tickets = []
     
     # Create calendar data structure
     cal = calendar.monthcalendar(year, month)
@@ -1158,7 +1192,11 @@ def calendar_view():
                          prev_year=prev_year,
                          prev_month=prev_month,
                          next_year=next_year,
-                         next_month=next_month)
+                         next_month=next_month,
+                         selected_department_id=selected_department_id,
+                         selected_department_name=selected_department_name,
+                         is_admin_dev=is_admin_dev,
+                         departments=accessible_departments)
 
 
 @tickets_bp.route('/api/update-ticket-date', methods=['POST'])
@@ -1270,12 +1308,31 @@ def calendar_tickets():
     
     try:
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
-        # Get tickets for this date - filtra per reparto accessibile
-        tickets_query = filter_by_department_access(Ticket.query, Ticket)
-        tickets = tickets_query.filter(
-            func.date(Ticket.due_date) == target_date
-        ).order_by(Ticket.priorita.desc(), Ticket.created_at).all()
+
+        # Dipendentemente dal ruolo, filtra per reparto:
+        # - utenti non admin/dev: loro reparto
+        # - admin/dev: department_id in querystring
+        is_admin_dev = (
+            current_user.has_permission('can_view_all_departments') or
+            current_user.has_permission('can_manage_system')
+        )
+        accessible_departments = current_user.get_accessible_departments() if is_admin_dev else []
+        selected_department_id = current_user.department_id
+        if is_admin_dev:
+            selected_department_id = request.args.get('department_id', type=int)
+            if selected_department_id is None:
+                # Fallback: primo reparto accessibile
+                selected_department_id = current_user.department_id or (accessible_departments[0].id if accessible_departments else None)
+            if selected_department_id is not None and not current_user.can_access_department(selected_department_id):
+                abort(403)
+
+        if selected_department_id is not None:
+            tickets = Ticket.query.filter(
+                Ticket.department_id == selected_department_id,
+                func.date(Ticket.due_date) == target_date
+            ).order_by(Ticket.priorita.desc(), Ticket.created_at).all()
+        else:
+            tickets = []
         
         tickets_data = []
         for ticket in tickets:

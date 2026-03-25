@@ -735,8 +735,30 @@
                             </div>
                         </div>
 
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center flex-wrap justify-content-end gap-2">
                             {% block page_actions %}{% endblock %}
+                            {% if request.endpoint == 'tickets.calendar_view' and is_admin_dev and departments and selected_department_id is not none %}
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-minimal dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-diagram-3-fill me-1"></i>
+                                        <span class="d-none d-md-inline">Reparto:</span>
+                                        {{ selected_department_name if selected_department_name else 'Seleziona reparto' }}
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" style="max-width: 90vw;">
+                                        {% for dept in departments %}
+                                            <li>
+                                                <a class="dropdown-item {% if dept.id|string == selected_department_id|string %}active{% endif %}"
+                                                   href="{{ url_for('tickets.calendar_view', year=current_year, month=current_month, department_id=dept.id) }}">
+                                                    {{ dept.display_name }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
                             <div class="dropdown ms-3">
                                 <button class="btn btn-outline-secondary btn-minimal dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-person-circle"></i>

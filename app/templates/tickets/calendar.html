@@ -207,8 +207,12 @@ window.calendarData = {
     prevYear: {{ prev_year }},
     prevMonth: {{ prev_month }},
     nextYear: {{ next_year }},
-    nextMonth: {{ next_month }}
+    nextMonth: {{ next_month }},
+    departmentId: {{ selected_department_id if selected_department_id is not none else 'null' }}
 };
+
+// Querystring coerente per mantenere il reparto selezionato (solo admin/dev)
+const departmentQuery = {% if is_admin_dev and selected_department_id is not none %}'&department_id={{ selected_department_id }}'{% else %}''{% endif %};
 
 // Funzioni di navigazione
 function navigateMonth(direction) {
@@ -220,12 +224,12 @@ function navigateMonth(direction) {
         year = window.calendarData.prevYear;
         month = window.calendarData.prevMonth;
     }
-    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${year}&month=${month}`;
+    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${year}&month=${month}${departmentQuery}`;
 }
 
 function goToToday() {
             const today = new Date();
-    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${today.getFullYear()}&month=${today.getMonth() + 1}`;
+    window.location.href = `{{ url_for('tickets.calendar_view') }}?year=${today.getFullYear()}&month=${today.getMonth() + 1}${departmentQuery}`;
 }
 </script>
 {% endblock %}
