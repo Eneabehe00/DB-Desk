@@ -2,417 +2,320 @@
 
 {% block title %}Modifica {{ foglio.numero_foglio }} - DB-Desk{% endblock %}
 {% block page_title %}{{ foglio.numero_foglio }}{% endblock %}
-{% block page_subtitle %}<p class="page-subtitle">{{ foglio.titolo }}</p>{% endblock %}
-{% block page_info %}
-<div class="d-flex align-items-center flex-wrap gap-3 mt-2">
-    <span class="stato-badge
-        {% if foglio.stato == 'Bozza' %}bg-secondary
-        {% elif foglio.stato == 'In compilazione' %}bg-warning text-dark
-        {% elif foglio.stato == 'In attesa firme' %}bg-info text-dark
-        {% elif foglio.stato == 'Completato' %}bg-success
-        {% elif foglio.stato == 'Inviato' %}bg-primary
-        {% elif foglio.stato == 'Archiviato' %}bg-dark
-        {% endif %}">
-        <i class="bi bi-pencil me-1"></i>
-        {{ foglio.stato }} - Modifica
-    </span>
-
-    <small class="text-white-50">
-        Cliente: {{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}
-        | Tecnico: {{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}
-    </small>
-</div>
-{% endblock %}
 
 {% block extra_head %}
 <style>
-    .stato-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    /* Design Moderno */
-    .form-container-modern {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 16px;
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        --form-bg: #ffffff;
+        --section-bg: #f8fafc;
+        --accent-color: #2563eb;
+        --border-radius: 12px;
     }
 
-    .form-container-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    .form-card {
+        background: var(--form-bg);
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
     }
 
-    .form-section-header {
+    .form-card-header {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f1f5f9;
+        gap: 0.75rem;
     }
 
-    .form-section-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        font-size: 1.5rem;
-        color: white;
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-
-    .form-section-title {
+    .form-card-header i {
         font-size: 1.25rem;
+        color: var(--accent-color);
+    }
+
+    .form-card-header h5 {
+        margin: 0;
         font-weight: 600;
         color: #1e293b;
-        margin: 0;
-    }
-
-    .form-field-modern {
-        margin-bottom: 2rem;
-    }
-
-    .form-label-modern {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.75rem;
-        display: block;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .form-control-modern, .form-select-modern {
-        font-size: 1rem;
-        padding: 0.875rem 1rem;
-        border-radius: 10px;
-        border: 2px solid #e5e7eb;
-        transition: all 0.3s ease;
-        background: white;
-        width: 100%;
-    }
-
-    .form-control-modern:focus, .form-select-modern:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-
-    .form-text-modern {
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-top: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .navigation-buttons-modern {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-top: 2rem;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .btn-action-modern {
-        padding: 0.875rem 1.5rem;
-        font-size: 1rem;
-        border-radius: 10px;
-        font-weight: 600;
-        min-width: 130px;
-        border: 1px solid #e5e7eb;
-        background: #f8fafc;
-        color: #0f172a;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-action-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        background: #eef2ff;
-        color: #1e40af;
-    }
-
-    .btn-action-primary-modern {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: white;
-        border-color: #2563eb;
-    }
-
-    .btn-action-primary-modern:hover {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
-    }
-
-    .btn-action-danger-modern {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: white;
-        border-color: #dc2626;
-    }
-
-    .btn-action-danger-modern:hover {
-        background: linear-gradient(135deg, #dc2626, #b91c1c);
-        color: white;
-    }
-
-    .info-card-modern {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 4px solid #3b82f6;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .info-card-modern h6 {
-        color: #1e40af;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
         font-size: 1.1rem;
     }
 
-    .info-grid-modern {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
+    .form-card-body {
+        padding: 1.5rem;
     }
 
-    .info-item-modern {
-        background: rgba(255, 255, 255, 0.8);
+    /* Segmented Control for Status */
+    .segmented-control {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .segmented-control input[type="radio"] {
+        display: none;
+    }
+
+    .segmented-item {
+        flex: 1;
+        min-width: 100px;
+        padding: 0.6rem 0.75rem;
+        text-align: center;
+        border: 1px solid #d1d5db;
         border-radius: 8px;
-        padding: 1rem;
-        border-left: 3px solid #3b82f6;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #4b5563;
+        background: white;
     }
 
-    .info-label-modern {
-        font-size: 0.875rem;
+    .segmented-item:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+
+    /* Status Colors */
+    input[value="Bozza"]:checked + .segmented-item { background: #f1f5f9; color: #64748b; border-color: #64748b; }
+    input[value="In compilazione"]:checked + .segmented-item { background: #fef3c7; color: #92400e; border-color: #92400e; }
+    input[value="In attesa firme"]:checked + .segmented-item { background: #dbeafe; color: #1e40af; border-color: #1e40af; }
+    input[value="Completato"]:checked + .segmented-item { background: #dcfce7; color: #166534; border-color: #166534; }
+    input[value="Inviato"]:checked + .segmented-item { background: #e0e7ff; color: #4338ca; border-color: #4338ca; }
+    input[value="Archiviato"]:checked + .segmented-item { background: #1e293b; color: white; border-color: #1e293b; }
+
+    /* Fixed Action Bar Styling */
+    .fixed-action-bar {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem 2rem;
+        z-index: 1040;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 1rem;
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.05);
+        transition: left 0.3s ease;
+    }
+
+    /* Handle sidebar collapsed state */
+    .sidebar-collapsed .fixed-action-bar {
+        left: 95px;
+    }
+
+    @media (max-width: 767.98px) {
+        .fixed-action-bar {
+            left: 0 !important;
+            padding: 0.75rem 1rem;
+            justify-content: space-between;
+        }
+        
+        .fixed-action-bar .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    }
+
+    .form-content-wrapper {
+        padding-bottom: 80px; /* Space for the fixed bar */
+    }
+
+    /* Sticky Sidebar for Desktop */
+    @media (min-width: 992px) {
+        .sticky-sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+    }
+
+    /* Info Card Styles */
+    .detail-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
         font-weight: 600;
         color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
-        display: block;
+        margin-bottom: 0.25rem;
     }
 
-    .info-value-modern {
-        font-size: 1rem;
+    .info-value {
         font-weight: 600;
         color: #1e293b;
+        margin-bottom: 1rem;
     }
-    
-    @media (max-width: 768px) {
-        .form-container-modern {
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
 
-        .form-section-header {
-            margin-bottom: 1.5rem;
-        }
+    .info-value:last-child {
+        margin-bottom: 0;
+    }
 
-        .form-section-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1.25rem;
-        }
+    /* Form Modern Inputs */
+    .form-control-modern {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        background: white;
+        width: 100%;
+    }
 
-        .form-section-title {
-            font-size: 1.1rem;
-        }
+    .form-control-modern:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
 
-        .navigation-buttons-modern {
-            padding: 1.5rem;
-        }
+    .animate-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
 
-        .btn-action-modern {
-            min-width: 120px;
-            font-size: 0.9rem;
-            padding: 0.75rem 1.25rem;
-        }
-
-        .info-grid-modern {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Informazioni Foglio -->
-    <div class="info-card-modern">
-        <h6>
-            <i class="bi bi-info-circle"></i>
-            Informazioni Foglio
-        </h6>
-        <div class="info-grid-modern">
-            <div class="info-item-modern">
-                <span class="info-label-modern">Cliente</span>
-                <div class="info-value-modern">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</div>
-            </div>
-            <div class="info-item-modern">
-                <span class="info-label-modern">Data Intervento</span>
-                <div class="info-value-modern">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</div>
-            </div>
-            <div class="info-item-modern">
-                <span class="info-label-modern">Tecnico</span>
-                <div class="info-value-modern">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
-            </div>
-            <div class="info-item-modern">
-                <span class="info-label-modern">Creato</span>
-                <div class="info-value-modern">{{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form di Modifica -->
+<div class="container-fluid form-content-wrapper animate-in">
     <form method="POST" id="editForm">
         {{ form.hidden_tag() }}
+        
+        <div class="row g-4">
+            <!-- Main Content Column -->
+            <div class="col-lg-8">
+                <!-- Details Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-pencil-square"></i>
+                        <h5>Dettagli Foglio Tecnico</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Titolo Intervento</label>
+                            {{ form.titolo(class="form-control-modern" + (" is-invalid" if form.titolo.errors else ""), placeholder="Inserisci un titolo...") }}
+                            {% for error in form.titolo.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                            <div class="form-text text-muted small mt-1">Titolo identificativo dell'intervento tecnico</div>
+                        </div>
 
-        <div class="form-container-modern">
-            <div class="form-section-header">
-                <div class="form-section-icon">
-                    <i class="bi bi-pencil-square"></i>
-                </div>
-                <h3 class="form-section-title">Modifica Foglio Tecnico</h3>
-            </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Descrizione Intervento</label>
+                            {{ form.descrizione(class="form-control-modern" + (" is-invalid" if form.descrizione.errors else ""), rows="8", placeholder="Descrivi l'intervento effettuato...") }}
+                            {% for error in form.descrizione.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                            <div class="form-text text-muted small mt-1">Descrizione dettagliata delle attività svolte</div>
+                        </div>
 
-            <div class="row">
-                <!-- Titolo -->
-                <div class="col-md-6">
-                    <div class="form-field-modern">
-                        <label class="form-label-modern">
-                            <i class="bi bi-tag"></i>
-                            {{ form.titolo.label.text }}
-                        </label>
-                        {{ form.titolo(class="form-control-modern" + (" is-invalid" if form.titolo.errors else "")) }}
-                        {% if form.titolo.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.titolo.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="form-text-modern">
-                                <i class="bi bi-info-circle"></i>
-                                Titolo identificativo del foglio tecnico
-                            </div>
-                        {% endif %}
+                        <div class="mb-0">
+                            <label class="form-label fw-bold">Note e Raccomandazioni</label>
+                            {{ form.note_aggiuntive(class="form-control-modern", rows="4", placeholder="Eventuali note per il cliente...") }}
+                            <div class="form-text text-muted small mt-1">Note tecniche, osservazioni o raccomandazioni aggiuntive</div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Stato -->
-                <div class="col-md-6">
-                    <div class="form-field-modern">
-                        <label class="form-label-modern">
+            <!-- Sidebar Column -->
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    <!-- Status Card -->
+                    <div class="form-card">
+                        <div class="form-card-header">
                             <i class="bi bi-flag"></i>
-                            {{ form.stato.label.text }}
-                        </label>
-                        {{ form.stato(class="form-select-modern" + (" is-invalid" if form.stato.errors else "")) }}
-                        {% if form.stato.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.stato.errors %}{{ error }}{% endfor %}
+                            <h5>Stato del Documento</h5>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">Stato Attuale</label>
+                                <div class="segmented-control mt-2">
+                                    {% for value, label in form.stato.choices %}
+                                        <input type="radio" name="stato" value="{{ value }}" id="stato_{{ loop.index }}" {% if form.stato.data == value %}checked{% endif %}>
+                                        <label class="segmented-item" for="stato_{{ loop.index }}">{{ label }}</label>
+                                    {% endfor %}
+                                </div>
+                                {% for error in form.stato.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                             </div>
-                        {% else %}
-                            <div class="form-text-modern">
-                                <i class="bi bi-info-circle"></i>
-                                Cambia lo stato del foglio tecnico
-                            </div>
-                        {% endif %}
+                        </div>
                     </div>
+
+                    <!-- Info Card -->
+                    <div class="card detail-card border-0 mb-4">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h6 class="fw-bold text-uppercase small text-muted mb-0">Informazioni</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="info-label">Cliente</div>
+                            <div class="info-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</div>
+                            
+                            <div class="info-label">Data Intervento</div>
+                            <div class="info-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</div>
+                            
+                            <div class="info-label">Tecnico Responsabile</div>
+                            <div class="info-value">{{ foglio.tecnico.full_name if foglio.tecnico.full_name else (foglio.tecnico.first_name + ' ' + foglio.tecnico.last_name) }}</div>
+                            
+                            <div class="info-label">Data Creazione</div>
+                            <div class="info-value">{{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Links Card -->
+                    {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
+                    <div class="alert alert-info border-0 rounded-4 shadow-sm p-4">
+                        <div class="d-flex">
+                            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold">Compilazione</h6>
+                                <p class="small mb-3 opacity-75">Puoi continuare la compilazione guidata per aggiornare dettagli tecnici, ricambi o firme.</p>
+                                <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" class="btn btn-sm btn-info rounded-pill w-100 fw-bold">
+                                    Vai allo Step {{ foglio.step_corrente }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-            </div>
-
-            <!-- Descrizione -->
-            <div class="form-field-modern">
-                <label class="form-label-modern">
-                    <i class="bi bi-file-text"></i>
-                    {{ form.descrizione.label.text }}
-                </label>
-                {{ form.descrizione(class="form-control-modern" + (" is-invalid" if form.descrizione.errors else ""), rows="5") }}
-                {% if form.descrizione.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.descrizione.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text-modern">
-                        <i class="bi bi-info-circle"></i>
-                        Descrizione dettagliata dell'intervento tecnico
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Note Aggiuntive -->
-            <div class="form-field-modern">
-                <label class="form-label-modern">
-                    <i class="bi bi-sticky"></i>
-                    {{ form.note_aggiuntive.label.text }}
-                </label>
-                {{ form.note_aggiuntive(class="form-control-modern", rows="4", placeholder="Eventuali note aggiuntive, osservazioni o raccomandazioni...") }}
-                {% if form.note_aggiuntive.errors %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.note_aggiuntive.errors %}{{ error }}{% endfor %}
-                    </div>
-                {% else %}
-                    <div class="form-text-modern">
-                        <i class="bi bi-info-circle"></i>
-                        Note tecniche, osservazioni o raccomandazioni aggiuntive
-                    </div>
-                {% endif %}
             </div>
         </div>
-        
-        <!-- Navigazione -->
-        <div class="navigation-buttons-modern">
-            <div class="d-flex flex-wrap justify-content-between gap-3">
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn-action-modern">
-                        <i class="bi bi-arrow-left"></i>
-                        Annulla
-                    </a>
 
-                    <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn-action-modern">
-                        <i class="bi bi-list"></i>
-                        Lista Fogli
-                    </a>
-                </div>
-
-                <div class="d-flex gap-2 flex-wrap">
-                    {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
-                    <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}"
-                       class="btn-action-modern btn-action-primary-modern">
-                        <i class="bi bi-play-fill"></i>
-                        Continua Compilazione
-                    </a>
-                    {% endif %}
-
-                    <button type="submit" class="btn-action-modern btn-action-danger-modern">
-                        <i class="bi bi-check-lg"></i>
-                        Salva Modifiche
-                    </button>
-                </div>
+        <!-- Fixed Action Bar -->
+        <div class="fixed-action-bar">
+            <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn btn-link text-muted text-decoration-none me-auto d-none d-md-inline-block">
+                <i class="bi bi-arrow-left"></i> Torna alla visualizzazione
+            </a>
+            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-outline-secondary d-md-none">
+                <i class="bi bi-list"></i>
+            </a>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn btn-outline-secondary px-4">
+                    Annulla
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-check-circle-fill me-2"></i> Salva Modifiche
+                </button>
             </div>
         </div>
     </form>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-resize textareas
@@ -423,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.height = (this.scrollHeight) + 'px';
         });
         
-        // Trigger iniziale
+        // Initial trigger
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
     });
     
-    // Conferma prima di uscire se ci sono modifiche non salvate
+    // Unsaved changes warning
     let formChanged = false;
     const formElements = document.querySelectorAll('#editForm input, #editForm textarea, #editForm select');
     
@@ -438,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Prevenzione uscita accidentale
     window.addEventListener('beforeunload', function(e) {
         if (formChanged) {
             e.preventDefault();
@@ -446,7 +348,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Reset flag quando si invia il form
     document.getElementById('editForm').addEventListener('submit', function() {
         formChanged = false;
     });

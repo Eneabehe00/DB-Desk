@@ -139,7 +139,7 @@
                 
                 <!-- Paginazione -->
                 {% if movimenti.pages > 1 %}
-                <div class="card-footer bg-white border-top-0 py-3">
+                <div class="card-footer bg-white border-top-0 pagination-bar">
                     <nav aria-label="Paginazione movimenti">
                         <ul class="pagination pagination-sm justify-content-center mb-0">
                             {% if movimenti.has_prev %}
@@ -149,14 +149,11 @@
                                     </a>
                                 </li>
                             {% endif %}
-                            
                             {% for page_num in movimenti.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
                                 {% if page_num %}
                                     {% if page_num != movimenti.page %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                                {{ page_num }}
-                                            </a>
+                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ page_num }}</a>
                                         </li>
                                     {% else %}
                                         <li class="page-item active">
@@ -169,7 +166,6 @@
                                     </li>
                                 {% endif %}
                             {% endfor %}
-                            
                             {% if movimenti.has_next %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page={{ movimenti.next_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
@@ -179,6 +175,9 @@
                             {% endif %}
                         </ul>
                     </nav>
+                    <div class="pagination-info">
+                        <small>Pagina {{ movimenti.page }} di {{ movimenti.pages }} ({{ movimenti.total }} movimenti)</small>
+                    </div>
                 </div>
                 {% endif %}
             {% else %}

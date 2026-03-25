@@ -132,12 +132,18 @@ def list_tickets():
         page=page, per_page=per_page, error_out=False
     )
     
+    # Parametri query senza 'page' per i link di paginazione (evita "multiple values for page")
+    from urllib.parse import urlencode
+    pagination_params = [(k, v) for k, v in request.args.items() if k != 'page']
+    query_string_no_page = urlencode(pagination_params) if pagination_params else ''
+    
     return render_template('tickets/list.html', 
                          tickets=tickets, 
                          form=form, 
                          default_filter_applied=default_filter_applied,
                          current_sort_by=sort_by,
-                         current_sort_order=sort_order)
+                         current_sort_order=sort_order,
+                         query_string_no_page=query_string_no_page)
 
 
 @tickets_bp.route('/api/macchine_disponibili')

@@ -9,8 +9,8 @@ class FoglioTecnico(db.Model):
     numero_foglio = db.Column(db.String(20), unique=True, nullable=False, index=True)
     
     # Campi base dal ticket esistente
-    titolo = db.Column(db.String(200), nullable=False)
-    descrizione = db.Column(db.Text, nullable=False)
+    titolo = db.Column(db.String(200), nullable=True)
+    descrizione = db.Column(db.Text, nullable=True)
     categoria = db.Column(db.String(50), nullable=True, default='Intervento')
     priorita = db.Column(db.String(20), nullable=True, default='Media')
     stato = db.Column(db.String(30), nullable=False, default='Bozza')  # Bozza, In compilazione, Completato, Inviato
@@ -26,6 +26,7 @@ class FoglioTecnico(db.Model):
     modalita_pagamento = db.Column(db.String(50))  # Contanti, Bonifico, Assegno, etc.
     importo_intervento = db.Column(db.Numeric(10, 2))
     pagamento_immediato = db.Column(db.Boolean, default=False)  # False = da pagare, True = già pagato
+    intervento_in_garanzia = db.Column(db.Boolean, default=False)  # Intervento in garanzia
     
     # Informazioni intervento sul posto
     indirizzo_intervento = db.Column(db.String(200))
@@ -103,32 +104,74 @@ class FoglioTecnico(db.Model):
             if hasattr(self, key):
                 setattr(self, key, value)
     
+    def _get_prefix_reparto(self):
+        """Restituisce il prefisso per la numerazione in base al reparto (sigla reparto o FT)."""
+        from app.models.department import Department
+        if not self.department_id:
+            return 'FT'
+        dept = Department.query.get(self.department_id)
+        if not dept:
+            return 'FT'
+        return dept.get_sigla_foglio()
+
     def _generate_foglio_number(self):
-        """Genera un numero foglio unico in formato FT-YYYY-NNNN"""
-        from sqlalchemy import func, desc
+        """Genera un numero foglio unico in formato SIGLA-YYYY-NNNN (es. MEC-2026-0001, GA-2026-0001, IT-2026-0001, FT-2026-0001)."""
+        prefix = self._get_prefix_reparto()
+        # Solo caratteri alfanumerici per sicurezza nelle query LIKE
+        safe_prefix = ''.join(c for c in prefix if c.isalnum() or c == '-') or 'FT'
+        if safe_prefix != prefix:
+            safe_prefix = 'FT'
         
         current_year = datetime.utcnow().year
         year_str = str(current_year)
+        pattern = f'{safe_prefix}-{year_str}-%'
         
-        # Trova il numero più alto dell'anno corrente
-        last_foglio = db.session.query(FoglioTecnico.numero_foglio).filter(
-            FoglioTecnico.numero_foglio.like(f'FT-{year_str}-%')
-        ).order_by(desc(FoglioTecnico.numero_foglio)).first()
+        # Trova tutti i numeri dell'anno corrente per questo prefisso
+        # Strategia: cerca il primo numero sequenziale disponibile partendo da 1
+        # Questo evita problemi con timestamp casuali nel database
+        all_fogli = db.session.query(FoglioTecnico.numero_foglio).filter(
+            FoglioTecnico.numero_foglio.like(pattern)
+        ).all()
         
-        if last_foglio:
-            # Estrae il numero dalla stringa FT-YYYY-NNNN
-            try:
-                last_number = int(last_foglio[0].split('-')[-1])
-                next_number = last_number + 1
-            except (ValueError, IndexError):
-                next_number = 1
+        # Estrai tutti i numeri esistenti (solo quelli che hanno senso come progressivi)
+        existing_numbers = set()
+        if all_fogli:
+            for foglio in all_fogli:
+                try:
+                    num_part = foglio[0].split('-')[-1]
+                    if num_part.isdigit() and len(num_part) == 4:
+                        # Considera solo numeri con esattamente 4 cifre (formato 0001, 0002, etc.)
+                        current_num = int(num_part)
+                        # Ignora numeri molto alti che sono probabilmente timestamp
+                        # Un numero progressivo ragionevole dovrebbe essere < 1000 nella maggior parte dei casi
+                        # Ma per sicurezza, prendiamo tutti i numeri <= 9999 con formato corretto
+                        if current_num < 10000:
+                            existing_numbers.add(current_num)
+                except (ValueError, IndexError):
+                    continue
+        
+        # Trova il primo numero disponibile nella sequenza
+        # Strategia: se ci sono numeri esistenti, cerca il primo buco nella sequenza
+        # Se la sequenza è continua, prendi max + 1
+        if existing_numbers:
+            # Ordina i numeri
+            sorted_numbers = sorted(existing_numbers)
+            
+            # Cerca il primo "buco" nella sequenza partendo da 1
+            next_number = 1
+            for num in sorted_numbers:
+                if num == next_number:
+                    next_number += 1
+                elif num > next_number:
+                    # Trovato un buco! Usa next_number
+                    break
+            # Se non ci sono buchi, next_number è già impostato correttamente (max + 1)
         else:
             next_number = 1
             
-        # Verifica che il numero generato non esista già (sicurezza extra)
         max_attempts = 100
         for attempt in range(max_attempts):
-            candidate_number = f'FT-{year_str}-{next_number:04d}'
+            candidate_number = f'{safe_prefix}-{year_str}-{next_number:04d}'
             existing = db.session.query(FoglioTecnico.id).filter(
                 FoglioTecnico.numero_foglio == candidate_number
             ).first()
@@ -138,10 +181,11 @@ class FoglioTecnico(db.Model):
             
             next_number += 1
         
-        # Se dopo 100 tentativi non trova un numero libero, usa timestamp
+        # Fallback: usa un timestamp, ma con un prefisso diverso per distinguerlo
+        # Invece di usare 4 cifre, usiamo 5 cifre con prefisso 9
         import time
-        timestamp_suffix = int(time.time() * 1000) % 10000
-        return f'FT-{year_str}-{timestamp_suffix:04d}'
+        timestamp_suffix = 90000 + (int(time.time() * 1000) % 10000)
+        return f'{safe_prefix}-{year_str}-{timestamp_suffix}'
     
     @property
     def full_name(self):

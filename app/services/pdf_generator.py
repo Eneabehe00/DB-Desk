@@ -236,12 +236,14 @@ def genera_pdf_con_reportlab(foglio_id):
             story.append(Spacer(1, 15))
 
         # Informazioni commerciali
-        if foglio.modalita_pagamento or foglio.importo_intervento:
+        if foglio.modalita_pagamento or foglio.importo_intervento or getattr(foglio, 'pagamento_immediato', None) or getattr(foglio, 'intervento_in_garanzia', None):
             story.append(Paragraph("Informazioni Commerciali", section_title_style))
             if foglio.modalita_pagamento:
                 story.append(Paragraph(f"Modalità di pagamento: {foglio.modalita_pagamento}", normal_style))
             if foglio.importo_intervento:
                 story.append(Paragraph(f"Importo: € {foglio.importo_intervento:.2f}", normal_style))
+            story.append(Paragraph(f"Intervento già pagato: {'Sì' if getattr(foglio, 'pagamento_immediato', False) else 'No'}", normal_style))
+            story.append(Paragraph(f"Intervento in garanzia: {'Sì' if getattr(foglio, 'intervento_in_garanzia', False) else 'No'}", normal_style))
             story.append(Spacer(1, 15))
 
         # Note aggiuntive
@@ -783,7 +785,7 @@ def genera_pdf_con_reportlab_con_firme(foglio):
             story.append(Spacer(1, 25))
 
         # === INFORMAZIONI COMMERCIALI ===
-        if foglio.modalita_pagamento or foglio.importo_intervento:
+        if foglio.modalita_pagamento or foglio.importo_intervento or getattr(foglio, 'pagamento_immediato', None) or getattr(foglio, 'intervento_in_garanzia', None):
             # Header sezione
             commercial_header = Paragraph("INFORMAZIONI COMMERCIALI", section_header_style)
             commercial_header_table = Table([[commercial_header]], colWidths=[18*cm])
@@ -810,6 +812,14 @@ def genera_pdf_con_reportlab_con_firme(foglio):
                         parent=styles['Normal'], fontSize=16, fontName='Helvetica-Bold', 
                         textColor=colors.HexColor('#dc2626'), spaceAfter=8))]
                 ])
+            commercial_info.extend([
+                [Paragraph("Intervento già pagato", label_style)],
+                [Paragraph('Sì' if getattr(foglio, 'pagamento_immediato', False) else 'No', important_value_style)]
+            ])
+            commercial_info.extend([
+                [Paragraph("Intervento in garanzia", label_style)],
+                [Paragraph('Sì' if getattr(foglio, 'intervento_in_garanzia', False) else 'No', important_value_style)]
+            ])
 
             if commercial_info:
                 commercial_card = Table(commercial_info, colWidths=[18*cm])

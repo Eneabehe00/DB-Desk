@@ -132,6 +132,12 @@ def create_macchina():
 
     form = MacchinaForm()
 
+    # Pre-compila cliente se passato in query (es. da foglio tecnico step 2)
+    cliente_id_from_query = request.args.get('cliente_id', type=int)
+    if request.method == 'GET' and cliente_id_from_query:
+        form.cliente_id.data = cliente_id_from_query
+        form.stato.data = 'In prestito'
+
     if form.validate_on_submit():
         try:
             macchina = Macchina(

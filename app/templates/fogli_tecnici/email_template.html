@@ -197,7 +197,7 @@
         </div>
         {% endif %}
         
-        {% if foglio.modalita_pagamento or foglio.importo_intervento %}
+        {% if foglio.modalita_pagamento or foglio.importo_intervento or foglio.pagamento_immediato or foglio.intervento_in_garanzia %}
         <div class="info-section">
             <h3>Informazioni Commerciali</h3>
             {% if foglio.modalita_pagamento %}
@@ -212,6 +212,14 @@
                 <span class="info-value">€ {{ "%.2f"|format(foglio.importo_intervento) }}</span>
             </div>
             {% endif %}
+            <div class="info-item">
+                <span class="info-label">Intervento già pagato:</span>
+                <span class="info-value">{{ 'Sì' if foglio.pagamento_immediato else 'No' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Intervento in garanzia:</span>
+                <span class="info-value">{{ 'Sì' if foglio.intervento_in_garanzia else 'No' }}</span>
+            </div>
         </div>
         {% endif %}
         

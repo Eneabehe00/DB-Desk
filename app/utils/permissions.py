@@ -222,11 +222,10 @@ class PermissionManager:
         if user is None:
             user = current_user
         
-        # Accesso base alla risorsa
-        if not can_access_resource(ticket, user):
-            return False
+        # Admin possono vedere tutti i ticket del sistema
+        if user.has_permission('can_manage_all_tickets'):
+            return True
         
-        # Controlli aggiuntivi per i ticket
         # Il creatore può sempre vedere i suoi ticket
         if ticket.created_by_id == user.id:
             return True
@@ -235,13 +234,13 @@ class PermissionManager:
         if ticket.assigned_to_id == user.id:
             return True
         
-        # Admin possono vedere tutti i ticket del sistema
-        if user.has_permission('can_manage_all_tickets'):
-            return True
-        
         # Manager di reparto può vedere tutti i ticket del reparto
         if (user.is_department_manager() and 
             user.department_id == ticket.department_id):
+            return True
+        
+        # Utenti dello stesso reparto possono vedere tutti i ticket del reparto
+        if user.department_id and user.department_id == ticket.department_id:
             return True
         
         return False

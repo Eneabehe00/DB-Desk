@@ -228,13 +228,13 @@
         </div>
 
         <!-- Paginazione -->
-        <div class="card-footer bg-white border-top-0" id="pagination-container" style="display: none;">
+        <div class="card-footer bg-white border-top-0 pagination-bar" id="pagination-container" style="display: none;">
             <nav aria-label="Paginazione ricambi">
                 <ul class="pagination pagination-sm justify-content-center mb-0" id="pagination-list">
                     <!-- Popolato via AJAX -->
                 </ul>
             </nav>
-            <div class="text-center text-muted mt-2">
+            <div class="pagination-info">
                 <small id="pagination-text"></small>
             </div>
         </div>
@@ -565,7 +565,7 @@ function renderPagination(pagination) {
     const list = document.getElementById('pagination-list');
     const text = document.getElementById('pagination-text');
     
-    text.textContent = `Pagina ${pagination.page} di ${pagination.pages} (${pagination.total} ricambi totali)`;
+    text.textContent = `Pagina ${pagination.page} di ${pagination.pages} (${pagination.total} ricambi)`;
     
     if (pagination.pages <= 1) {
         container.style.display = 'none';

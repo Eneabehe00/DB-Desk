@@ -27,6 +27,12 @@ class DepartmentForm(FlaskForm):
         render_kw={'placeholder': 'es: Reparto IT, Manutenzione, Vendite'}
     )
     
+    sigla = StringField(
+        'Sigla per Fogli Tecnici',
+        validators=[Length(max=10)],
+        render_kw={'placeholder': 'es: MEC, GA, IT (se vuoto: FT)'}
+    )
+    
     description = TextAreaField(
         'Descrizione',
         validators=[Length(max=500)],

@@ -222,7 +222,7 @@
 
         <!-- Paginazione -->
         {% if pagination.pages > 1 %}
-        <div class="card-footer bg-white">
+        <div class="card-footer bg-white pagination-bar">
             <nav aria-label="Paginazione movimenti">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     {% if pagination.has_prev %}
@@ -232,7 +232,6 @@
                             </a>
                         </li>
                     {% endif %}
-
                     {% for page_num in pagination.iter_pages() %}
                         {% if page_num %}
                             {% if page_num != pagination.page %}
@@ -246,11 +245,10 @@
                             {% endif %}
                         {% else %}
                             <li class="page-item disabled">
-                                <span class="page-link">...</span>
+                                <span class="page-link">…</span>
                             </li>
                         {% endif %}
                     {% endfor %}
-
                     {% if pagination.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('macchine.movimenti_generale', page=pagination.next_num, macchina_id=filtro_macchina_id or '') }}">
@@ -260,6 +258,9 @@
                     {% endif %}
                 </ul>
             </nav>
+            <div class="pagination-info">
+                <small>Pagina {{ pagination.page }} di {{ pagination.pages }} ({{ pagination.total }} movimenti)</small>
+            </div>
         </div>
         {% endif %}
     </div>

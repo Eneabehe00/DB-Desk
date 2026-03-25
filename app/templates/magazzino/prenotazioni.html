@@ -138,7 +138,7 @@
                 
                 <!-- Paginazione -->
                 {% if prenotazioni.pages > 1 %}
-                <div class="card-footer bg-white border-top-0 py-3">
+                <div class="card-footer bg-white border-top-0 pagination-bar">
                     <nav aria-label="Paginazione prenotazioni">
                         <ul class="pagination pagination-sm justify-content-center mb-0">
                             {% if prenotazioni.has_prev %}
@@ -148,14 +148,11 @@
                                     </a>
                                 </li>
                             {% endif %}
-                            
                             {% for page_num in prenotazioni.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
                                 {% if page_num %}
                                     {% if page_num != prenotazioni.page %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                                {{ page_num }}
-                                            </a>
+                                            <a class="page-link" href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ page_num }}</a>
                                         </li>
                                     {% else %}
                                         <li class="page-item active">
@@ -168,7 +165,6 @@
                                     </li>
                                 {% endif %}
                             {% endfor %}
-                            
                             {% if prenotazioni.has_next %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page={{ prenotazioni.next_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
@@ -178,6 +174,9 @@
                             {% endif %}
                         </ul>
                     </nav>
+                    <div class="pagination-info">
+                        <small>Pagina {{ prenotazioni.page }} di {{ prenotazioni.pages }} ({{ prenotazioni.total }} prenotazioni)</small>
+                    </div>
                 </div>
                 {% endif %}
             {% else %}

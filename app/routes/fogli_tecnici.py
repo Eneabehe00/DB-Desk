@@ -86,11 +86,17 @@ def list_fogli():
         page=page, per_page=per_page, error_out=False
     )
     
+    # Parametri query senza 'page' per i link di paginazione (evita "multiple values for page")
+    from urllib.parse import urlencode
+    pagination_params = [(k, v) for k, v in request.args.items() if k != 'page']
+    query_string_no_page = urlencode(pagination_params) if pagination_params else ''
+    
     return render_template(
         'fogli_tecnici/list.html',
         fogli=fogli,
         form=form,
-        title='Fogli Tecnici'
+        title='Fogli Tecnici',
+        query_string_no_page=query_string_no_page
     )
 
 
@@ -108,16 +114,34 @@ def step1():
     form = FoglioTecnicoStep1Form()
     
     if form.validate_on_submit():
+        current_app.logger.info(f'Step1: Form validato per user {current_user.username}')
+        cliente_id = form.cliente.data
+        
+        # Se non c'è ID cliente, errore (ora la creazione è gestita via AJAX)
+        if not cliente_id:
+            flash('Seleziona un cliente esistente o creane uno nuovo tramite il pulsante apposito.', 'warning')
+            return render_template(
+                'fogli_tecnici/step1.html',
+                form=form,
+                title='Nuovo Foglio Tecnico - Step 1'
+            )
+        
+        current_app.logger.info(f'Step1: Inizio creazione foglio per cliente_id={cliente_id}')
+        
         # Crea nuovo foglio tecnico
         foglio = FoglioTecnico(
             titolo=form.titolo.data,
+            descrizione=form.titolo.data or "Intervento Tecnico", # Fornisci un default per la descrizione
+            categoria=form.categoria.data,
             data_intervento=form.data_intervento.data,
-            cliente_id=form.cliente.data,
+            cliente_id=cliente_id,
             tecnico_id=current_user.id,  # Il tecnico corrente
             department_id=current_user.department_id,
             indirizzo_intervento=form.indirizzo_intervento.data,
             stato='In compilazione'
         )
+        
+        current_app.logger.info(f'Step1: Foglio creato con numero_foglio={foglio.numero_foglio}')
         
         # Marca il step 1 come completato
         foglio.mark_step_completato(1)
@@ -125,31 +149,33 @@ def step1():
         
         try:
             db.session.add(foglio)
+            current_app.logger.info(f'Step1: Foglio aggiunto alla sessione')
             db.session.commit()
+            current_app.logger.info(f'Step1: Commit completato, ID assegnato={foglio.id}')
             
-            flash('Step 1 completato! Procedi con i dettagli tecnici.', 'success')
             return redirect(url_for('fogli_tecnici.step2', id=foglio.id))
             
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f'Errore nella creazione del foglio tecnico: {str(e)}')
             
-            # Se è un errore di duplicato numero foglio, rigenera
+            # Se è un errore di duplicato numero foglio, prova a rigenerare
+            # NOTA: Questo non dovrebbe più succedere con la nuova logica che riempie i buchi
             if 'Duplicate entry' in str(e) and 'numero_foglio' in str(e):
-                # Forza rigenerazione numero foglio con timestamp
-                import time
-                current_year = datetime.utcnow().year
-                timestamp_suffix = int(time.time() * 1000) % 10000
-                foglio.numero_foglio = f'FT-{current_year}-{timestamp_suffix:04d}'
+                current_app.logger.warning(f'Duplicate entry per numero_foglio: {foglio.numero_foglio}. Rigenero...')
                 
+                # Rigenera il numero usando la logica del modello
                 try:
+                    foglio.numero_foglio = foglio._generate_foglio_number()
                     db.session.add(foglio)
                     db.session.commit()
-
-                    flash('Step 1 completato! Procedi con i dettagli tecnici.', 'success')
+                    
+                    current_app.logger.info(f'Foglio ricreato con successo con numero: {foglio.numero_foglio}')
                     return redirect(url_for('fogli_tecnici.step2', id=foglio.id))
                     
                 except Exception as e2:
                     db.session.rollback()
+                    current_app.logger.error(f'Errore nella ricreazione del foglio: {str(e2)}')
                     flash(f'Errore nella creazione del foglio tecnico: {str(e2)}', 'error')
             else:
                 flash(f'Errore nella creazione del foglio tecnico: {str(e)}', 'error')
@@ -346,7 +372,6 @@ def step2(id):
         
         db.session.commit()
         
-        flash('Step 2 completato! Procedi con i ricambi.', 'success')
         return redirect(url_for('fogli_tecnici.step3', id=foglio.id))
     
     return render_template(
@@ -405,7 +430,6 @@ def step3(id):
         
         db.session.commit()
         
-        flash('Step 3 completato! Procedi con le informazioni commerciali.', 'success')
         return redirect(url_for('fogli_tecnici.step4', id=foglio.id))
     
     return render_template(
@@ -431,7 +455,8 @@ def step4(id):
         # Pre-popola form con dati esistenti
         form.modalita_pagamento.data = foglio.modalita_pagamento
         form.importo_intervento.data = foglio.importo_intervento
-        form.pagamento_immediato.data = False  # Sempre non checkato di default
+        form.pagamento_immediato.data = foglio.pagamento_immediato if foglio.pagamento_immediato is not None else False
+        form.intervento_in_garanzia.data = foglio.intervento_in_garanzia if getattr(foglio, 'intervento_in_garanzia', None) is not None else False
         form.durata_intervento.data = foglio.durata_intervento
         form.km_percorsi.data = foglio.km_percorsi
     
@@ -440,6 +465,7 @@ def step4(id):
         foglio.modalita_pagamento = form.modalita_pagamento.data
         foglio.importo_intervento = form.importo_intervento.data
         foglio.pagamento_immediato = form.pagamento_immediato.data
+        foglio.intervento_in_garanzia = form.intervento_in_garanzia.data
         foglio.durata_intervento = form.durata_intervento.data
         foglio.km_percorsi = form.km_percorsi.data
         foglio.updated_at = datetime.utcnow()
@@ -450,7 +476,6 @@ def step4(id):
         
         db.session.commit()
         
-        flash('Step 4 completato! Procedi con la raccolta firme.', 'success')
         return redirect(url_for('fogli_tecnici.step5', id=foglio.id))
     
     return render_template(
@@ -494,7 +519,6 @@ def step5(id):
         
         db.session.commit()
         
-        flash('Step 5 completato! Procedi con la finalizzazione.', 'success')
         return redirect(url_for('fogli_tecnici.finalize', id=foglio.id))
     
     return render_template(
@@ -524,6 +548,11 @@ def finalize(id):
     if form.validate_on_submit():
         azione = form.azione.data
         
+        # Aggiorna email cliente se richiesto
+        if form.email_destinatario.data and form.aggiorna_email_cliente.data and foglio.cliente:
+            foglio.cliente.email = form.email_destinatario.data
+            flash(f'Email predefinita del cliente aggiornata a: {form.email_destinatario.data}', 'success')
+            
         try:
             if azione == 'salva_bozza':
                 foglio.stato = 'Completato'
@@ -534,7 +563,6 @@ def finalize(id):
                 pdf_path = genera_pdf_foglio_tecnico(foglio.id)
                 foglio.stato = 'Completato'
                 foglio.completed_at = datetime.utcnow()
-                flash(f'PDF generato: {os.path.basename(pdf_path)}', 'success')
                 
             elif azione == 'invia_email':
                 from app.services.email_sender import invia_foglio_per_email
@@ -543,7 +571,6 @@ def finalize(id):
                     form.email_destinatario.data,
                     form.note_finali.data
                 )
-                flash(f'Foglio inviato a {form.email_destinatario.data}', 'success')
                 
             elif azione == 'genera_e_invia':
                 from app.services.pdf_generator import genera_pdf_foglio_tecnico
@@ -555,7 +582,6 @@ def finalize(id):
                     form.email_destinatario.data, 
                     form.note_finali.data
                 )
-                flash(f'PDF generato e inviato a {form.email_destinatario.data}', 'success')
             
             db.session.commit()
             return redirect(url_for('fogli_tecnici.view', id=foglio.id))
@@ -837,6 +863,51 @@ def search_clients():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@fogli_tecnici_bp.route('/api/quick_create_client', methods=['POST'])
+@login_required
+def quick_create_client():
+    """API per creare rapidamente un cliente (solo ragione sociale)"""
+    try:
+        data = request.get_json()
+        ragione_sociale = data.get('ragione_sociale', '').strip()
+        
+        if not ragione_sociale:
+            return jsonify({'success': False, 'error': 'Ragione sociale obbligatoria'}), 400
+            
+        # Verifica se esiste già
+        cliente_esistente = Cliente.query.filter_by(ragione_sociale=ragione_sociale).first()
+        if cliente_esistente:
+            return jsonify({
+                'success': True, 
+                'id': cliente_esistente.id, 
+                'text': cliente_esistente.ragione_sociale,
+                'email': cliente_esistente.email,
+                'is_new': False
+            })
+            
+        # Crea nuovo cliente
+        nuovo_cliente = Cliente(
+            ragione_sociale=ragione_sociale,
+            email=f"info@da-definire.it", # Placeholder
+            department_id=current_user.department_id or 1
+        )
+        
+        db.session.add(nuovo_cliente)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'id': nuovo_cliente.id, 
+            'text': nuovo_cliente.ragione_sociale,
+            'email': nuovo_cliente.email,
+            'is_new': True
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @fogli_tecnici_bp.route('/api/get_available_machines')

@@ -36,15 +36,27 @@ def get_ricambi():
 class FoglioTecnicoStep1Form(FlaskForm):
     """Step 1: Informazioni Base del Cliente e Intervento"""
     
-    cliente = HiddenField('Cliente', validators=[DataRequired(message='Seleziona un cliente')])
+    cliente = HiddenField('Cliente', validators=[Optional()])
     
-    cliente_search = StringField('Cerca Cliente', validators=[Optional()],
-        description='Digita per cercare il cliente')
+    cliente_search = StringField('Cerca Cliente', validators=[DataRequired(message='Inserisci il nome del cliente')],
+        description='Digita per cercare il cliente o inserisci un nuovo nome')
     
     titolo = StringField('Descrizione Motivo Chiamata', validators=[
-        DataRequired(message='La descrizione motivo chiamata è obbligatoria'),
+        Optional(),
         Length(max=200, message='Massimo 200 caratteri')
     ], description='Descrivi brevemente il motivo della chiamata')
+    
+    categoria = SelectField('Categoria Intervento', choices=[
+        ('Intervento', 'Intervento Generico'),
+        ('Riparazione', 'Riparazione'),
+        ('Manutenzione', 'Manutenzione Preventiva'),
+        ('Installazione', 'Installazione'),
+        ('Consulenza', 'Consulenza Tecnica'),
+        ('Formazione', 'Formazione'),
+        ('Sopralluogo', 'Sopralluogo'),
+        ('Collaudo', 'Collaudo'),
+        ('Altro', 'Altro')
+    ], validators=[DataRequired(message='Seleziona una categoria')])
     
     data_intervento = DateTimeField('Data e Ora Intervento', 
         validators=[DataRequired(message='Data intervento obbligatoria')],
@@ -147,15 +159,14 @@ class FoglioTecnicoStep4Form(FlaskForm):
     """Step 4: Informazioni Commerciali"""
     
     modalita_pagamento = SelectField('Modalità di Pagamento', choices=[
-        ('', 'Seleziona modalità...'),
+        ('Non specificato', 'Non specificato'),
         ('Contanti', 'Contanti'),
         ('Bonifico bancario', 'Bonifico bancario'),
         ('Assegno', 'Assegno'),
         ('Carta di credito/debito', 'Carta di credito/debito'),
         ('PayPal', 'PayPal'),
-        ('Fatturazione differita', 'Fatturazione differita'),
-        ('Non specificato', 'Non specificato')
-    ], validators=[Optional()])
+        ('Fatturazione differita', 'Fatturazione differita')
+    ], validators=[Optional()], default='Non specificato')
     
     importo_intervento = DecimalField('Importo Intervento (€)', validators=[
         Optional(),
@@ -165,6 +176,10 @@ class FoglioTecnicoStep4Form(FlaskForm):
     pagamento_immediato = BooleanField('Intervento già pagato',
         default=False,
         description='Seleziona se l\'intervento è già stato pagato dal cliente')
+
+    intervento_in_garanzia = BooleanField('Intervento in garanzia',
+        default=False,
+        description='Seleziona se l\'intervento è in garanzia')
 
     durata_intervento = IntegerField('Durata Intervento (minuti)', validators=[
         Optional(),
@@ -208,6 +223,9 @@ class FoglioTecnicoFinalizeForm(FlaskForm):
         Optional(),
         Email(message='Formato email non valido')
     ], description='Email per l\'invio (se non specificata, userà quella del cliente)')
+    
+    aggiorna_email_cliente = BooleanField('Imposta come definitivo', default=False,
+        description='Salva questa email come predefinita per il cliente')
     
     note_finali = TextAreaField('Note Finali', validators=[Optional()],
         description='Note aggiuntive da includere nell\'email')

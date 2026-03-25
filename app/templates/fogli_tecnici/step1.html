@@ -13,260 +13,55 @@
 {% endblock %}
 
 {% block extra_head %}
-<style>
-
-    /* HEADER STEP */
-    .step-header {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
-        padding: 1.5rem 2rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-    }
-
-    .step-header-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .step-header-sub {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin: 0.2rem 0 0;
-    }
-
-    .step-header-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-    }
-
-    .step-header-badge {
-        background: rgba(255,255,255,0.12);
-        border-radius: 999px;
-        padding: 0.25rem 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        white-space: nowrap;
-    }
-
-    /* CARD FORM */
-    .form-container {
-        background: white;
-        padding: 1.75rem 2rem;
-        border-radius: 16px;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.08);
-        margin-bottom: 1.5rem;
-    }
-
-    /* GRIGLIA PER TABLET LANDSCAPE */
-    .form-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .form-field {
-        width: 100%;
-    }
-
-    .form-label {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: #1f2933;
-        margin-bottom: 0.35rem;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .form-label i {
-        font-size: 1rem;
-        color: #2563eb;
-    }
-
-    .form-control,
-    .form-select {
-        font-size: 1.05rem;
-        padding: 0.75rem 0.9rem;
-        border-radius: 10px;
-        border: 1.8px solid #e5e7eb;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.15);
-    }
-
-    .form-text {
-        font-size: 0.9rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-
-    textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-    }
-
-    /* Autocomplete cliente */
-    .client-search-container {
-        position: relative;
-    }
-
-    .client-suggestions {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        border: 2px solid #2563eb;
-        border-top: none;
-        border-radius: 0 0 10px 10px;
-        max-height: 220px;
-        overflow-y: auto;
-        z-index: 1000;
-        display: none;
-    }
-
-    .client-suggestion {
-        padding: 0.75rem 0.9rem;
-        cursor: pointer;
-        border-bottom: 1px solid #e5e7eb;
-        font-size: 0.98rem;
-    }
-
-    .client-suggestion:hover {
-        background-color: #f3f4f6;
-    }
-
-    .client-suggestion:last-child {
-        border-bottom: none;
-    }
-
-    .navigation-hint {
-        font-size: 0.85rem;
-        color: #6b7280;
-        display: none;
-    }
-
-    /* AZIONI DEL FORM */
-    .form-actions {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .form-actions-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .form-actions-left,
-    .form-actions-right {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .btn-ghost {
-        padding: 0.75rem 1rem;
-        border: none;
-        background: transparent;
-        color: #6b7280;
-        font-weight: 500;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .btn-ghost:hover {
-        background: #f3f4f6;
-        color: #374151;
-    }
-
-    .btn-primary-large {
-        padding: 0.875rem 1.5rem;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        border: none;
-        color: white;
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-    }
-
-    .btn-primary-large:hover:not(:disabled) {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
-    }
-
-    .btn-primary-large:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
-    }
-
-    /* TABLET LANDSCAPE: griglia 2 colonne */
-    @media (min-width: 900px) {
-        .form-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-            column-gap: 1.5rem;
-            row-gap: 1.25rem;
-        }
-
-        .grid-span-2 {
-            grid-column: 1 / -1;
-        }
-
-        .navigation-hint {
-            display: block;
-        }
-    }
-
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="tablet-container">
+
+    <!-- Progress Bar -->
+    <div class="steps-progress">
+        <div class="step-item active">
+            1 <span class="step-label">Base</span>
+        </div>
+        <div class="step-item">
+            2 <span class="step-label">Tecnico</span>
+        </div>
+        <div class="step-item">
+            3 <span class="step-label">Lavori</span>
+        </div>
+        <div class="step-item">
+            4 <span class="step-label">Commerciale</span>
+        </div>
+        <div class="step-item">
+            5 <span class="step-label">Firma</span>
+        </div>
+    </div>
 
     <!-- Form -->
     <form method="POST" id="step1Form">
         {{ form.hidden_tag() }}
 
         <div class="form-container">
+            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-info-circle me-2"></i>Informazioni Generali</h5>
+            
             <div class="form-grid">
-
                 <!-- Cliente (full width) -->
                 <div class="form-field grid-span-2">
                     <label class="form-label" for="cliente_search">
                         <i class="bi bi-person-search"></i>
                         {{ form.cliente.label.text }}
                     </label>
-                    <div class="client-search-container">
+                    <div class="position-relative client-search-container">
                         {{ form.cliente_search(class="form-control", placeholder="Digita per cercare il cliente...", autocomplete="off") }}
                         {{ form.cliente(id="cliente", type="hidden") }}
-                        <div class="client-suggestions" id="clientSuggestions"></div>
+                        <div class="client-suggestions" id="clientSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 0.75rem 0.75rem; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);"></div>
+                    </div>
+                    <div class="mt-2" id="modificaClienteWrap" style="display: none;">
+                        <a href="#" id="modificaClienteLink" class="btn btn-sm btn-outline-primary" target="_blank"
+                           title="Apre la pagina di modifica del cliente in una nuova scheda. Dopo aver salvato, puoi tornare qui per continuare il foglio tecnico.">
+                            <i class="bi bi-pencil-square me-1"></i> Modifica Cliente
+                        </a>
                     </div>
                     {% if form.cliente.errors %}
                         <div class="invalid-feedback d-block">
@@ -275,11 +70,27 @@
                     {% endif %}
                 </div>
 
-                <!-- Descrizione motivo chiamata (full width) -->
-                <div class="form-field grid-span-2">
+                <!-- Categoria (colonna sinistra) -->
+                <div class="form-field">
+                    <label class="form-label" for="categoria">
+                        <i class="bi bi-tag"></i>
+                        {{ form.categoria.label.text }}
+                    </label>
+                    {{ form.categoria(
+                        class="form-select" + (" is-invalid" if form.categoria.errors else "")
+                    ) }}
+                    {% if form.categoria.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.categoria.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Descrizione motivo chiamata (colonna destra) -->
+                <div class="form-field">
                     <label class="form-label" for="titolo">
                         <i class="bi bi-card-text"></i>
-                        Descrizione motivo chiamata
+                        Descrizione Dettagliata
                     </label>
                     {{ form.titolo(
                         class="form-control" + (" is-invalid" if form.titolo.errors else ""),
@@ -299,7 +110,8 @@
                         {{ form.data_intervento.label.text }}
                     </label>
                     {{ form.data_intervento(
-                        class="form-control" + (" is-invalid" if form.data_intervento.errors else "")
+                        class="form-control" + (" is-invalid" if form.data_intervento.errors else ""),
+                        type="datetime-local"
                     ) }}
                     {% if form.data_intervento.errors %}
                         <div class="invalid-feedback">
@@ -319,30 +131,22 @@
                         placeholder="Lascia vuoto per usare l’indirizzo del cliente"
                     ) }}
                 </div>
-
             </div>
+        </div>
+
+        <!-- Azioni del Form -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-ghost">
+                <i class="bi bi-x-lg me-2"></i>
+                Annulla
+            </a>
+            <button type="submit" class="btn btn-primary-large" id="nextButton" disabled>
+                <span>Avanti</span>
+                <i class="bi bi-arrow-right ms-2"></i>
+            </button>
         </div>
     </form>
-
-    <!-- Azioni del Form -->
-    <div class="form-actions">
-        <div class="form-actions-container">
-            <div class="form-actions-left">
-                <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-ghost">
-                    <i class="bi bi-x-lg me-2"></i>
-                    Annulla
-                </a>
-            </div>
-            <div class="form-actions-right">
-                <button type="submit" form="step1Form" class="btn btn-primary-large text-white" id="nextButton" disabled>
-                    <span>Avanti</span>
-                    <i class="bi bi-arrow-right ms-2"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
-
 
 <!-- JavaScript per autocompletamento cliente e validazione -->
 <script>
@@ -365,6 +169,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const suggestionsDiv = document.getElementById('clientSuggestions');
+    const modificaClienteWrap = document.getElementById('modificaClienteWrap');
+    const modificaClienteLink = document.getElementById('modificaClienteLink');
+    const categoriaSelect = document.getElementById('categoria');
     const titoloInput = document.getElementById('titolo');
     const dataInput = document.getElementById('data_intervento');
     const nextButton = document.getElementById('nextButton');
@@ -382,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedClientId = null;
             clienteHiddenInput.value = '';
             this.removeAttribute('data-selected-text');
+            if (modificaClienteWrap) modificaClienteWrap.style.display = 'none';
         }
 
         if (query.length < 2) {
@@ -397,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Validazione form in tempo reale
-    [clienteSearchInput, titoloInput, dataInput].forEach(input => {
+    [clienteSearchInput, categoriaSelect, titoloInput, dataInput].forEach(input => {
         input.addEventListener('input', validateForm);
         input.addEventListener('change', validateForm);
     });
@@ -415,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 suggestionsDiv.innerHTML = `
-                    <div class="client-suggestion" style="color: #dc3545;">
+                    <div class="p-3 text-danger">
                         <i class="bi bi-exclamation-triangle me-1"></i>
                         Errore nella ricerca. Riprova.
                     </div>
@@ -431,19 +239,37 @@ document.addEventListener('DOMContentLoaded', function() {
     function showSuggestions(clients) {
         suggestionsDiv.innerHTML = '';
 
-        if (clients.length === 0) {
-            const noResults = document.createElement('div');
-            noResults.className = 'client-suggestion';
-            noResults.textContent = 'Nessun cliente trovato';
-            noResults.style.color = '#6c757d';
-            suggestionsDiv.appendChild(noResults);
-        } else {
+        const query = clienteSearchInput.value.trim();
+
+        // Se non ci sono risultati, offri di creare
+        if (clients.length === 0 && query.length >= 2) {
+            const createNew = document.createElement('div');
+            createNew.className = 'p-3 border-bottom cursor-pointer text-primary fw-bold';
+            createNew.style.backgroundColor = '#f0f9ff';
+            createNew.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-plus-circle-fill me-2"></i>Crea nuovo cliente: "${query}"</span>
+                    <span class="badge bg-primary">NUOVO</span>
+                </div>
+            `;
+            createNew.addEventListener('click', function() {
+                quickCreateClient(query);
+            });
+            suggestionsDiv.appendChild(createNew);
+        } else if (clients.length > 0) {
             clients.forEach(client => {
                 const suggestion = document.createElement('div');
-                suggestion.className = 'client-suggestion';
-                suggestion.textContent = client.text;
+                suggestion.className = 'p-3 border-bottom cursor-pointer suggestion-item';
+                suggestion.style.cursor = 'pointer';
+                suggestion.innerHTML = `<strong>${client.text}</strong><br><small class="text-muted">${client.email || 'Nessun indirizzo'}</small>`;
                 suggestion.dataset.clientId = client.id;
-                suggestion.dataset.clientEmail = client.email;
+                
+                suggestion.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f1f5f9';
+                });
+                suggestion.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = 'transparent';
+                });
 
                 suggestion.addEventListener('click', function() {
                     selectClient(client);
@@ -453,7 +279,47 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        suggestionsDiv.style.display = 'block';
+        suggestionsDiv.style.display = (clients.length === 0 && query.length < 2) ? 'none' : 'block';
+    }
+
+    function quickCreateClient(name) {
+        // Mostra caricamento nel tastino se possibile, o semplicemente disabilita input
+        clienteSearchInput.disabled = true;
+        
+        fetch(`{{ url_for('fogli_tecnici.quick_create_client') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ ragione_sociale: name })
+        })
+        .then(response => response.json())
+        .then(data => {
+            clienteSearchInput.disabled = false;
+            if (data.success) {
+                selectClient(data);
+                if (data.is_new) {
+                    // Notifica successo (il pulsante "Modifica Cliente" resta sempre visibile sotto il campo)
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+                    alert.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Cliente <strong>${data.text}</strong> creato. Usa il pulsante "Modifica Cliente" sotto per completare i dati.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+                    `;
+                    clienteSearchInput.parentNode.appendChild(alert);
+                    setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
+                }
+            } else {
+                alert('Errore nella creazione del cliente: ' + data.error);
+            }
+        })
+        .catch(error => {
+            clienteSearchInput.disabled = false;
+            alert('Errore di connessione durante la creazione del cliente.');
+            console.error(error);
+        });
     }
 
     function hideSuggestions() {
@@ -474,6 +340,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Feedback visivo immediato
         clienteSearchInput.classList.remove('is-invalid');
         clienteSearchInput.classList.add('is-valid');
+        
+        // Se il cliente è nuovo, aggiungi un indicatore visivo
+        if (client.is_new) {
+            clienteSearchInput.style.borderColor = '#fd7e14';
+            clienteSearchInput.style.borderWidth = '2px';
+            clienteSearchInput.title = 'Cliente appena creato - considera di completare i suoi dati';
+        }
+
+        // Mostra sempre il link "Modifica Cliente" (resta visibile anche dopo la scomparsa della notifica)
+        if (modificaClienteWrap && modificaClienteLink) {
+            modificaClienteLink.href = '/clients/' + client.id + '/edit';
+            modificaClienteWrap.style.display = 'block';
+        }
 
         // Forza un evento change sul campo hidden per sicurezza
         const changeEvent = new Event('change', { bubbles: true });
@@ -489,19 +368,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function validateForm() {
+        // Valido solo se abbiamo un cliente selezionato (ID presente)
         const hasClient = selectedClientId && clienteHiddenInput.value && clienteHiddenInput.value !== '' && clienteHiddenInput.value !== '0';
-        const hasTitle = titoloInput.value.trim().length >= 3;
+        
+        const hasCategoria = categoriaSelect.value !== '';
+        // Il titolo non è più obbligatorio (descrizione dettagliata)
+        const hasTitle = true;
         const hasDate = dataInput.value.trim() !== '';
 
-        const isValid = hasClient && hasTitle && hasDate;
+        const isValid = hasClient && hasCategoria && hasTitle && hasDate;
 
         nextButton.disabled = !isValid;
-        nextButton.classList.toggle('btn-primary', isValid);
-        nextButton.classList.toggle('btn-outline-primary', !isValid);
 
         // Feedback visuale campi
         updateFieldValidation(clienteSearchInput, hasClient);
-        updateFieldValidation(titoloInput, hasTitle);
+        updateFieldValidation(categoriaSelect, hasCategoria);
         updateFieldValidation(dataInput, hasDate);
     }
 
@@ -530,6 +411,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validazione iniziale
     validateForm();
+
+    // Listener per quando l'utente torna dalla pagina di modifica cliente
+    window.addEventListener('focus', function() {
+        // Se c'è un cliente selezionato, ricarica i suoi dati per assicurarsi che siano aggiornati
+        if (selectedClientId && clienteHiddenInput.value) {
+            // Piccolo delay per assicurarsi che la pagina di modifica sia stata salvata
+            setTimeout(() => {
+                // Potresti aggiungere qui una chiamata AJAX per ricaricare i dati del cliente
+                // se necessario, ma per ora è sufficiente mantenere la selezione
+                console.log('Finestra riattivata - cliente selezionato:', selectedClientId);
+            }, 500);
+        }
+    });
 });
 
 // Prevenzione accidentale chiusura pagina
@@ -555,3 +449,4 @@ document.getElementById('step1Form').addEventListener('submit', function() {
 });
 </script>
 {% endblock %}
+

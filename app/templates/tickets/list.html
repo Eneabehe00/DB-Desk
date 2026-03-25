@@ -349,22 +349,21 @@
     
     <!-- Paginazione -->
     {% if tickets.pages > 1 %}
-    <div class="card-footer">
+    <div class="card-footer pagination-bar">
         <nav aria-label="Paginazione ticket">
             <ul class="pagination pagination-sm justify-content-center mb-0">
                 {% if tickets.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.prev_num) }}">
+                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.prev_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
                 {% endif %}
-                
                 {% for page_num in tickets.iter_pages() %}
                     {% if page_num %}
                         {% if page_num != tickets.page %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('tickets.list_tickets', page=page_num) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('tickets.list_tickets', page=page_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">{{ page_num }}</a>
                             </li>
                         {% else %}
                             <li class="page-item active">
@@ -373,20 +372,22 @@
                         {% endif %}
                     {% else %}
                         <li class="page-item disabled">
-                            <span class="page-link">...</span>
+                            <span class="page-link">…</span>
                         </li>
                     {% endif %}
                 {% endfor %}
-                
                 {% if tickets.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.next_num) }}">
+                        <a class="page-link" href="{{ url_for('tickets.list_tickets', page=tickets.next_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
                 {% endif %}
             </ul>
         </nav>
+        <div class="pagination-info">
+            <small>Pagina {{ tickets.page }} di {{ tickets.pages }} ({{ tickets.total }} ticket)</small>
+        </div>
     </div>
     {% endif %}
     

@@ -61,6 +61,17 @@
                                 </div>
 
                                 <div class="mb-3">
+                                    {{ form.sigla.label(class="form-label") }}
+                                    {{ form.sigla(class="form-control" + (" is-invalid" if form.sigla.errors else "")) }}
+                                    {% if form.sigla.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.sigla.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Sigla usata per la numerazione dei fogli tecnici (es. MEC=Meccanica, GA, IT=Assistenza IT). Se vuota si usa FT.</div>
+                                </div>
+
+                                <div class="mb-3">
                                     {{ form.description.label(class="form-label") }}
                                     {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3") }}
                                     {% if form.description.errors %}

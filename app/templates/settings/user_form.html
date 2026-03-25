@@ -1,267 +1,396 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} - DB-Desk{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --form-bg: #ffffff;
+        --section-bg: #f8fafc;
+        --accent-color: #2563eb;
+        --border-radius: 12px;
+    }
+
+    .user-form-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: var(--form-bg);
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .form-card-header {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-card-header i {
+        font-size: 1.25rem;
+        color: var(--accent-color);
+    }
+
+    .form-card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1.1rem;
+    }
+
+    .form-card-body {
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 0.625rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .info-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-card h6 {
+        color: #1e293b;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card h6 i {
+        color: var(--accent-color);
+    }
+
+    .info-card p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .info-card p:last-child {
+        margin-bottom: 0;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .fixed-action-bar {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem 2rem;
+        z-index: 1040;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 1rem;
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.05);
+        transition: left 0.3s ease;
+    }
+
+    .sidebar-collapsed .fixed-action-bar {
+        left: 95px;
+    }
+
+    @media (max-width: 767.98px) {
+        .fixed-action-bar {
+            left: 0 !important;
+            padding: 0.75rem 1rem;
+        }
+    }
+
+    .form-content-wrapper {
+        padding-bottom: 80px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    .sticky-sidebar {
+        position: sticky;
+        top: 2rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">
-                    <i class="bi bi-person-circle"></i>
-                    {{ title }}
-                </h1>
-                <a href="{{ url_for('settings.users') }}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alla lista
-                </a>
-            </div>
-
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-pencil"></i>
-                                Informazioni Utente
-                            </h5>
+<div class="container-fluid form-content-wrapper">
+    <form method="POST" id="userForm">
+        {{ form.hidden_tag() }}
+        
+        <div class="row g-4 user-form-container animate-in">
+            <!-- Main Content Column -->
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-person-circle"></i>
+                        <h5>Informazioni Utente</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Inserisci username") }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.username.description %}
+                                    <div class="form-text">{{ form.username.description }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Inserisci email") }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.email.description %}
+                                    <div class="form-text">{{ form.email.description }}</div>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <form method="POST">
-                                {{ form.hidden_tag() }}
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.username.label(class="form-label") }}
-                                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
-                                            {% if form.username.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.username.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.username.description %}
-                                                <div class="form-text">{{ form.username.description }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.email.label(class="form-label") }}
-                                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                                            {% if form.email.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.email.description %}
-                                                <div class="form-text">{{ form.email.description }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.first_name.label(class="form-label") }}
-                                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
-                                            {% if form.first_name.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.first_name.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.first_name.description %}
-                                                <div class="form-text">{{ form.first_name.description }}</div>
-                                            {% endif %}
-                                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name.label(class="form-label") }}
+                                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="Inserisci nome") }}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.last_name.label(class="form-label") }}
-                                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
-                                            {% if form.last_name.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.last_name.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.last_name.description %}
-                                                <div class="form-text">{{ form.last_name.description }}</div>
-                                            {% endif %}
-                                        </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name.label(class="form-label") }}
+                                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="Inserisci cognome") }}
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
                                     </div>
-                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.password.label(class="form-label") }}
-                                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                                            {% if form.password.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.password.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.password.description %}
-                                                <div class="form-text">{{ form.password.description }}</div>
-                                            {% endif %}
-                                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Nuova password") }}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password.errors %}{{ error }}{% endfor %}
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {% if form.password_confirm %}
-                                            {{ form.password_confirm.label(class="form-label") }}
-                                            {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else "")) }}
-                                            {% if form.password_confirm.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.password_confirm.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.password_confirm.description %}
-                                                <div class="form-text">{{ form.password_confirm.description }}</div>
-                                            {% endif %}
-                                            {% endif %}
-                                        </div>
+                                {% endif %}
+                                {% if form.password.description %}
+                                    <div class="form-text">{{ form.password.description }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% if form.password_confirm %}
+                                {{ form.password_confirm.label(class="form-label") }}
+                                {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else ""), placeholder="Conferma password") }}
+                                {% if form.password_confirm.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password_confirm.errors %}{{ error }}{% endfor %}
                                     </div>
-                                </div>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.role_id.label(class="form-label") }}
-                                            {{ form.role_id(class="form-select" + (" is-invalid" if form.role_id.errors else "")) }}
-                                            {% if form.role_id.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.role_id.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.role_id.description %}
-                                                <div class="form-text">{{ form.role_id.description }}</div>
-                                            {% endif %}
-                                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.role_id.label(class="form-label") }}
+                                {{ form.role_id(class="form-select" + (" is-invalid" if form.role_id.errors else "")) }}
+                                {% if form.role_id.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.role_id.errors %}{{ error }}{% endfor %}
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            {{ form.department_id.label(class="form-label") }}
-                                            {{ form.department_id(class="form-select" + (" is-invalid" if form.department_id.errors else "")) }}
-                                            {% if form.department_id.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.department_id.errors %}{{ error }}{% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            {% if form.department_id.description %}
-                                                <div class="form-text">{{ form.department_id.description }}</div>
-                                            {% endif %}
-                                        </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.department_id.label(class="form-label") }}
+                                {{ form.department_id(class="form-select" + (" is-invalid" if form.department_id.errors else "")) }}
+                                {% if form.department_id.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.department_id.errors %}{{ error }}{% endfor %}
                                     </div>
-                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-                                <div class="mb-3">
-                                    <div class="form-check">
-                                        {{ form.is_active(class="form-check-input" + (" is-invalid" if form.is_active.errors else "")) }}
-                                        {{ form.is_active.label(class="form-check-label") }}
-                                        {% if form.is_active.errors %}
-                                            <div class="invalid-feedback">
-                                                {% for error in form.is_active.errors %}{{ error }}{% endfor %}
-                                            </div>
-                                        {% endif %}
-                                        {% if form.is_active.description %}
-                                            <div class="form-text">{{ form.is_active.description }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ url_for('settings.users') }}" class="btn btn-secondary">
-                                        <i class="bi bi-x-circle"></i> Annulla
-                                    </a>
-                                    {{ form.submit(class="btn btn-primary") }}
-                                </div>
-                            </form>
+                        <div class="mb-0">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input" + (" is-invalid" if form.is_active.errors else "")) }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                                {% if form.is_active.description %}
+                                    <div class="form-text">{{ form.is_active.description }}</div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-info-circle"></i> Guida
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <h6><i class="bi bi-person"></i> Username</h6>
-                            <p class="text-muted small">
-                                Nome utente univoco per il login. Deve essere tra 3 e 80 caratteri.
-                            </p>
-                            
-                            <h6><i class="bi bi-envelope"></i> Email</h6>
-                            <p class="text-muted small">
-                                Indirizzo email univoco dell'utente. Utilizzato per le notifiche e il recupero password.
-                            </p>
-                            
-                            <h6><i class="bi bi-shield-check"></i> Ruolo</h6>
-                            <p class="text-muted small">
-                                <strong>Dipendente:</strong> Accesso limitato al proprio reparto<br>
-                                <strong>Amministratore:</strong> Accesso completo a tutti i reparti<br>
-                                <strong>Developer:</strong> Accesso completo + funzioni avanzate
-                            </p>
-                            
-                            <h6><i class="bi bi-building"></i> Reparto</h6>
-                            <p class="text-muted small">
-                                Reparto di appartenenza dell'utente. Determina quali dati può visualizzare e gestire.
-                            </p>
-                            
-                            <h6><i class="bi bi-key"></i> Password</h6>
-                            <p class="text-muted small">
-                                {% if user %}
-                                Lascia vuoto per mantenere la password attuale.
-                                {% else %}
-                                Password per l'accesso. Deve essere di almeno 6 caratteri.
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
+            </div>
 
+            <!-- Sidebar Column -->
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
                     {% if user %}
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-bar-chart"></i> Statistiche
-                            </h5>
+                    <div class="stats-card">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche Utente</h5>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-value">{{ user.created_tickets.count() }}</span>
+                                <span class="stat-label">Ticket Creati</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">{{ user.assigned_tickets.count() }}</span>
+                                <span class="stat-label">Ticket Assegnati</span>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <div class="text-primary">
-                                        <i class="bi bi-plus-circle"></i>
-                                        <div class="fw-bold">{{ user.created_tickets.count() }}</div>
-                                        <small>Ticket Creati</small>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="text-success">
-                                        <i class="bi bi-person-check"></i>
-                                        <div class="fw-bold">{{ user.assigned_tickets.count() }}</div>
-                                        <small>Ticket Assegnati</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <small class="text-muted">
-                                    <strong>Ultimo accesso:</strong><br>
-                                    {% if user.last_login %}
-                                        {{ user.last_login.strftime('%d/%m/%Y alle %H:%M') }}
-                                    {% else %}
-                                        Mai effettuato
-                                    {% endif %}
-                                </small>
-                            </div>
+                        <div class="mt-3 pt-3 border-top border-light border-opacity-25">
+                            <small>
+                                <strong><i class="bi bi-clock-history"></i> Ultimo accesso:</strong><br>
+                                {% if user.last_login %}
+                                    {{ user.last_login.strftime('%d/%m/%Y alle %H:%M') }}
+                                {% else %}
+                                    Mai effettuato
+                                {% endif %}
+                            </small>
                         </div>
                     </div>
                     {% endif %}
+
+                    <div class="info-card">
+                        <h5 class="mb-3"><i class="bi bi-info-circle"></i> Guida</h5>
+                        
+                        <h6><i class="bi bi-person"></i> Username</h6>
+                        <p class="text-muted small">
+                            Nome utente univoco per il login. Deve essere tra 3 e 80 caratteri.
+                        </p>
+                        
+                        <h6><i class="bi bi-envelope"></i> Email</h6>
+                        <p class="text-muted small">
+                            Indirizzo email univoco dell'utente. Utilizzato per le notifiche.
+                        </p>
+                        
+                        <h6><i class="bi bi-shield-check"></i> Ruolo</h6>
+                        <p class="text-muted small">
+                            <strong>Dipendente:</strong> Accesso limitato<br>
+                            <strong>Amministratore:</strong> Accesso completo<br>
+                            <strong>Developer:</strong> Accesso completo + avanzato
+                        </p>
+                        
+                        <h6><i class="bi bi-building"></i> Reparto</h6>
+                        <p class="text-muted small">
+                            Reparto di appartenenza. Determina i permessi.
+                        </p>
+                        
+                        <h6><i class="bi bi-key"></i> Password</h6>
+                        <p class="text-muted small mb-0">
+                            {% if user %}
+                            Lascia vuoto per mantenere la password attuale.
+                            {% else %}
+                            Password per l'accesso (minimo 6 caratteri).
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Fixed Action Bar -->
+        <div class="fixed-action-bar">
+            <a href="{{ url_for('settings.users') }}" class="btn btn-link text-muted text-decoration-none me-auto d-none d-md-inline-block">
+                <i class="bi bi-arrow-left"></i> Torna alla lista
+            </a>
+            <a href="{{ url_for('settings.users') }}" class="btn btn-outline-secondary d-md-none">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('settings.users') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-circle"></i> <span class="d-none d-sm-inline">Annulla</span>
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-check-circle-fill me-2"></i> 
+                    {% if user %}Aggiorna Utente{% else %}Crea Utente{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

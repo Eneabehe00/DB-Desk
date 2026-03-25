@@ -9,6 +9,8 @@ class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False, index=True)
     display_name = db.Column(db.String(100), nullable=False)
+    # Sigla per numerazione fogli tecnici (es. MEC=Meccanica, GA, IT=Assistenza IT). Se vuota si usa FT.
+    sigla = db.Column(db.String(10), nullable=True, index=True)
     description = db.Column(db.Text)
 
     # Manager del reparto
@@ -26,9 +28,10 @@ class Department(db.Model):
     manager = db.relationship('User', backref='managed_department', foreign_keys=[manager_id])
     tickets = db.relationship('Ticket', backref='department', lazy='dynamic')
 
-    def __init__(self, name, display_name, description=None, manager_id=None, is_active=True):
+    def __init__(self, name, display_name, description=None, manager_id=None, is_active=True, sigla=None):
         self.name = name
         self.display_name = display_name
+        self.sigla = (sigla.strip().upper()[:10] if sigla and str(sigla).strip() else None)
         self.description = description
         self.manager_id = manager_id
         self.is_active = is_active
@@ -84,12 +87,19 @@ class Department(db.Model):
     def __repr__(self):
         return f'<Department {self.name}: {self.display_name}>'
 
+    def get_sigla_foglio(self):
+        """Restituisce la sigla da usare per i fogli tecnici (sempre maiusc, max 10 caratteri). Se assente ritorna 'FT'."""
+        if self.sigla and str(self.sigla).strip():
+            return str(self.sigla).strip().upper()[:10]
+        return 'FT'
+
     def to_dict(self):
         """Serializzazione per JSON"""
         return {
             'id': self.id,
             'name': self.name,
             'display_name': self.display_name,
+            'sigla': self.sigla,
             'description': self.description,
             'manager_id': self.manager_id,
             'manager_name': self.manager.full_name if self.manager else None,

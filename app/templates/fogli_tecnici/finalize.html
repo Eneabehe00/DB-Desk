@@ -1,499 +1,410 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }} - DB-Desk{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+{% block title %}Finalizzazione {{ foglio.numero_foglio }} - DB-Desk{% endblock %}
+{% block page_title %}Finalizzazione Foglio{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
 <style>
-    /* Stili ottimizzati per tablet - Finalizzazione */
-    .tablet-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1rem;
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        --form-bg: #ffffff;
+        --section-bg: #f8fafc;
+        --accent-color: #2563eb;
+        --border-radius: 12px;
     }
-    
-    .step-header {
-        background: linear-gradient(135deg, #28a745, #1e7e34);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
+
+    .form-card {
+        background: var(--form-bg);
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
     }
-    
-    .completion-summary {
-        background: #d4edda;
-        border: 2px solid #28a745;
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .completion-summary h3 {
-        color: #155724;
-        margin-bottom: 1rem;
-    }
-    
-    .completion-summary p {
-        color: #155724;
-        margin-bottom: 0;
-        font-size: 1.1rem;
-    }
-    
-    .form-container {
-        background: white;
-        padding: 2.5rem;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    
-    .form-field {
-        margin-bottom: 2.5rem;
-    }
-    
-    .form-label {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-    
-    .form-control, .form-select {
-        font-size: 1.2rem;
-        padding: 1rem 1.25rem;
-        border-radius: 10px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
-    }
-    
-    .form-text {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .action-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-    
-    .action-btn {
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid transparent;
-        font-size: 1.1rem;
-        font-weight: 600;
-        text-align: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
+
+    .form-card-header {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
-        flex-direction: column;
         align-items: center;
         gap: 0.75rem;
     }
-    
-    .action-btn i {
-        font-size: 2rem;
+
+    .form-card-header i {
+        font-size: 1.25rem;
+        color: var(--accent-color);
     }
-    
-    .action-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    
-    .btn-save {
-        background: #e3f2fd;
-        color: #1976d2;
-        border-color: #2196f3;
-    }
-    
-    .btn-save:hover {
-        background: #1976d2;
-        color: white;
-    }
-    
-    .btn-pdf {
-        background: #fff3e0;
-        color: #f57c00;
-        border-color: #ff9800;
-    }
-    
-    .btn-pdf:hover {
-        background: #f57c00;
-        color: white;
-    }
-    
-    .btn-email {
-        background: #f3e5f5;
-        color: #7b1fa2;
-        border-color: #9c27b0;
-    }
-    
-    .btn-email:hover {
-        background: #7b1fa2;
-        color: white;
-    }
-    
-    .btn-complete {
-        background: #e8f5e8;
-        color: #2e7d32;
-        border-color: #4caf50;
-    }
-    
-    .btn-complete:hover {
-        background: #2e7d32;
-        color: white;
-    }
-    
-    .navigation-buttons {
-        display: flex;
-        justify-content: space-between;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 15px;
-        margin-top: 2rem;
-    }
-    
-    .btn-step {
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
-        border-radius: 10px;
+
+    .form-card-header h5 {
+        margin: 0;
         font-weight: 600;
-        min-width: 150px;
+        color: #1e293b;
+        font-size: 1.1rem;
     }
-    
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .summary-card {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 10px;
+
+    .form-card-body {
         padding: 1.5rem;
     }
-    
-    .summary-card h6 {
-        color: #495057;
-        margin-bottom: 1rem;
-        font-weight: 600;
-    }
-    
-    .summary-item {
+
+    /* Finalize Action Buttons */
+    .btn-finalize {
+        width: 100%;
+        text-align: left;
+        padding: 1.25rem;
+        background: white;
+        border-radius: 1rem;
+        border: 2px solid #e2e8f0;
+        transition: all 0.2s ease;
         display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        height: 100%;
+    }
+
+    .btn-finalize:hover {
+        border-color: var(--accent-color);
+        background: #f8fafc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .btn-finalize.active {
+        border-color: var(--accent-color);
+        background: #eff6ff;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .action-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.25rem;
+    }
+
+    .bg-soft-success { background: #dcfce7; color: #16a34a; }
+    .bg-soft-primary { background: #dbeafe; color: #2563eb; }
+    .bg-soft-secondary { background: #f1f5f9; color: #64748b; }
+    .bg-soft-warning { background: #fef3c7; color: #d97706; }
+
+    /* Info Card Styles */
+    .detail-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .info-value:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-control-modern {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        background: white;
+        width: 100%;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    /* Fixed Action Bar */
+    .fixed-action-bar {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem 2rem;
+        z-index: 1040;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.05);
+        transition: left 0.3s ease;
     }
-    
-    .summary-label {
-        font-weight: 500;
-        color: #6c757d;
+
+    .sidebar-collapsed .fixed-action-bar {
+        left: 95px;
     }
-    
-    .summary-value {
-        color: #495057;
-        text-align: right;
-        max-width: 60%;
-        word-wrap: break-word;
+
+    @media (max-width: 767.98px) {
+        .fixed-action-bar {
+            left: 0 !important;
+            padding: 0.75rem 1rem;
+        }
     }
-    
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .tablet-container {
-            padding: 0.5rem;
-        }
-        
-        .step-header {
-            padding: 1.5rem;
-        }
-        
-        .form-container {
-            padding: 1.5rem;
-        }
-        
-        .action-buttons {
-            grid-template-columns: 1fr;
-        }
-        
-        .navigation-buttons {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .summary-grid {
-            grid-template-columns: 1fr;
-        }
+
+    .form-content-wrapper {
+        padding-bottom: 80px;
+    }
+
+    .animate-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
-    <!-- Header del step -->
-    <div class="step-header">
-        <h2 class="mb-3">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            Finalizzazione Foglio Tecnico
-        </h2>
-        <p class="mb-0 fs-5">Completa e invia il foglio tecnico</p>
-    </div>
-    
-    <!-- Riepilogo Completo -->
-    <div class="summary-grid">
-        <!-- Informazioni Base -->
-        <div class="summary-card">
-            <h6>
-                <i class="bi bi-info-circle me-2"></i>
-                Informazioni Base
-            </h6>
-            <div class="summary-item">
-                <span class="summary-label">Numero:</span>
-                <span class="summary-value">{{ foglio.numero_foglio }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Cliente:</span>
-                <span class="summary-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Titolo:</span>
-                <span class="summary-value">{{ foglio.titolo }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Data:</span>
-                <span class="summary-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</span>
-            </div>
+<div class="container-fluid form-content-wrapper animate-in">
+    <!-- Progress Bar -->
+    <div class="steps-progress mb-4">
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Base</span>
         </div>
-        
-        <!-- Dettagli Tecnici -->
-        <div class="summary-card">
-            <h6>
-                <i class="bi bi-gear me-2"></i>
-                Dettagli Tecnici
-            </h6>
-            <div class="summary-item">
-                <span class="summary-label">Categoria:</span>
-                <span class="summary-value">{{ foglio.categoria or 'N/A' }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Priorità:</span>
-                <span class="summary-value">{{ foglio.priorita or 'N/A' }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Durata:</span>
-                <span class="summary-value">
-                    {% if foglio.durata_intervento %}
-                        {{ foglio.durata_intervento }} min
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Macchine:</span>
-                <span class="summary-value">{{ foglio.macchine_collegate.count() }} collegate</span>
-            </div>
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Tecnico</span>
         </div>
-        
-        <!-- Informazioni Commerciali -->
-        <div class="summary-card">
-            <h6>
-                <i class="bi bi-currency-euro me-2"></i>
-                Info Commerciali
-            </h6>
-            <div class="summary-item">
-                <span class="summary-label">Pagamento:</span>
-                <span class="summary-value">{{ foglio.modalita_pagamento or 'Non specificato' }}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Importo:</span>
-                <span class="summary-value">
-                    {% if foglio.importo_intervento %}
-                        € {{ "%.2f"|format(foglio.importo_intervento) }}
-                    {% else %}
-                        Non specificato
-                    {% endif %}
-                </span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Ricambi:</span>
-                <span class="summary-value">{{ foglio.ricambi_utilizzati.count() }} utilizzati</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Firme:</span>
-                <span class="summary-value">
-                    {% if foglio.firma_tecnico_path and foglio.firma_cliente_path %}
-                        Completate
-                    {% elif foglio.firma_tecnico_path or foglio.firma_cliente_path %}
-                        Parziali
-                    {% else %}
-                        Mancanti
-                    {% endif %}
-                </span>
-            </div>
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Lavori</span>
+        </div>
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Commerciale</span>
+        </div>
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Firma</span>
         </div>
     </div>
-    
-    <!-- Form di Finalizzazione -->
+
     <form method="POST" id="finalizeForm">
         {{ form.hidden_tag() }}
         
-        <div class="form-container">
-            <!-- Email Destinatario -->
-            <div class="form-field">
-                {{ form.email_destinatario.label(class="form-label") }}
-                {{ form.email_destinatario(class="form-control" + (" is-invalid" if form.email_destinatario.errors else ""), placeholder="cliente@example.com") }}
-                {% if form.email_destinatario.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.email_destinatario.errors %}{{ error }}{% endfor %}
+        <div class="row g-4">
+            <!-- Main Content Column -->
+            <div class="col-lg-8">
+                <!-- Email Options Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-send"></i>
+                        <h5>Opzioni di Invio</h5>
                     </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-envelope me-1"></i>
-                        {{ form.email_destinatario.description }}
+                    <div class="form-card-body">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Email Destinatario</label>
+                            {{ form.email_destinatario(class="form-control-modern", id="email_destinatario", placeholder="cliente@esempio.it") }}
+                            <div class="form-text d-flex justify-content-between align-items-center mt-2">
+                                <span class="text-muted small">Il foglio verrà inviato a questo indirizzo.</span>
+                                <div class="form-check mb-0">
+                                    {{ form.aggiorna_email_cliente(class="form-check-input", id="aggiorna_email_cliente") }}
+                                    <label class="form-check-label small fw-bold text-primary" for="aggiorna_email_cliente">
+                                        {{ form.aggiorna_email_cliente.label.text }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label fw-bold">Messaggio Personalizzato (Opzionale)</label>
+                            {{ form.note_finali(class="form-control-modern", rows="4", placeholder="Inserisci un messaggio per il cliente...") }}
+                        </div>
                     </div>
-                {% endif %}
+                </div>
+
+                <!-- Actions Grid -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi- lightning-charge"></i>
+                        <h5>Scegli come procedere</h5>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button type="submit" name="azione" value="genera_e_invia" class="btn-finalize" id="btnGeneraInvia">
+                                    <div class="action-icon bg-soft-success">
+                                        <i class="bi bi-send-check"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Genera e Invia</div>
+                                    <div class="text-muted small">Crea il PDF e invialo subito via email al cliente.</div>
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" name="azione" value="genera_pdf" class="btn-finalize">
+                                    <div class="action-icon bg-soft-primary">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Solo PDF</div>
+                                    <div class="text-muted small">Genera il documento PDF senza inviarlo per email.</div>
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" name="azione" value="salva_bozza" class="btn-finalize">
+                                    <div class="action-icon bg-soft-secondary">
+                                        <i class="bi bi-save"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Salva e Chiudi</div>
+                                    <div class="text-muted small">Salva il foglio come completato senza generare PDF ora.</div>
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" name="azione" value="invia_email" class="btn-finalize" id="btnSoloEmail">
+                                    <div class="action-icon bg-soft-warning">
+                                        <i class="bi bi-envelope-at"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Invia via Email</div>
+                                    <div class="text-muted small">Invia il foglio via email (usa il PDF esistente se presente).</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Note Finali -->
-            <div class="form-field">
-                {{ form.note_finali.label(class="form-label") }}
-                {{ form.note_finali(class="form-control", rows="4", placeholder="Eventuali note aggiuntive da includere nell'email...") }}
-                {% if form.note_finali.errors %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.note_finali.errors %}{{ error }}{% endfor %}
+
+            <!-- Sidebar Column -->
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    <!-- Riepilogo Card -->
+                    <div class="card detail-card border-0 mb-4">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h6 class="fw-bold text-uppercase small text-muted mb-0">Riepilogo</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="info-label">Foglio Tecnico</div>
+                            <div class="info-value">{{ foglio.numero_foglio }}</div>
+                            <div class="text-muted small mb-3">{{ foglio.titolo }}</div>
+
+                            <div class="info-label">Cliente</div>
+                            <div class="info-value">{{ foglio.cliente.ragione_sociale }}</div>
+                            <div class="text-muted small mb-3">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</div>
+
+                            <div class="info-label">Dati Intervento</div>
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded-pill small">€ {{ "{:,.2f}".format(foglio.importo_intervento or 0) }}</span>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill small">{{ foglio.durata_intervento or 0 }} min</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill small">{{ foglio.macchine_collegate.count() }} Macchine</span>
+                            </div>
+
+                            <div class="pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted"><i class="bi bi-pen me-2"></i>Firma Tecnico</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">Presente</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted"><i class="bi bi-pen me-2"></i>Firma Cliente</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">Presente</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% else %}
-                    <div class="form-text">
-                        <i class="bi bi-chat-text me-1"></i>
-                        {{ form.note_finali.description }}
+
+                    <!-- Quick Help -->
+                    <div class="alert alert-info border-0 rounded-4 shadow-sm p-4">
+                        <div class="d-flex">
+                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+                            <div>
+                                <h6 class="fw-bold">Nota Finale</h6>
+                                <p class="small mb-0 opacity-75">Una volta finalizzato, il foglio tecnico non potrà più essere modificato tramite la procedura guidata, ma solo tramite modifica rapida.</p>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-            </div>
-            
-            <!-- Azioni Disponibili -->
-            <div class="form-field">
-                <label class="form-label">
-                    <i class="bi bi-lightning me-1"></i>
-                    Scegli Azione
-                </label>
-                
-                <div class="action-buttons">
-                    <button type="submit" name="azione" value="salva_bozza" class="action-btn btn-save">
-                        <i class="bi bi-save"></i>
-                        <span>Salva come Bozza</span>
-                        <small>Salva senza generare PDF</small>
-                    </button>
-                    
-                    <button type="submit" name="azione" value="genera_pdf" class="action-btn btn-pdf">
-                        <i class="bi bi-file-earmark-pdf"></i>
-                        <span>Genera PDF</span>
-                        <small>Crea il documento finale</small>
-                    </button>
-                    
-                    <button type="submit" name="azione" value="invia_email" class="action-btn btn-email" id="emailBtn">
-                        <i class="bi bi-envelope-check"></i>
-                        <span>Invia per Email</span>
-                        <small>Invia al cliente via email</small>
-                    </button>
-                    
-                    <button type="submit" name="azione" value="genera_e_invia" class="action-btn btn-complete" id="completeBtn">
-                        <i class="bi bi-check-all"></i>
-                        <span>Genera e Invia</span>
-                        <small>PDF + invio email</small>
-                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Navigazione -->
-        <div class="navigation-buttons">
-            <a href="{{ url_for('fogli_tecnici.step5', id=foglio.id) }}" class="btn btn-outline-secondary btn-step">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
+
+        <!-- Fixed Action Bar -->
+        <div class="fixed-action-bar">
+            <a href="{{ url_for('fogli_tecnici.step5', id=foglio.id) }}" class="btn btn-link text-muted text-decoration-none">
+                <i class="bi bi-arrow-left me-2"></i> Torna alle Firme
             </a>
             
-            <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn btn-outline-primary btn-step">
-                <i class="bi bi-eye me-2"></i>
-                Visualizza
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('fogli_tecnici.view', id=foglio.id) }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                    <i class="bi bi-eye me-2"></i> Anteprima
+                </a>
+            </div>
         </div>
     </form>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email_destinatario');
-    const emailBtn = document.getElementById('emailBtn');
-    const completeBtn = document.getElementById('completeBtn');
+    const btnGeneraInvia = document.getElementById('btnGeneraInvia');
+    const btnSoloEmail = document.getElementById('btnSoloEmail');
+    const finalizeForm = document.getElementById('finalizeForm');
     
-    // Validazione email per azioni che richiedono invio
-    function validateEmailActions() {
-        const hasEmail = emailInput.value.trim() !== '';
-        
-        emailBtn.disabled = !hasEmail;
-        completeBtn.disabled = !hasEmail;
-        
+    function validateEmail() {
+        const hasEmail = emailInput.value.trim().length > 0 && emailInput.checkValidity();
         if (!hasEmail) {
-            emailBtn.classList.add('opacity-50');
-            completeBtn.classList.add('opacity-50');
+            btnGeneraInvia.classList.add('opacity-50');
+            btnSoloEmail.classList.add('opacity-50');
         } else {
-            emailBtn.classList.remove('opacity-50');
-            completeBtn.classList.remove('opacity-50');
+            btnGeneraInvia.classList.remove('opacity-50');
+            btnSoloEmail.classList.remove('opacity-50');
         }
+        return hasEmail;
     }
     
-    // Validazione in tempo reale
-    emailInput.addEventListener('input', validateEmailActions);
-    
-    // Validazione iniziale
-    validateEmailActions();
-    
-    // Conferma per azioni importanti
-    document.querySelectorAll('.action-btn').forEach(btn => {
+    emailInput.addEventListener('input', validateEmail);
+    validateEmail();
+
+    // Gestione selezione pulsanti
+    const finalizeButtons = document.querySelectorAll('.btn-finalize');
+    finalizeButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
-            const action = this.getAttribute('value');
-            let message = '';
+            const azione = this.value;
             
-            switch(action) {
-                case 'genera_pdf':
-                    message = 'Generare il PDF del foglio tecnico?';
-                    break;
-                case 'invia_email':
-                    message = 'Inviare il foglio tecnico per email?';
-                    break;
-                case 'genera_e_invia':
-                    message = 'Generare il PDF e inviarlo per email?';
-                    break;
-            }
-            
-            if (message && !confirm(message)) {
+            // Se l'azione richiede email e non è valida, impedisci l'invio
+            if ((azione === 'genera_e_invia' || azione === 'invia_email') && !validateEmail()) {
                 e.preventDefault();
+                emailInput.focus();
+                emailInput.classList.add('is-invalid');
+                setTimeout(() => emailInput.classList.remove('is-invalid'), 2000);
+                return;
             }
+            
+            finalizeButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostra caricamento sul pulsante cliccato
+            const originalContent = this.innerHTML;
+            this.innerHTML = `
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                    <span class="fw-bold">Elaborazione...</span>
+                </div>
+            `;
+            
+            // Il form verrà inviato normalmente
         });
     });
-    
-    // Auto-resize textarea
-    const textarea = document.getElementById('note_finali');
-    if (textarea) {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    }
 });
 </script>
 {% endblock %}

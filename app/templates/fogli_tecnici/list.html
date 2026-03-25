@@ -65,10 +65,37 @@
     
     .stato-badge {
         padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
         font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
         white-space: nowrap;
+    }
+    
+    .badge-bozza { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+    .badge-compilazione { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+    .badge-firme { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+    .badge-completato { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .badge-inviato { background: #eef2ff; color: #4338ca; border: 1px solid #e0e7ff; }
+    .badge-archiviato { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+
+    .progress-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .progress-indicator.pulse {
+        animation: pulse-animation 2s infinite;
+    }
+
+    @keyframes pulse-animation {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(180, 83, 9, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0); }
     }
     
     
@@ -111,14 +138,6 @@
     
     .btn-delete { background: #dc3545; color: white; }
     .btn-delete:hover { background: #c82333; color: white; }
-    
-    .pagination-wrapper {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-top: 2rem;
-    }
     
     .empty-state {
         text-align: center;
@@ -304,10 +323,8 @@
                         <th>Cliente</th>
                         <th>Titolo</th>
                         <th>Data</th>
-                        <th>Stato</th>
                         <th>Tecnico</th>
-                        <th>Progresso</th>
-                        <th>Continua</th>
+                        <th class="text-center">Stato</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -336,22 +353,10 @@
                             <small class="text-muted">{{ foglio.data_intervento.strftime('%H:%M') }}</small>
                         </td>
                         <td>
-                            <span class="stato-badge
-                                {% if foglio.stato == 'Bozza' %}bg-secondary
-                                {% elif foglio.stato == 'In compilazione' %}bg-warning text-dark
-                                {% elif foglio.stato == 'In attesa firme' %}bg-info text-dark
-                                {% elif foglio.stato == 'Completato' %}bg-success
-                                {% elif foglio.stato == 'Inviato' %}bg-primary
-                                {% elif foglio.stato == 'Archiviato' %}bg-dark
-                                {% endif %}">
-                                {{ foglio.stato }}
-                            </span>
-                        </td>
-                        <td>
                             <div>{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
                         </td>
-                        <td>
-                            {# Calcolo progress dinamico con fallback su step_corrente e stato finale #}
+                        <td class="text-center">
+                            {# Calcolo progress dinamico #}
                             {% set total_steps = 5 %}
                             {% set completed_steps = (foglio.step_completati|length if foglio.step_completati else 0) %}
                             {% set inferred_completed = foglio.step_corrente - 1 if foglio.step_corrente and foglio.step_corrente > 1 else 0 %}
@@ -361,18 +366,26 @@
                             {% else %}
                                 {% set progress = ((base_completed / total_steps) * 100)|round(0, 'floor') %}
                             {% endif %}
-                            <div class="progress-mini" title="Progresso: {{ progress }}%">
-                                <div class="progress-mini-bar" style="width: {{ progress }}%"></div>
-                            </div>
-                            <small class="text-muted">{{ progress }}%</small>
-                        </td>
-                        <td onclick="event.stopPropagation()">
-                            {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
-                            <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
-                               class="btn-action btn-continue" title="Continua">
-                                <i class="bi bi-play-fill"></i>
-                            </a>
-                            {% endif %}
+
+                            <span class="stato-badge 
+                                {% if foglio.stato == 'Bozza' %}badge-bozza
+                                {% elif foglio.stato == 'In compilazione' %}badge-compilazione
+                                {% elif foglio.stato == 'In attesa firme' %}badge-firme
+                                {% elif foglio.stato == 'Completato' %}badge-completato
+                                {% elif foglio.stato == 'Inviato' %}badge-inviato
+                                {% elif foglio.stato == 'Archiviato' %}badge-archiviato
+                                {% endif %}">
+                                
+                                {% if progress < 100 and foglio.stato not in ['Completato', 'Inviato', 'Archiviato'] %}
+                                    <span class="progress-indicator pulse" style="background-color: currentColor;"></span>
+                                {% endif %}
+                                
+                                {{ foglio.stato }}
+                                
+                                {% if progress < 100 and foglio.stato not in ['Completato', 'Inviato', 'Archiviato'] %}
+                                    <span class="ms-1 fw-normal opacity-75">({{ progress }}%)</span>
+                                {% endif %}
+                            </span>
                         </td>
                     </tr>
                     {% endfor %}
@@ -383,24 +396,21 @@
 
     <!-- Paginazione -->
     {% if fogli.pages > 1 %}
-    <div class="pagination-wrapper">
+    <div class="pagination-bar pagination-bar-standalone">
         <nav aria-label="Paginazione fogli tecnici">
-            <ul class="pagination justify-content-center mb-0">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
                 {% if fogli.has_prev %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=fogli.prev_num, **request.args) }}">
+                    <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=fogli.prev_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 </li>
                 {% endif %}
-                
                 {% for page_num in fogli.iter_pages() %}
                     {% if page_num %}
                         {% if page_num != fogli.page %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=page_num, **request.args) }}">
-                                {{ page_num }}
-                            </a>
+                            <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=page_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">{{ page_num }}</a>
                         </li>
                         {% else %}
                         <li class="page-item active">
@@ -413,22 +423,17 @@
                     </li>
                     {% endif %}
                 {% endfor %}
-                
                 {% if fogli.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=fogli.next_num, **request.args) }}">
+                    <a class="page-link" href="{{ url_for('fogli_tecnici.list_fogli', page=fogli.next_num) }}{{ '&' + query_string_no_page if query_string_no_page else '' }}">
                         <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>
                 {% endif %}
             </ul>
         </nav>
-        
-        <div class="text-center mt-3">
-            <small class="text-muted">
-                Pagina {{ fogli.page }} di {{ fogli.pages }} 
-                ({{ fogli.total }} fogli totali)
-            </small>
+        <div class="pagination-info">
+            <small>Pagina {{ fogli.page }} di {{ fogli.pages }} ({{ fogli.total }} fogli)</small>
         </div>
     </div>
     {% endif %}

@@ -1,739 +1,612 @@
 {% extends "base.html" %}
 
 {% block title %}{{ foglio.numero_foglio }} - DB-Desk{% endblock %}
-{% block page_title %}{{ foglio.numero_foglio }}{% endblock %}
-{% block page_subtitle %}<p class="page-subtitle">{{ foglio.titolo }}</p>{% endblock %}
-{% block page_info %}
-<div class="d-flex align-items-center flex-wrap gap-3 mt-2">
-    <span class="stato-badge
-        {% if foglio.stato == 'Bozza' %}bg-secondary
-        {% elif foglio.stato == 'In compilazione' %}bg-warning text-dark
-        {% elif foglio.stato == 'In attesa firme' %}bg-info text-dark
-        {% elif foglio.stato == 'Completato' %}bg-success
-        {% elif foglio.stato == 'Inviato' %}bg-primary
-        {% elif foglio.stato == 'Archiviato' %}bg-dark
-        {% endif %}">
-        {{ foglio.stato }}
-    </span>
-    
-    <small class="text-white-50">
-        Creato: {{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}
-        {% if foglio.updated_at != foglio.created_at %}
-        | Aggiornato: {{ foglio.updated_at.strftime('%d/%m/%Y %H:%M') }}
-        {% endif %}
-    </small>
-</div>
-{% endblock %}
+
+{% block page_title %}Foglio Tecnico {{ foglio.numero_foglio }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">{{ foglio.titolo or 'Intervento Tecnico' }}</p>{% endblock %}
 
 {% block extra_head %}
 <style>
-    /* Minimal Design - Nuovo layout pulito e moderno */
-
-    /* Layout principale */
-    .minimal-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 1rem;
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     }
 
-    .minimal-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-
-    /* Card minimali */
-    .minimal-card {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid #f1f5f9;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        transition: all 0.2s ease;
-    }
-
-    .minimal-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        transform: translateY(-1px);
-    }
-
-    /* Header delle card */
-    .minimal-card-header {
-        display: flex;
-        align-items: center;
+    .detail-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        border-radius: 1rem;
         margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #f1f5f9;
+        transition: transform 0.2s ease;
     }
 
-    .minimal-card-icon {
+    .stat-card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #edf2f7;
+        height: 100%;
+    }
+
+    .stat-icon {
         width: 40px;
         height: 40px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 1rem;
-        font-size: 1.25rem;
-        color: white;
-        flex-shrink: 0;
+        margin-bottom: 10px;
     }
 
-    .minimal-card-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0;
-        letter-spacing: -0.025em;
-    }
-
-    /* Elementi informativi */
-    .minimal-item {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 8px;
-        border-left: 3px solid #e2e8f0;
-    }
-
-    .minimal-item.primary { border-left-color: #3b82f6; }
-    .minimal-item.success { border-left-color: #10b981; }
-    .minimal-item.warning { border-left-color: #f59e0b; }
-    .minimal-item.info { border-left-color: #06b6d4; }
-
-    .minimal-label {
-        font-size: 0.875rem;
-        font-weight: 600;
+    .nav-pills-custom .nav-link {
         color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.375rem;
-        display: block;
-    }
-
-    .minimal-value {
-        font-size: 1rem;
         font-weight: 500;
-        color: #1e293b;
-        line-height: 1.4;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        margin-right: 0.5rem;
     }
 
-    /* Descrizioni */
-    .minimal-description {
-        background: #f8fafc;
-        border-radius: 8px;
-        padding: 1.5rem;
-        border-left: 3px solid #3b82f6;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        color: #374151;
-        white-space: pre-line;
+    .nav-pills-custom .nav-link.active {
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+        border-color: #e2e8f0;
     }
 
-    /* Firme */
-    .minimal-signature {
-        background: #ffffff;
-        border: 1px dashed #e2e8f0;
-        border-radius: 8px;
-        padding: 1.5rem;
-        text-align: center;
-        min-height: 120px;
+    .nav-pills-custom .nav-link:hover:not(.active) {
+        background-color: #f8fafc;
+        color: var(--dark-color);
+    }
+
+    .badge-soft {
+        font-weight: 600;
+        padding: 0.4em 0.8em;
+        border-radius: 6px;
+    }
+
+    .badge-soft-primary { background: #e0e7ff; color: #4338ca; }
+    .badge-soft-success { background: #dcfce7; color: #15803d; }
+    .badge-soft-warning { background: #fef9c3; color: #a16207; }
+    .badge-soft-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-secondary { background: #f1f5f9; color: #64748b; }
+
+    .bg-soft-primary { background-color: #e0e7ff !important; }
+    .bg-soft-success { background-color: #dcfce7 !important; }
+    .bg-soft-warning { background-color: #fef9c3 !important; }
+    .bg-soft-danger { background-color: #fee2e2 !important; }
+    .bg-soft-info { background-color: #e0f2fe !important; }
+    .bg-soft-secondary { background-color: #f1f5f9 !important; }
+
+    /* Custom scrollbar per le tab */
+    .nav-tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 5px;
+    }
+    .nav-tabs-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .info-row {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        transition: all 0.2s ease;
-    }
-
-    .minimal-signature.signed {
-        border-color: #10b981;
-        background: #f0fdf4;
-        border-style: solid;
-    }
-
-    .minimal-signature-icon {
-        font-size: 2rem;
-        color: #cbd5e1;
-        margin-bottom: 0.5rem;
-    }
-
-    .minimal-signature-text {
-        font-size: 0.875rem;
-        color: #64748b;
-        font-weight: 500;
-    }
-
-    .minimal-signature-name {
-        font-size: 0.875rem;
-        color: #10b981;
-        font-weight: 600;
-        margin-top: 0.5rem;
-    }
-
-    /* Stato e alert */
-    .minimal-status {
-        border-radius: 8px;
-        border: none;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background: #f8fafc;
-        border-left: 3px solid #e2e8f0;
-    }
-
-    .minimal-status.success {
-        background: #f0fdf4;
-        border-left-color: #10b981;
-    }
-
-    .minimal-status.warning {
-        background: #fffbeb;
-        border-left-color: #f59e0b;
-    }
-
-    .minimal-status.info {
-        background: #f0f9ff;
-        border-left-color: #06b6d4;
-    }
-
-    /* Tabelle minimali */
-    .minimal-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-
-    .minimal-table th {
-        padding: 0.75rem 1rem;
-        text-align: left;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
         border-bottom: 1px solid #f1f5f9;
     }
 
-    .minimal-table td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #f8fafc;
-        font-size: 0.875rem;
-        color: #374151;
+    .info-row:last-child {
+        border-bottom: none;
     }
 
-    .minimal-table tr:hover {
-        background: #f8fafc;
-    }
-
-    /* Azioni minimal (da mantenere) */
-    .actions-minimal {
-        position: sticky;
-        top: 0.75rem;
-        z-index: 1040;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 0.85rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        margin-bottom: 2rem;
-        border: 1px solid #e5e7eb;
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
-    }
-
-    .actions-minimal.sticky-active {
-        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-        transform: translateY(2px);
-    }
-
-    .actions-minimal .actions-left,
-    .actions-minimal .actions-right {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-action {
-        padding: 0.5rem 0.9rem;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.875rem;
-        transition: all 0.2s ease;
-        border: 1px solid #e5e7eb;
-        background: #f8fafc;
-        color: #0f172a;
-    }
-
-    .btn-action:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        background: #eef2ff;
-    }
-
-    .btn-action-primary {
-        border-color: #bfdbfe;
-        background: #e0f2fe;
-        color: #0b3b70;
-    }
-
-    .btn-action-primary:hover {
-        background: #dbeafe;
-    }
-
-    .btn-action-danger {
-        border-color: #fecdd3;
-        background: #ffe4e6;
-        color: #991b1b;
-    }
-
-    .btn-action-danger:hover {
-        background: #fecdd3;
-    }
-
-    .btn-action-success {
-        border-color: #bbf7d0;
-        background: #dcfce7;
-        color: #065f46;
-    }
-
-    .btn-action-success:hover {
-        background: #bbf7d0;
-    }
-
-    .btn-action-info {
-        border-color: #bae6fd;
-        background: #e0f2fe;
-        color: #075985;
-    }
-
-    .btn-action-info:hover {
-        background: #bae6fd;
-    }
-
-    /* Badge stato */
-    .stato-badge {
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
+    .info-label {
         font-weight: 600;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        color: #64748b;
+        font-size: 0.875rem;
     }
 
-    /* Responsive */
-    @media (max-width: 1024px) {
-        .minimal-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
+    .info-value {
+        font-weight: 500;
+        color: #1e293b;
+        text-align: right;
     }
 
-    @media (max-width: 768px) {
-        .minimal-container {
-            padding: 0 0.75rem;
-        }
-
-        .minimal-card {
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .minimal-grid {
-            margin-top: 1.5rem;
-        }
-
-        .actions-minimal {
-            text-align: center;
-            padding: 0.75rem 1rem;
-        }
-
-        .actions-minimal .actions-left,
-        .actions-minimal .actions-right {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .actions-minimal .btn-action {
-            width: 100%;
-            justify-content: center;
-            margin-bottom: 0.5rem;
-        }
+    /* Firme moderne */
+    .signature-card {
+        background: #f8fafc;
+        border: 1px dashed #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
     }
 
-    @media (max-width: 480px) {
-        .minimal-card {
-            padding: 1rem;
-        }
+    .signature-card.signed {
+        background: #f0fdf4;
+        border-color: #10b981;
+        border-style: solid;
+    }
 
-        .minimal-card-header {
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-        }
-
-        .minimal-card-icon {
-            width: 32px;
-            height: 32px;
-            font-size: 1rem;
-        }
-
-        .minimal-card-title {
-            font-size: 1rem;
-        }
+    .signature-img {
+        max-width: 100%;
+        max-height: 80px;
+        object-fit: contain;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Azioni Minimal -->
-    <div class="actions-minimal d-flex flex-wrap justify-content-between align-items-center gap-2 gap-md-3">
-        <div class="actions-left">
-            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn-action">
-                <i class="bi bi-arrow-left me-1"></i>
-                Indietro
-            </a>
-        </div>
-        <div class="actions-right">
-            {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
-            <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
-               class="btn-action btn-action-primary">
-                <i class="bi bi-pencil me-1"></i>
-                Continua
-            </a>
-            {% endif %}
-            
-            <a href="{{ url_for('fogli_tecnici.edit', id=foglio.id) }}" 
-               class="btn-action">
-                <i class="bi bi-gear me-1"></i>
-                Modifica
-            </a>
-            
-            {% if foglio.pdf_generato %}
-            <a href="{{ url_for('fogli_tecnici.download_pdf', id=foglio.id) }}" 
-               class="btn-action btn-action-success">
-                <i class="bi bi-download me-1"></i>
-                PDF
-            </a>
-            {% else %}
-            <a href="{{ url_for('fogli_tecnici.generate_pdf', id=foglio.id) }}" 
-               class="btn-action btn-action-success">
-                <i class="bi bi-file-earmark-pdf me-1"></i>
-                Genera PDF
-            </a>
-            {% endif %}
-            
-            {% if foglio.stato in ['Completato', 'Inviato'] %}
-            <a href="{{ url_for('fogli_tecnici.send_email', id=foglio.id) }}" 
-               class="btn-action btn-action-info">
-                <i class="bi bi-envelope me-1"></i>
-                Email
-            </a>
-            {% endif %}
-            
-            <button type="button" class="btn-action btn-action-danger"
-                    onclick="deleteSheet({{ foglio.id }}, '{{ foglio.numero_foglio }}')">
-                <i class="bi bi-trash me-1"></i>
-                Elimina
-            </button>
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <!-- Modern Header -->
+        <div class="card detail-card border-0 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
+                            <span class="badge-soft badge-soft-primary fs-6">{{ foglio.numero_foglio }}</span>
+                            <span class="badge-soft 
+                                {% if foglio.stato == 'Bozza' %}badge-soft-secondary
+                                {% elif foglio.stato == 'In compilazione' %}badge-soft-warning
+                                {% elif foglio.stato == 'In attesa firme' %}badge-soft-info
+                                {% elif foglio.stato == 'Completato' %}badge-soft-success
+                                {% elif foglio.stato == 'Inviato' %}badge-soft-primary
+                                {% elif foglio.stato == 'Archiviato' %}badge-soft-secondary
+                                {% endif %}">
+                                <i class="bi bi-circle-fill me-1 small"></i>{{ foglio.stato }}
+                            </span>
+                            <span class="text-muted ms-2"><i class="bi bi-tag me-1"></i>{{ foglio.categoria }}</span>
+                        </div>
+                        <h2 class="fw-bold mb-1">{{ foglio.titolo or 'Intervento Tecnico' }}</h2>
+                        <div class="d-flex align-items-center text-muted flex-wrap gap-3 mb-3">
+                            {% if foglio.cliente %}
+                            <div>
+                                <i class="bi bi-building me-1"></i>
+                                <a href="{{ url_for('clients.view_client', id=foglio.cliente.id) }}" class="text-decoration-none text-reset fw-medium">
+                                    {{ foglio.cliente.ragione_sociale }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ foglio.data_intervento.strftime('%d %b %Y %H:%M') }}
+                            </div>
+                            {% if foglio.indirizzo_intervento %}
+                            <div>
+                                <i class="bi bi-geo-alt me-1"></i>
+                                {{ foglio.indirizzo_intervento }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Riepilogo in Header -->
+                        <div class="d-flex gap-3 opacity-75 flex-wrap">
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-person-badge text-muted me-1"></i>
+                                <span class="text-muted me-1">Tecnico:</span>
+                                <span class="fw-medium">{{ foglio.tecnico.full_name }}</span>
+                            </div>
+                            <div class="small d-flex align-items-center">
+                                <i class="bi bi-clock-history text-muted me-1"></i>
+                                <span class="text-muted me-1">Creato il:</span>
+                                <span class="fw-medium">{{ foglio.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex flex-column align-items-md-end gap-2">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                {% if foglio.stato in ['Bozza', 'In compilazione', 'In attesa firme'] %}
+                                <a href="{{ url_for('fogli_tecnici.step' + foglio.step_corrente|string, id=foglio.id) }}" 
+                                   class="btn btn-white border-end text-primary" title="Continua">
+                                    <i class="bi bi-play-fill me-1"></i><span class="d-none d-xl-inline small">Continua</span>
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{{ url_for('fogli_tecnici.edit', id=foglio.id) }}" class="btn btn-white border-end" title="Modifica">
+                                    <i class="bi bi-pencil-fill text-muted me-1"></i><span class="d-none d-xl-inline small text-muted">Modifica</span>
+                                </a>
+                                
+                                {% if foglio.pdf_generato %}
+                                <a href="{{ url_for('fogli_tecnici.download_pdf', id=foglio.id) }}" 
+                                   class="btn btn-white border-end text-success" title="Scarica PDF">
+                                    <i class="bi bi-download me-1"></i><span class="d-none d-xl-inline small text-success">PDF</span>
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('fogli_tecnici.generate_pdf', id=foglio.id) }}" 
+                                   class="btn btn-white border-end text-success" title="Genera PDF">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i><span class="d-none d-xl-inline small text-success">PDF</span>
+                                </a>
+                                {% endif %}
+                                
+                                {% if foglio.stato in ['Completato', 'Inviato'] %}
+                                <a href="{{ url_for('fogli_tecnici.send_email', id=foglio.id) }}" 
+                                   class="btn btn-white border-end text-info" title="Invia Email">
+                                    <i class="bi bi-envelope-fill me-1"></i><span class="d-none d-xl-inline small text-info">Email</span>
+                                </a>
+                                {% endif %}
+                                
+                                <button type="button" class="btn btn-white text-danger"
+                                        onclick="deleteSheet({{ foglio.id }}, '{{ foglio.numero_foglio }}')" title="Elimina">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Nuovo Layout Minimalista -->
-    <div class="minimal-container">
-        <div class="minimal-grid">
-            <!-- Colonna Principale -->
-            <div class="minimal-main">
-                <!-- Informazioni Generali -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                            <i class="bi bi-info-circle"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Informazioni Generali</h2>
-                    </div>
-
-                    <div class="minimal-item primary">
-                        <span class="minimal-label">Cliente</span>
-                        <div class="minimal-value">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</div>
-                    </div>
-
-                    <div class="minimal-item success">
-                        <span class="minimal-label">Tecnico Assegnato</span>
-                        <div class="minimal-value">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</div>
-                    </div>
-
-                    <div class="minimal-item warning">
-                        <span class="minimal-label">Data Intervento</span>
-                        <div class="minimal-value">{{ foglio.data_intervento.strftime('%d/%m/%Y %H:%M') }}</div>
-                    </div>
-
-                    <div class="minimal-item info">
-                        <span class="minimal-label">Categoria</span>
-                        <div class="minimal-value">{{ foglio.categoria }}</div>
-                    </div>
-
-                    {% if foglio.durata_intervento %}
-                    <div class="minimal-item primary">
-                        <span class="minimal-label">Durata Intervento</span>
-                        <div class="minimal-value">{{ foglio.durata_intervento }} minuti</div>
-                    </div>
-                    {% endif %}
-
-                    {% if foglio.km_percorsi %}
-                    <div class="minimal-item success">
-                        <span class="minimal-label">Km Percorsi</span>
-                        <div class="minimal-value">{{ foglio.km_percorsi }} km</div>
-                    </div>
-                    {% endif %}
-
-                    {% if foglio.indirizzo_intervento %}
-                    <div class="minimal-item info">
-                        <span class="minimal-label">Indirizzo Intervento</span>
-                        <div class="minimal-value">{{ foglio.indirizzo_intervento }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Descrizione Intervento -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="bi bi-file-text"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Descrizione Intervento</h2>
-                    </div>
-                    <div class="minimal-description">
-                        {{ foglio.descrizione|replace('\n', '<br>')|safe if foglio.descrizione else 'Nessuna descrizione disponibile' }}
-                    </div>
-                </div>
-
-                {% if foglio.note_aggiuntive %}
-                <!-- Note Aggiuntive -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="bi bi-sticky"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Note Aggiuntive</h2>
-                    </div>
-                    <div class="minimal-description">
-                        {{ foglio.note_aggiuntive|replace('\n', '<br>')|safe }}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Macchine Coinvolte -->
-                {% if foglio.macchine_collegate.count() > 0 %}
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                            <i class="bi bi-gear"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Macchine Coinvolte</h2>
-                    </div>
-                    {% for macchina in foglio.macchine_collegate %}
-                    <div class="minimal-item primary">
-                        <span class="minimal-label">{{ macchina.codice }}</span>
-                        <div class="minimal-value">{{ macchina.marca }} {{ macchina.modello }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Ricambi Utilizzati -->
-                {% if foglio.ricambi_utilizzati.count() > 0 %}
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                            <i class="bi bi-box"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Ricambi Utilizzati</h2>
-                    </div>
-                    {% for ricambio in foglio.ricambi_utilizzati %}
-                    <div class="minimal-item info">
-                        <span class="minimal-label">{{ ricambio.codice }}</span>
-                        <div class="minimal-value">{{ ricambio.descrizione }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Movimenti Macchine -->
-                {% if movimenti_macchine %}
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Movimenti Macchine</h2>
-                    </div>
-                    <table class="minimal-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Macchina</th>
-                                <th>Movimento</th>
-                                <th>Stato</th>
-                                <th>Note</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for movimento in movimenti_macchine %}
-                            <tr>
-                                <td>{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                <td>
-                                    <strong>{{ movimento.macchina.codice if movimento.macchina else 'N/A' }}</strong><br>
-                                    <small>{{ movimento.macchina.nome_completo if movimento.macchina else 'N/A' }}</small>
-                                </td>
-                                <td>{{ movimento.tipo_movimento }}</td>
-                                <td>
-                                    {% if movimento.stato_precedente != movimento.stato_nuovo %}
-                                        {{ movimento.stato_precedente }} → {{ movimento.stato_nuovo }}
-                                    {% else %}
-                                        {{ movimento.stato_nuovo }}
-                                    {% endif %}
-                                </td>
-                                <td>{{ movimento.note[:50] }}{% if movimento.note and movimento.note|length > 50 %}...{% endif %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
+    <!-- Quick Stats Row (Top) -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-primary">
+                <i class="bi bi-clock text-primary fs-5"></i>
             </div>
+            <h6 class="text-muted mb-1">Durata Intervento</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ foglio.durata_intervento or 0 }}</h4>
+                <span class="small text-muted">minuti</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ [100, ((foglio.durata_intervento or 0) / 480 * 100)|int] | min }}%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-success">
+                <i class="bi bi-geo-alt text-success fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Km Percorsi</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ foglio.km_percorsi or 0 }}</h4>
+                <span class="small text-muted">km</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ [100, ((foglio.km_percorsi or 0) / 100 * 100)|int] | min }}%"></div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Sidebar -->
-            <div class="minimal-sidebar">
-                <!-- Informazioni Commerciali -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="bi bi-currency-euro"></i>
-                        </div>
-                        <h2 class="minimal-card-title">Commerciale</h2>
-                    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-warning">
+                <i class="bi bi-box-seam text-warning fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Ricambi Utilizzati</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ foglio.ricambi_utilizzati.count() }}</h4>
+                <span class="small text-muted">pezzi</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ [100, (foglio.ricambi_utilizzati.count() or 0) * 10] | min }}%"></div>
+            </div>
+        </div>
+    </div>
 
-                    {% if foglio.modalita_pagamento or foglio.importo_intervento or foglio.pagamento_immediato is not none %}
-                        {% if foglio.modalita_pagamento %}
-                        <div class="minimal-item success">
-                            <span class="minimal-label">Modalità Pagamento</span>
-                            <div class="minimal-value">{{ foglio.modalita_pagamento }}</div>
-                        </div>
-                        {% endif %}
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card shadow-sm border-0">
+            <div class="stat-icon bg-soft-info">
+                <i class="bi bi-gear text-info fs-5"></i>
+            </div>
+            <h6 class="text-muted mb-1">Macchine Coinvolte</h6>
+            <div class="d-flex align-items-end gap-2">
+                <h4 class="fw-bold mb-0">{{ foglio.macchine_collegate.count() }}</h4>
+                <span class="small text-muted">macchine</span>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ [100, (foglio.macchine_collegate.count() or 0) * 25] | min }}%"></div>
+            </div>
+        </div>
+    </div>
 
-                        {% if foglio.importo_intervento %}
-                        <div class="minimal-item success">
-                            <span class="minimal-label">Importo</span>
-                            <div class="minimal-value"><strong>€{{ foglio.importo_intervento }}</strong></div>
-                        </div>
-                        {% endif %}
-
-                        {% if foglio.pagamento_immediato is not none %}
-                        <div class="minimal-item {{ 'success' if foglio.pagamento_immediato else 'warning' }}">
-                            <span class="minimal-label">Stato Pagamento</span>
-                            <div class="minimal-value">
-                                {% if foglio.pagamento_immediato %}
-                                    <i class="bi bi-check-circle-fill me-1"></i>Già pagato
-                                {% else %}
-                                    <i class="bi bi-clock-fill me-1"></i>Da pagare
+    <div class="col-lg-8">
+        <!-- Main Tabs Area -->
+        <div class="card detail-card border-0">
+            <div class="card-header bg-white border-0 pb-0 pt-4 px-4">
+                <div class="nav-tabs-container">
+                    <ul class="nav nav-pills nav-pills-custom" id="foglioDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="dettaglio-tab" data-bs-toggle="tab" data-bs-target="#dettaglio" type="button" role="tab">
+                                <i class="bi bi-file-text me-2"></i>Dettaglio Intervento
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="macchine-tab" data-bs-toggle="tab" data-bs-target="#macchine" type="button" role="tab">
+                                <i class="bi bi-gear me-2"></i>Macchine
+                                {% if foglio.macchine_collegate.count() > 0 %}
+                                    <span class="badge rounded-pill bg-primary ms-1">{{ foglio.macchine_collegate.count() }}</span>
                                 {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="materiali-tab" data-bs-toggle="tab" data-bs-target="#materiali" type="button" role="tab">
+                                <i class="bi bi-box-seam me-2"></i>Materiali
+                                {% if foglio.ricambi_utilizzati.count() > 0 %}
+                                    <span class="badge rounded-pill bg-warning text-dark ms-1">{{ foglio.ricambi_utilizzati.count() }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="movimenti-tab" data-bs-toggle="tab" data-bs-target="#movimenti" type="button" role="tab">
+                                <i class="bi bi-arrow-left-right me-2"></i>Movimenti
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="tab-content" id="foglioDetailTabsContent">
+                    <!-- Tab Dettaglio -->
+                    <div class="tab-pane fade show active" id="dettaglio" role="tabpanel">
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3 text-uppercase small text-muted">Descrizione Intervento</h6>
+                            <div class="bg-light p-3 rounded-3 border-start border-4 border-primary">
+                                {{ foglio.descrizione|replace('\n', '<br>')|safe if foglio.descrizione else 'Nessuna descrizione disponibile' }}
+                            </div>
+                        </div>
+
+                        {% if foglio.note_aggiuntive %}
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3 text-uppercase small text-muted">Note Aggiuntive</h6>
+                            <div class="bg-light p-3 rounded-3 border-start border-4 border-warning">
+                                {{ foglio.note_aggiuntive|replace('\n', '<br>')|safe }}
                             </div>
                         </div>
                         {% endif %}
-                    {% else %}
-                        <p class="text-muted text-center py-3">Nessuna informazione commerciale</p>
-                    {% endif %}
-                </div>
+                    </div>
 
-                <!-- Stato Invio -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                            <i class="bi bi-send"></i>
+                    <!-- Tab Macchine -->
+                    <div class="tab-pane fade" id="macchine" role="tabpanel">
+                        {% if foglio.macchine_collegate.count() > 0 %}
+                        <div class="row g-3">
+                            {% for macchina in foglio.macchine_collegate %}
+                            <div class="col-md-6">
+                                <div class="card border rounded-3 h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-soft-primary rounded-3 p-2 me-3">
+                                                <i class="bi bi-gear-fill text-primary fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ macchina.codice }}</div>
+                                                <div class="small text-muted">{{ macchina.marca }} {{ macchina.modello }}</div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ url_for('macchine.detail_macchina', macchina_id=macchina.id) }}" class="btn btn-sm btn-light w-100 rounded-pill">
+                                            Vedi Dettagli
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <h2 class="minimal-card-title">Stato Invio</h2>
-                    </div>
-
-                    {% if foglio.inviato_online %}
-                    <div class="minimal-status success">
-                        <i class="bi bi-check-circle me-2"></i>
-                        <strong>Inviato con successo</strong><br>
-                        <small>{{ foglio.email_invio }} • {{ foglio.data_invio.strftime('%d/%m/%Y %H:%M') }}</small>
-                    </div>
-                    {% else %}
-                    <div class="minimal-status">
-                        <i class="bi bi-clock me-2"></i>
-                        <strong>Non ancora inviato</strong>
-                    </div>
-                    {% endif %}
-
-                    {% if foglio.pdf_generato %}
-                    <div class="minimal-status info">
-                        <i class="bi bi-file-earmark-pdf me-2"></i>
-                        <strong>PDF disponibile</strong>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Firme -->
-                <div class="minimal-card">
-                    <div class="minimal-card-header">
-                        <div class="minimal-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                            <i class="bi bi-pen"></i>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-gear fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessuna macchina coinvolta in questo intervento.</p>
                         </div>
-                        <h2 class="minimal-card-title">Firme</h2>
+                        {% endif %}
                     </div>
 
-                    <!-- Firma Tecnico -->
-                    <div class="mb-3">
-                        <h6 class="mb-2 text-sm font-semibold text-gray-700">Firma Tecnico</h6>
-                        <div class="minimal-signature {% if foglio.firma_tecnico_path %}signed{% endif %}">
+                    <!-- Tab Materiali -->
+                    <div class="tab-pane fade" id="materiali" role="tabpanel">
+                        {% if foglio.ricambi_utilizzati.count() > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 rounded-start">Codice</th>
+                                        <th class="border-0">Descrizione</th>
+                                        <th class="border-0 rounded-end text-end">Azione</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ricambio in foglio.ricambi_utilizzati %}
+                                    <tr onclick="window.location.href='{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}'" style="cursor: pointer;">
+                                        <td><span class="fw-bold text-primary">{{ ricambio.codice }}</span></td>
+                                        <td>{{ ricambio.descrizione }}</td>
+                                        <td class="text-end">
+                                            <i class="bi bi-chevron-right text-muted"></i>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-box-seam fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessun ricambio utilizzato.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab Movimenti -->
+                    <div class="tab-pane fade" id="movimenti" role="tabpanel">
+                        {% if movimenti_macchine %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 rounded-start">Data</th>
+                                        <th class="border-0">Macchina</th>
+                                        <th class="border-0">Movimento</th>
+                                        <th class="border-0">Stato</th>
+                                        <th class="border-0 rounded-end">Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for movimento in movimenti_macchine %}
+                                    <tr>
+                                        <td class="small">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                        <td>
+                                            <div class="fw-bold small">{{ movimento.macchina.codice if movimento.macchina else 'N/A' }}</div>
+                                        </td>
+                                        <td class="small">{{ movimento.tipo_movimento }}</td>
+                                        <td class="small">
+                                            {% if movimento.stato_precedente != movimento.stato_nuovo %}
+                                                {{ movimento.stato_precedente }} → {{ movimento.stato_nuovo }}
+                                            {% else %}
+                                                {{ movimento.stato_nuovo }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="small text-truncate" style="max-width: 150px;" title="{{ movimento.note }}">
+                                            {{ movimento.note or '' }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-arrow-left-right fs-1 mb-3 d-block opacity-25"></i>
+                            <p>Nessun movimento macchine registrato.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firme Area -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Firme dell'Intervento</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-sm-6 mb-3 mb-sm-0">
+                        <h6 class="small text-muted text-uppercase fw-bold mb-2">Firma Tecnico</h6>
+                        <div class="signature-card {% if foglio.firma_tecnico_path %}signed{% endif %}">
                             {% if foglio.firma_tecnico_path %}
                             <img src="{{ url_for('fogli_tecnici.view_signature', id=foglio.id, tipo='tecnico') }}"
-                                 alt="Firma Tecnico" style="max-width: 100%; max-height: 80px;">
+                                 alt="Firma Tecnico" class="signature-img">
                             {% else %}
-                            <i class="bi bi-pen minimal-signature-icon"></i>
-                            <div class="minimal-signature-text">Firma non presente</div>
+                            <div class="text-muted small py-3">Firma non presente</div>
                             {% endif %}
                         </div>
                     </div>
-
-                    <!-- Firma Cliente -->
-                    <div>
-                        <h6 class="mb-2 text-sm font-semibold text-gray-700">Firma Cliente</h6>
-                        <div class="minimal-signature {% if foglio.firma_cliente_path %}signed{% endif %}">
+                    <div class="col-sm-6">
+                        <h6 class="small text-muted text-uppercase fw-bold mb-2">Firma Cliente</h6>
+                        <div class="signature-card {% if foglio.firma_cliente_path %}signed{% endif %}">
                             {% if foglio.firma_cliente_path %}
                             <img src="{{ url_for('fogli_tecnici.view_signature', id=foglio.id, tipo='cliente') }}"
-                                 alt="Firma Cliente" style="max-width: 100%; max-height: 80px;">
-                            <div class="minimal-signature-name">{{ foglio.nome_firmatario_cliente }}</div>
+                                 alt="Firma Cliente" class="signature-img">
+                            <div class="small fw-bold mt-2 text-success">{{ foglio.nome_firmatario_cliente }}</div>
                             {% else %}
-                            <i class="bi bi-pen minimal-signature-icon"></i>
-                            <div class="minimal-signature-text">Firma non presente</div>
+                            <div class="text-muted small py-3">Firma non presente</div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Client Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Cliente</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-soft-primary rounded-circle p-3 me-3">
+                        <i class="bi bi-building fs-3 text-primary"></i>
+                    </div>
+                    <div class="min-width-0">
+                        <h5 class="fw-bold mb-1 text-truncate">{{ foglio.cliente.ragione_sociale if foglio.cliente else 'N/A' }}</h5>
+                        <div class="small text-muted text-truncate">{{ foglio.cliente.email if foglio.cliente else 'Nessuna email' }}</div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    {% if foglio.cliente %}
+                    <a href="{{ url_for('clients.view_client', id=foglio.cliente.id) }}" class="btn btn-light rounded-pill">
+                        <i class="bi bi-person-lines-fill me-2"></i>Vedi Anagrafica
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Commercial Info Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Dati Commerciali</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="info-row">
+                    <span class="info-label">Modalità:</span>
+                    <span class="info-value text-end">{{ foglio.modalita_pagamento or 'N/D' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Importo:</span>
+                    <span class="info-value text-end">€ {{ "%.2f"|format(foglio.importo_intervento or 0) }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Pagamento:</span>
+                    <span class="info-value text-end">
+                        {% if foglio.pagamento_immediato %}
+                            <span class="badge-soft badge-soft-success">Saldato</span>
+                        {% else %}
+                            <span class="badge-soft badge-soft-warning">Da saldare</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">In garanzia:</span>
+                    <span class="info-value text-end">
+                        {% if foglio.intervento_in_garanzia|default(false) %}
+                            <span class="badge-soft badge-soft-info">Sì</span>
+                        {% else %}
+                            <span class="badge-soft badge-soft-secondary">No</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Card -->
+        <div class="card detail-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Stato Invio</h6>
+            </div>
+            <div class="card-body p-4">
+                {% if foglio.inviato_online %}
+                <div class="alert alert-success border-0 rounded-3 mb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <div class="fw-bold small">Inviato il {{ foglio.data_invio.strftime('%d/%m/%Y') }}</div>
+                            <div class="small opacity-75">{{ foglio.email_invio }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info border-0 rounded-3 mb-0 text-center py-2">
+                    <div class="small fw-bold"><i class="bi bi-clock-history me-2"></i>Non ancora inviato</div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const actionsBar = document.querySelector('.actions-minimal');
-    if (!actionsBar) return;
-    
-    const toggleSticky = () => {
-        if (window.scrollY > 80) {
-            actionsBar.classList.add('sticky-active');
-        } else {
-            actionsBar.classList.remove('sticky-active');
-        }
-    };
-    
-    toggleSticky();
-    document.addEventListener('scroll', toggleSticky, { passive: true });
-});
+{% endblock %}
 
+{% block extra_js %}
+<script>
 function deleteSheet(id, numero) {
     const confirmed = confirm(
         `Sei sicuro di voler eliminare il foglio tecnico ${numero}?\n\n` +

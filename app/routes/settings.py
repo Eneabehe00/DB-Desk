@@ -156,9 +156,11 @@ def new_department():
             name=form.name.data,
             display_name=form.display_name.data,
             description=form.description.data,
-            color=form.color.data,
+            sigla=form.sigla.data.strip().upper()[:10] if form.sigla.data and str(form.sigla.data).strip() else None,
             manager_id=form.manager_id.data if form.manager_id.data != 0 else None
         )
+        if hasattr(department, 'color') and hasattr(form, 'color') and form.color.data:
+            department.color = form.color.data
         
         try:
             db.session.add(department)
@@ -232,13 +234,19 @@ def edit_department(id):
         department.name = form.name.data
         department.display_name = form.display_name.data
         department.description = form.description.data
-        department.color = form.color.data
+        department.sigla = form.sigla.data.strip().upper()[:10] if form.sigla.data and str(form.sigla.data).strip() else None
         department.manager_id = form.manager_id.data if form.manager_id.data != 0 else None
+        if hasattr(department, 'color') and hasattr(form, 'color') and form.color.data:
+            department.color = form.color.data
         
-        # Aggiorna le associazioni con i tipi di macchina
-        from app.models.macchina import TipoMacchina
+        # Aggiorna le associazioni con i tipi di macchina (relazione dynamic: niente .clear())
+        from app.models.macchina import TipoMacchina, department_tipo_macchina
+        db.session.execute(
+            department_tipo_macchina.delete().where(
+                department_tipo_macchina.c.department_id == department.id
+            )
+        )
         selected_tipi = TipoMacchina.query.filter(TipoMacchina.id.in_(form.tipi_macchine.data)).all()
-        department.tipi_macchine.clear()
         for tipo in selected_tipi:
             department.tipi_macchine.append(tipo)
         
@@ -367,7 +375,7 @@ def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     
     from app.forms.user import UserEditForm
-    form = UserEditForm(obj=user)
+    form = UserEditForm(obj=user, user=user)
     
     # Popola le scelte per ruoli e reparti
     form.role_id.choices = [(0, 'Seleziona ruolo')] + [

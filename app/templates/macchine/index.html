@@ -306,9 +306,8 @@
             </div>
         </div>
 
-        <!-- Paginazione -->
-        {% if pagination.pages > 1 %}
-        <div class="card-footer bg-white">
+        <!-- Paginazione (sempre visibile quando ci sono risultati) -->
+        <div class="card-footer bg-white pagination-bar">
             <nav aria-label="Paginazione macchine">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     {% if pagination.has_prev %}
@@ -317,8 +316,11 @@
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
                     {% endif %}
-                    
                     {% for page_num in pagination.iter_pages() %}
                         {% if page_num %}
                             {% if page_num != pagination.page %}
@@ -332,22 +334,27 @@
                             {% endif %}
                         {% else %}
                             <li class="page-item disabled">
-                                <span class="page-link">...</span>
+                                <span class="page-link">…</span>
                             </li>
                         {% endif %}
                     {% endfor %}
-                    
                     {% if pagination.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('macchine.index', page=pagination.next_num, **request.args) }}">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
                     {% endif %}
                 </ul>
             </nav>
+            <div class="pagination-info">
+                <small>Pagina {{ pagination.page }} di {{ pagination.pages }} ({{ pagination.total }} macchine)</small>
+            </div>
         </div>
-        {% endif %}
 
         {% else %}
         <div class="card-body text-center py-5">
@@ -361,20 +368,6 @@
         </div>
         {% endif %}
     </div>
-
-    <!-- Alert manutenzioni -->
-    {% if macchine_manutenzione > 0 %}
-    <div class="alert alert-warning mt-4 border-0 shadow-sm" role="alert">
-        <div class="d-flex align-items-center">
-            <div class="bg-warning bg-opacity-20 text-warning p-2 rounded-circle me-3">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <div>
-                <strong>{{ macchine_manutenzione }}</strong> macchine richiedono manutenzione entro 30 giorni.
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <!-- Modali per le azioni -->

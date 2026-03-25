@@ -1,356 +1,106 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }} - DB-Desk{% endblock %}
-{% block page_title %}Ricambi{% endblock %}
-
-{% block page_subtitle %}
-<div style="font-size: 0.95rem; line-height: 1.4;">
-    <div class="d-flex flex-wrap gap-3 mb-1">
-        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:35] }}{% if foglio.cliente.ragione_sociale|length > 35 %}...{% endif %}</span>
-        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:35] }}{% if foglio.titolo|length > 35 %}...{% endif %}</span>
-        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
-    </div>
-    <div class="d-flex flex-wrap gap-3">
-        {% if foglio.macchine_collegate %}
-        <span><i class="bi bi-gear me-1"></i><strong>Macchine:</strong> {{ foglio.macchine_collegate.count() }}</span>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
+{% block page_title %}Ricambi e Lavorazioni{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
 <style>
-
-    /* HEADER STEP */
-    .step-header {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
-        padding: 1.5rem 2rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-    }
-
-    .step-header-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .step-header-sub {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin: 0.2rem 0 0;
-    }
-
-    .step-header-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-    }
-
-    .step-header-badge {
-        background: rgba(255,255,255,0.12);
-        border-radius: 999px;
-        padding: 0.25rem 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        white-space: nowrap;
-    }
-    
-    
-    /* CARD FORM */
-    .form-container {
-        background: white;
-        padding: 1.75rem 2rem;
-        border-radius: 16px;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.08);
-        margin-bottom: 1.5rem;
-    }
-
-    /* GRIGLIA PER TABLET LANDSCAPE */
-    .form-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .form-field {
-        width: 100%;
-    }
-
-    .form-label {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: #1f2933;
-        margin-bottom: 0.35rem;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .form-label i {
-        font-size: 1rem;
-        color: #2563eb;
-    }
-
-    .form-control,
-    .form-select {
-        font-size: 1.05rem;
-        padding: 0.75rem 0.9rem;
-        border-radius: 10px;
-        border: 1.8px solid #e5e7eb;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.15);
-    }
-
-    .form-text {
-        font-size: 0.9rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-
-    textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-    }
-    
-    /* AZIONI DEL FORM */
-    .form-actions {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .form-actions-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .form-actions-left,
-    .form-actions-right {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .btn-ghost {
-        padding: 0.75rem 1rem;
-        border: none;
-        background: transparent;
-        color: #6b7280;
-        font-weight: 500;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .btn-ghost:hover {
-        background: #f3f4f6;
-        color: #374151;
-    }
-
-    .btn-primary-large {
-        padding: 0.875rem 1.5rem;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        border: none;
-        color: white;
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-    }
-
-    .btn-primary-large:hover:not(:disabled) {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
-    }
-
-    .btn-primary-large:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
-    }
-
-    .navigation-hint {
-        font-size: 0.85rem;
-        color: #6b7280;
-        display: none;
-    }
-    
-    
-    .ricambi-selector {
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        background: #f8f9fa;
-        max-height: 200px;
-        overflow-y: auto;
-        padding: 0.5rem;
-    }
-    
     .ricambi-search-container .input-group-text {
-        background: #f8f9fa;
-        border: 2px solid #e5e7eb;
+        background: #fff;
         border-right: none;
+        border-radius: 0.75rem 0 0 0.75rem;
     }
-
     .ricambi-search-container .form-control {
         border-left: none;
-        border-right: none;
+        border-radius: 0 0.75rem 0.75rem 0;
     }
-
-    .ricambi-search-container .btn {
-        border-left: none;
-    }
-    
-    .ricambio-item {
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        margin-bottom: 0.25rem;
-        background: white;
-        border: 1px solid transparent;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .ricambio-item:hover {
-        border-color: #007bff;
-        background: #f0f8ff;
-    }
-
-    .ricambio-item.selected {
-        border-color: #28a745;
-        background: #f8fff8;
-        font-weight: 500;
-    }
-
-    .ricambio-checkbox {
-        width: 16px;
-        height: 16px;
-        accent-color: #28a745;
-    }
-
-    .ricambio-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .ricambio-code {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 1rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .ricambio-details {
-        color: #6c757d;
-        font-size: 0.85rem;
-        margin-top: 0.1rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .stock-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    
-    .stock-available {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .stock-low {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    .stock-out {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    /* TABLET LANDSCAPE: griglia 2 colonne */
-    @media (min-width: 900px) {
-        .form-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-            column-gap: 1.5rem;
-            row-gap: 1.25rem;
-        }
-
-        .grid-span-2 {
-            grid-column: 1 / -1;
-        }
-
-        .navigation-hint {
-            display: block;
-        }
-    }
-
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="tablet-container">
 
+    <!-- Progress Bar -->
+    <div class="steps-progress">
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Base</span>
+        </div>
+        <div class="step-item completed">
+            <i class="bi bi-check"></i> <span class="step-label">Tecnico</span>
+        </div>
+        <div class="step-item active">
+            3 <span class="step-label">Lavori</span>
+        </div>
+        <div class="step-item">
+            4 <span class="step-label">Commerciale</span>
+        </div>
+        <div class="step-item">
+            5 <span class="step-label">Firma</span>
+        </div>
+    </div>
+
+    <!-- Info Riepilogo -->
+    <div class="form-container py-3 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-soft-primary p-3 rounded-circle">
+                        <i class="bi bi-building fs-4 text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 small text-uppercase fw-bold">Cliente</h6>
+                        <h5 class="mb-0 fw-bold text-dark">{{ foglio.cliente.ragione_sociale }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                    <span class="badge-soft badge-soft-info">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ foglio.data_intervento.strftime('%d/%m/%Y') }}
+                    </span>
+                    {% if foglio.macchine_collegate %}
+                    <span class="badge-soft badge-soft-secondary">
+                        <i class="bi bi-gear me-1"></i>
+                        {{ foglio.macchine_collegate.count() }} Macchine
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Form -->
     <form method="POST" id="step3Form">
         {{ form.hidden_tag() }}
 
         <div class="form-container">
+            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-wrench me-2"></i>Ricambi e Lavorazioni</h5>
+            
             <div class="form-grid">
                 <!-- Ricambi Utilizzati (full width) -->
                 <div class="form-field grid-span-2">
                     <label class="form-label">
                         <i class="bi bi-wrench"></i>
-                        Ricambi Utilizzati
+                        Ricambi Utilizzati (da Magazzino)
                     </label>
+                    
                     <!-- Campo ricerca ricambi -->
                     <div class="ricambi-search-container mb-3">
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <span class="input-group-text text-primary"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control" id="ricambiSearch" placeholder="Cerca ricambio per codice o descrizione..." autocomplete="off">
-                            <button class="btn btn-outline-secondary" type="button" id="clearRicambiSearch">
+                            <button class="btn btn-outline-secondary" type="button" id="clearRicambiSearch" style="border-radius: 0 0.75rem 0.75rem 0;">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
                     </div>
+                    
                     <div class="ricambi-selector" id="ricambiSelector">
                         <div id="ricambiList">
-                            <!-- I ricambi verranno caricati dinamicamente -->
                             <div class="text-center text-muted p-4">
-                                <i class="bi bi-hourglass-split mb-2 d-block" style="font-size: 2rem;"></i>
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                                 Caricamento ricambi disponibili...
                             </div>
                         </div>
@@ -361,190 +111,121 @@
                 <div class="form-field grid-span-2">
                     <label class="form-label" for="ricambio_manuale">
                         <i class="bi bi-plus-circle"></i>
-                        {{ form.ricambio_manuale.label.text }}
+                        Ricambio non in magazzino
                     </label>
-                    {{ form.ricambio_manuale(class="form-control" + (" is-invalid" if form.ricambio_manuale.errors else ""), placeholder="es. Toner HP 85A Nero") }}
-                    {% if form.ricambio_manuale.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.ricambio_manuale.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                    {{ form.ricambio_manuale(class="form-control", placeholder="es. Toner HP 85A Nero") }}
                 </div>
 
                 <!-- Lavori eseguiti (full width) -->
                 <div class="form-field grid-span-2">
                     <label class="form-label" for="note_aggiuntive">
-                        <i class="bi bi-wrench"></i>
-                        Lavori eseguiti
+                        <i class="bi bi-chat-left-text"></i>
+                        Lavori eseguiti / Note Intervento
                     </label>
-                    {{ form.note_aggiuntive(class="form-control", rows="4", placeholder="Descrivi i lavori eseguiti, le riparazioni effettuate e le verifiche completate...") }}
-                    {% if form.note_aggiuntive.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.note_aggiuntive.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                    {{ form.note_aggiuntive(class="form-control", rows="5", placeholder="Descrivi i lavori eseguiti, le riparazioni effettuate e le verifiche completate...") }}
                 </div>
             </div>
         </div>
 
         <!-- Hidden field per ricambi selezionati -->
         <input type="hidden" name="ricambi_utilizzati" id="selectedRicambi" value="">
-    </form>
 
-    <!-- Azioni del Form -->
-    <div class="form-actions">
-        <div class="form-actions-container">
-            <div class="form-actions-left">
-                <a href="{{ url_for('fogli_tecnici.step2', id=foglio.id) }}" class="btn btn-ghost">
-                    <i class="bi bi-arrow-left me-2"></i>
-                    Indietro
-                </a>
-            </div>
-            <div class="form-actions-right">
-                <button type="submit" form="step3Form" class="btn btn-primary-large" id="nextButton">
-                    <span>Avanti</span>
-                    <i class="bi bi-arrow-right ms-2"></i>
-                </button>
-            </div>
+        <!-- Azioni del Form -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+            <a href="{{ url_for('fogli_tecnici.step2', id=foglio.id) }}" class="btn btn-ghost">
+                <i class="bi bi-arrow-left me-2"></i>
+                Indietro
+            </a>
+            <button type="submit" class="btn btn-primary-large" id="nextButton">
+                <span>Avanti</span>
+                <i class="bi bi-arrow-right ms-2"></i>
+            </button>
         </div>
-    </div>
+    </form>
 </div>
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectedRicambiInput = document.getElementById('selectedRicambi');
     const nextButton = document.getElementById('nextButton');
     const ricambiList = document.getElementById('ricambiList');
-    
-    let selectedRicambi = new Set();
-
-    // Ricerca ricambi in tempo reale
     const ricambiSearchInput = document.getElementById('ricambiSearch');
     const clearRicambiSearchBtn = document.getElementById('clearRicambiSearch');
-    let allRicambi = []; // Salva tutti i ricambi originali
+    
+    let selectedRicambi = new Set();
+    let allRicambi = [];
     let searchTimeout;
     
     // Carica ricambi disponibili
     loadRicambi();
     
     function loadRicambi() {
-        // Carica ricambi dal database filtrati per reparto
         fetch('{{ url_for("fogli_tecnici.api_ricambi_department") }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    allRicambi = data.ricambi; // Salva tutti i ricambi
+                    allRicambi = data.ricambi;
                     renderRicambi(data.ricambi);
+                    
+                    // Pre-seleziona ricambi già associati
+                    {% if foglio.ricambi_utilizzati %}
+                    const preselectedRicambi = [
+                        {% for ricambio in foglio.ricambi_utilizzati %}
+                        {{ ricambio.id }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ];
+
+                    preselectedRicambi.forEach(ricambioId => {
+                        selectRicambio(ricambioId, true);
+                    });
+                    {% endif %}
                 } else {
-                    ricambiList.innerHTML = `
-                        <div class="text-center text-danger p-4">
-                            <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                            Errore nel caricamento dei ricambi: ${data.error}
-                        </div>
-                    `;
+                    ricambiList.innerHTML = `<div class="text-center text-danger p-4">Errore: ${data.error}</div>`;
                 }
-
-                // Pre-seleziona ricambi già associati
-                {% if foglio.ricambi_utilizzati %}
-                const preselectedRicambi = [
-                    {% for ricambio in foglio.ricambi_utilizzati %}
-                    {{ ricambio.id }}{% if not loop.last %},{% endif %}
-                    {% endfor %}
-                ];
-
-                preselectedRicambi.forEach(ricambioId => {
-                    selectRicambio(ricambioId, true);
-                });
-                {% endif %}
             })
             .catch(error => {
-                ricambiList.innerHTML = `
-                    <div class="text-center text-danger p-4">
-                        <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                        Errore di connessione nel caricamento dei ricambi
-                    </div>
-                `;
+                ricambiList.innerHTML = `<div class="text-center text-danger p-4">Errore di connessione</div>`;
             });
     }
 
-    // Funzione di ricerca
-    function filterRicambi(searchTerm) {
-        if (!searchTerm.trim()) {
-            renderRicambi(allRicambi);
-            return;
-        }
-
-        const filtered = allRicambi.filter(ricambio => {
-            const searchLower = searchTerm.toLowerCase();
-            return ricambio.codice.toLowerCase().includes(searchLower) ||
-                   ricambio.descrizione.toLowerCase().includes(searchLower);
-        });
-
-        renderRicambi(filtered);
-    }
-
-    // Event listener per la ricerca
-    ricambiSearchInput.addEventListener('input', function() {
-        const searchTerm = this.value;
-
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            filterRicambi(searchTerm);
-        }, 300);
-    });
-
-    // Event listener per pulire la ricerca
-    clearRicambiSearchBtn.addEventListener('click', function() {
-        ricambiSearchInput.value = '';
-        filterRicambi('');
-        ricambiSearchInput.focus();
-    });
-    
     function renderRicambi(ricambi) {
         if (ricambi.length === 0) {
-            ricambiList.innerHTML = `
-                <div class="text-center text-muted p-4">
-                    <i class="bi bi-wrench mb-2 d-block" style="font-size: 2rem;"></i>
-                    Nessun ricambio disponibile per il tuo reparto
-                </div>
-            `;
+            ricambiList.innerHTML = '<div class="text-center text-muted p-4">Nessun ricambio trovato</div>';
             return;
         }
 
         ricambiList.innerHTML = ricambi.map(ricambio => {
-            let stockClass = 'stock-available';
-            if (ricambio.stato === 'Esaurito') stockClass = 'stock-out';
-            else if (ricambio.stato === 'Sotto scorta' || ricambio.stato === 'Parzialmente prenotato') stockClass = 'stock-low';
+            let stockBadge = 'badge-soft-success';
+            if (ricambio.stato === 'Esaurito') stockBadge = 'badge-soft-danger';
+            else if (ricambio.stato === 'Sotto scorta') stockBadge = 'badge-soft-warning';
 
             return `
                 <div class="ricambio-item" data-ricambio-id="${ricambio.id}">
-                    <input type="checkbox" class="ricambio-checkbox" id="ricambio_${ricambio.id}">
-                    <div class="ricambio-info">
-                        <div class="ricambio-code">${ricambio.codice}</div>
-                        <div class="ricambio-details">${ricambio.descrizione}</div>
-                        ${ricambio.ubicazione ? `<small class="text-muted d-block">Ubicazione: ${ricambio.ubicazione}</small>` : ''}
+                    <div class="form-check m-0">
+                        <input type="checkbox" class="form-check-input ricambio-checkbox" id="ricambio_${ricambio.id}">
                     </div>
-                    <div class="stock-badge ${stockClass}">
-                        ${ricambio.quantita} pz - ${ricambio.stato}
+                    <div class="ricambio-info flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark fs-5">${ricambio.codice}</span>
+                            <span class="badge-soft ${stockBadge} small">${ricambio.quantita} pz</span>
+                        </div>
+                        <div class="text-muted small">${ricambio.descrizione}</div>
+                        ${ricambio.ubicazione ? `<div class="text-muted small"><i class="bi bi-geo-alt small me-1"></i>${ricambio.ubicazione}</div>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
         
-        // Aggiungi event listeners
-        document.querySelectorAll('.ricambio-item').forEach(item => {
+        document.querySelectorAll('#ricambiList .ricambio-item').forEach(item => {
             const ricambioId = parseInt(item.dataset.ricambioId);
             const checkbox = item.querySelector('.ricambio-checkbox');
             
-            // Click su tutta la card
-            item.addEventListener('click', function() {
-                toggleRicambio(ricambioId);
-            });
-            
-            // Click solo sulla checkbox (evita doppio toggle)
-            checkbox.addEventListener('click', function(e) {
-                e.stopPropagation();
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    const isSelected = !checkbox.checked;
+                    checkbox.checked = isSelected;
+                    selectRicambio(ricambioId, isSelected);
+                }
             });
             
             checkbox.addEventListener('change', function() {
@@ -553,25 +234,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function toggleRicambio(ricambioId) {
-        const checkbox = document.getElementById(`ricambio_${ricambioId}`);
-        const isSelected = !checkbox.checked;
-        checkbox.checked = isSelected;
-        selectRicambio(ricambioId, isSelected);
-    }
-    
     function selectRicambio(ricambioId, select) {
         const item = document.querySelector(`[data-ricambio-id="${ricambioId}"]`);
         const checkbox = document.getElementById(`ricambio_${ricambioId}`);
         
         if (select) {
             selectedRicambi.add(ricambioId);
-            item.classList.add('selected');
-            checkbox.checked = true;
+            if (item) item.classList.add('selected');
+            if (checkbox) checkbox.checked = true;
         } else {
             selectedRicambi.delete(ricambioId);
-            item.classList.remove('selected');
-            checkbox.checked = false;
+            if (item) item.classList.remove('selected');
+            if (checkbox) checkbox.checked = false;
         }
         
         updateSelectedRicambi();
@@ -580,98 +254,38 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSelectedRicambi() {
         selectedRicambiInput.value = Array.from(selectedRicambi).join(',');
     }
-    
-    // Auto-resize textarea
-    const textarea = document.getElementById('note_aggiuntive');
-    if (textarea) {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    }
 
-    // Ricerca ricambi in tempo reale
-    const ricambiSearchInput = document.getElementById('ricambiSearch');
-    const clearRicambiSearchBtn = document.getElementById('clearRicambiSearch');
-    let allRicambi = []; // Salva tutti i ricambi originali
-    let searchTimeout;
-
-    // Salva i ricambi originali quando vengono caricati
-    const originalLoadRicambi = loadRicambi;
-    loadRicambi = function() {
-        fetch('{{ url_for("fogli_tecnici.api_ricambi_department") }}')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    allRicambi = data.ricambi; // Salva tutti i ricambi
-                    renderRicambi(data.ricambi);
-                } else {
-                    ricambiList.innerHTML = `
-                        <div class="text-center text-danger p-4">
-                            <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                            Errore nel caricamento dei ricambi: ${data.error}
-                        </div>
-                    `;
-                }
-
-                // Pre-seleziona ricambi già associati
-                {% if foglio.ricambi_utilizzati %}
-                const preselectedRicambi = [
-                    {% for ricambio in foglio.ricambi_utilizzati %}
-                    {{ ricambio.id }}{% if not loop.last %},{% endif %}
-                    {% endfor %}
-                ];
-
-                preselectedRicambi.forEach(ricambioId => {
-                    selectRicambio(ricambioId, true);
-                });
-                {% endif %}
-            })
-            .catch(error => {
-                ricambiList.innerHTML = `
-                    <div class="text-center text-danger p-4">
-                        <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                        Errore di connessione nel caricamento dei ricambi
-                    </div>
-                `;
-            });
-    };
-
-    // Funzione di ricerca
-    function filterRicambi(searchTerm) {
-        if (!searchTerm.trim()) {
-            renderRicambi(allRicambi);
-            return;
-        }
-
-        const filtered = allRicambi.filter(ricambio => {
-            const searchLower = searchTerm.toLowerCase();
-            return ricambio.codice.toLowerCase().includes(searchLower) ||
-                   ricambio.descrizione.toLowerCase().includes(searchLower);
-        });
-
-        renderRicambi(filtered);
-    }
-
-    // Event listener per la ricerca
+    // Ricerca
     ricambiSearchInput.addEventListener('input', function() {
-        const searchTerm = this.value;
-
+        const searchTerm = this.value.toLowerCase();
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            filterRicambi(searchTerm);
+            const filtered = allRicambi.filter(r => 
+                r.codice.toLowerCase().includes(searchTerm) || 
+                r.descrizione.toLowerCase().includes(searchTerm)
+            );
+            renderRicambi(filtered);
+            
+            // Ripristina stati selezione dopo re-render
+            selectedRicambi.forEach(id => {
+                const item = document.querySelector(`[data-ricambio-id="${id}"]`);
+                const checkbox = document.getElementById(`ricambio_${id}`);
+                if (item) item.classList.add('selected');
+                if (checkbox) checkbox.checked = true;
+            });
         }, 300);
     });
 
-    // Event listener per pulire la ricerca
-    clearRicambiSearchBtn.addEventListener('click', function() {
+    clearRicambiSearchBtn.addEventListener('click', () => {
         ricambiSearchInput.value = '';
-        filterRicambi('');
-        ricambiSearchInput.focus();
+        renderRicambi(allRicambi);
+        selectedRicambi.forEach(id => {
+            const item = document.querySelector(`[data-ricambio-id="${id}"]`);
+            const checkbox = document.getElementById(`ricambio_${id}`);
+            if (item) item.classList.add('selected');
+            if (checkbox) checkbox.checked = true;
+        });
     });
-
-    // Inizializza la ricerca
-    loadRicambi();
 });
 </script>
 {% endblock %}
