@@ -4906,3 +4906,131 @@
 2026-04-01 11:53:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:53:51 CEST)" (scheduled at 2026-04-01 11:53:41.782689+02:00)
 2026-04-01 11:53:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
 2026-04-01 11:53:42 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:53:51 - apscheduler.scheduler - WARNING - [base.py:990] - Execution of job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:53:51 CEST)" skipped: maximum number of running instances reached (1)
+2026-04-01 11:53:53 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:53:31): 0 messaggi da processare
+2026-04-01 11:53:53 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:53:53 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:01 CEST)" executed successfully
+2026-04-01 11:54:01 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:11 CEST)" (scheduled at 2026-04-01 11:54:01.782689+02:00)
+2026-04-01 11:54:01 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:54:02 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:54:11 - apscheduler.scheduler - WARNING - [base.py:990] - Execution of job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:11 CEST)" skipped: maximum number of running instances reached (1)
+2026-04-01 11:54:12 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:53:42): 0 messaggi da processare
+2026-04-01 11:54:13 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:54:13 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:21 CEST)" executed successfully
+2026-04-01 11:54:21 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:31 CEST)" (scheduled at 2026-04-01 11:54:21.782689+02:00)
+2026-04-01 11:54:21 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:54:22 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:54:31 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:54:02): 0 messaggi da processare
+2026-04-01 11:54:31 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:54:31 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:31 CEST)" executed successfully
+2026-04-01 11:54:31 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:41 CEST)" (scheduled at 2026-04-01 11:54:31.782689+02:00)
+2026-04-01 11:54:31 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:54:31 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:54:39 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:54:22): 0 messaggi da processare
+2026-04-01 11:54:39 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:54:39 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:41 CEST)" executed successfully
+2026-04-01 11:54:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:51 CEST)" (scheduled at 2026-04-01 11:54:41.782689+02:00)
+2026-04-01 11:54:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:54:41 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:54:49 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:54:31): 0 messaggi da processare
+2026-04-01 11:54:49 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:54:49 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:54:51 CEST)" executed successfully
+2026-04-01 11:54:51 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:01 CEST)" (scheduled at 2026-04-01 11:54:51.782689+02:00)
+2026-04-01 11:54:51 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:54:51 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:54:58 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:54:41): 0 messaggi da processare
+2026-04-01 11:54:58 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:54:58 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:01 CEST)" executed successfully
+2026-04-01 11:55:01 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:11 CEST)" (scheduled at 2026-04-01 11:55:01.782689+02:00)
+2026-04-01 11:55:01 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:55:02 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:55:11 - apscheduler.scheduler - WARNING - [base.py:990] - Execution of job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:11 CEST)" skipped: maximum number of running instances reached (1)
+2026-04-01 11:55:13 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:54:51): 0 messaggi da processare
+2026-04-01 11:55:13 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:55:13 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:21 CEST)" executed successfully
+2026-04-01 11:55:21 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:31 CEST)" (scheduled at 2026-04-01 11:55:21.782689+02:00)
+2026-04-01 11:55:21 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:55:22 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:55:30 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:55:01): 0 messaggi da processare
+2026-04-01 11:55:30 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:55:30 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:31 CEST)" executed successfully
+2026-04-01 11:55:31 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:41 CEST)" (scheduled at 2026-04-01 11:55:31.782689+02:00)
+2026-04-01 11:55:31 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:55:31 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:55:39 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:55:21): 0 messaggi da processare
+2026-04-01 11:55:39 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:55:39 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:41 CEST)" executed successfully
+2026-04-01 11:55:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:51 CEST)" (scheduled at 2026-04-01 11:55:41.782689+02:00)
+2026-04-01 11:55:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:55:41 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:55:48 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:55:31): 0 messaggi da processare
+2026-04-01 11:55:49 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:55:49 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:55:51 CEST)" executed successfully
+2026-04-01 11:55:51 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:01 CEST)" (scheduled at 2026-04-01 11:55:51.782689+02:00)
+2026-04-01 11:55:51 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:55:52 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:01 - apscheduler.scheduler - WARNING - [base.py:990] - Execution of job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:01 CEST)" skipped: maximum number of running instances reached (1)
+2026-04-01 11:56:02 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:55:41): 0 messaggi da processare
+2026-04-01 11:56:02 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:02 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:11 CEST)" executed successfully
+2026-04-01 11:56:11 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:21 CEST)" (scheduled at 2026-04-01 11:56:11.782689+02:00)
+2026-04-01 11:56:11 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:56:11 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:19 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:55:51): 0 messaggi da processare
+2026-04-01 11:56:19 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:19 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:21 CEST)" executed successfully
+2026-04-01 11:56:21 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:31 CEST)" (scheduled at 2026-04-01 11:56:21.782689+02:00)
+2026-04-01 11:56:21 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:56:21 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:28 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:56:11): 0 messaggi da processare
+2026-04-01 11:56:28 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:28 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:31 CEST)" executed successfully
+2026-04-01 11:56:31 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:41 CEST)" (scheduled at 2026-04-01 11:56:31.782689+02:00)
+2026-04-01 11:56:31 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:56:31 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:38 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:56:21): 0 messaggi da processare
+2026-04-01 11:56:38 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:38 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:41 CEST)" executed successfully
+2026-04-01 11:56:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:51 CEST)" (scheduled at 2026-04-01 11:56:41.782689+02:00)
+2026-04-01 11:56:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:56:41 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:49 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:56:31): 0 messaggi da processare
+2026-04-01 11:56:49 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:49 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:56:51 CEST)" executed successfully
+2026-04-01 11:56:51 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:01 CEST)" (scheduled at 2026-04-01 11:56:51.782689+02:00)
+2026-04-01 11:56:51 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:56:51 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:56:59 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:56:41): 0 messaggi da processare
+2026-04-01 11:56:59 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:56:59 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:01 CEST)" executed successfully
+2026-04-01 11:57:01 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:11 CEST)" (scheduled at 2026-04-01 11:57:01.782689+02:00)
+2026-04-01 11:57:01 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:57:01 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:57:09 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:56:51): 0 messaggi da processare
+2026-04-01 11:57:09 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:57:09 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:11 CEST)" executed successfully
+2026-04-01 11:57:11 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:21 CEST)" (scheduled at 2026-04-01 11:57:11.782689+02:00)
+2026-04-01 11:57:11 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:57:11 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:57:18 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:57:01): 0 messaggi da processare
+2026-04-01 11:57:18 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:57:18 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:21 CEST)" executed successfully
+2026-04-01 11:57:21 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:31 CEST)" (scheduled at 2026-04-01 11:57:21.782689+02:00)
+2026-04-01 11:57:21 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:57:21 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:57:29 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:57:11): 0 messaggi da processare
+2026-04-01 11:57:29 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:57:29 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:31 CEST)" executed successfully
+2026-04-01 11:57:31 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:41 CEST)" (scheduled at 2026-04-01 11:57:31.782689+02:00)
+2026-04-01 11:57:31 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:57:31 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:57:38 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:57:21): 0 messaggi da processare
+2026-04-01 11:57:38 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:57:38 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:41 CEST)" executed successfully
+2026-04-01 11:57:41 - apscheduler.executors.default - INFO - [base.py:123] - Running job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:51 CEST)" (scheduled at 2026-04-01 11:57:41.782689+02:00)
+2026-04-01 11:57:41 - app - INFO - [email_importer.py:535] - === AVVIO IMPORTAZIONE EMAIL ===
+2026-04-01 11:57:42 - app - INFO - [email_importer.py:619] - Trovati 356 messaggi totali nella cartella
+2026-04-01 11:57:51 - apscheduler.scheduler - WARNING - [base.py:990] - Execution of job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:57:51 CEST)" skipped: maximum number of running instances reached (1)
+2026-04-01 11:57:52 - app - INFO - [email_importer.py:637] - Dopo filtro data (dal 2026-04-01 11:57:31): 0 messaggi da processare
+2026-04-01 11:57:52 - app - INFO - [email_importer.py:691] - === IMPORTAZIONE COMPLETATA: 0 messaggi processati, 0 ticket creati ===
+2026-04-01 11:57:52 - apscheduler.executors.default - INFO - [base.py:144] - Job "Import Email Automatico (trigger: interval[0:00:10], next run at: 2026-04-01 11:58:01 CEST)" executed successfully

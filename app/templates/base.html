@@ -40,6 +40,7 @@
 
         .sidebar {
             min-height: 100vh;
+            max-height: 100vh;
             background: linear-gradient(180deg, var(--dark-color) 0%, #334155 100%);
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             width: 280px;
@@ -49,10 +50,32 @@
             z-index: 1000;
             transition: width 0.3s ease, transform 0.3s ease;
             overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        /* Webkit scrollbar styling per la sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.5);
         }
         
         .sidebar.collapsed {
             width: 95px;
+            overflow-y: auto;
         }
         
         /* Forza la visualizzazione corretta delle icone */
@@ -593,7 +616,7 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
                 
-                <div class="position-sticky pt-2">
+                <div class="position-sticky pt-2" style="padding-bottom: 80px;">
                     <div class="text-center mb-3">
                         <div class="sidebar-logo-container">
                             <i class="bi bi-pc-display text-white h4" title="DB-Desk"></i>
