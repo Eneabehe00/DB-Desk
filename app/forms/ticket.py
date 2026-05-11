@@ -77,6 +77,8 @@ class TicketForm(FlaskForm):
     assigned_to = SelectField('Assegnato a', choices=[], coerce=safe_int_or_none)
     
     due_date = DateTimeField('Scadenza', validators=[Optional()], format='%Y-%m-%dT%H:%M')
+    ora_inizio_lavoro = DateTimeField('Ora Inizio Lavoro', validators=[Optional()], format='%Y-%m-%dT%H:%M')
+    ora_fine_lavoro = DateTimeField('Ora Fine Lavoro', validators=[Optional()], format='%Y-%m-%dT%H:%M')
     
     tags = StringField('Tag', validators=[Optional()], description='Separa i tag con virgole')
     

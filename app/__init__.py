@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from sqlalchemy import inspect, text
 from config import config
 import os
 
@@ -85,6 +86,7 @@ def create_app(config_name='default'):
         os.makedirs(signatures_folder, exist_ok=True)
         
         db.create_all()
+        _ensure_ticket_report_columns()
         
         # Avvia lo scheduler per l'import email automatico
         from app.services.scheduler import email_scheduler
@@ -92,3 +94,27 @@ def create_app(config_name='default'):
         email_scheduler.start()
     
     return app
+
+
+def _ensure_ticket_report_columns():
+    """Aggiunge colonne mancanti per i report ticket senza migrazioni."""
+    inspector = inspect(db.engine)
+    if 'tickets' not in inspector.get_table_names():
+        return
+
+    existing_columns = {col['name'] for col in inspector.get_columns('tickets')}
+    alter_statements = []
+
+    if 'ora_inizio_lavoro' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN ora_inizio_lavoro DATETIME NULL")
+    if 'ora_fine_lavoro' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN ora_fine_lavoro DATETIME NULL")
+    if 'tipo_operazione' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN tipo_operazione VARCHAR(80) NULL")
+
+    if not alter_statements:
+        return
+
+    with db.engine.begin() as connection:
+        for statement in alter_statements:
+            connection.execute(text(statement))

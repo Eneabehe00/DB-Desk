@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, send_from_directory, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, send_from_directory, send_file, abort
 from flask_login import login_required, current_user
 from sqlalchemy import or_, and_, func, extract
 from app import csrf
@@ -137,13 +137,25 @@ def list_tickets():
     pagination_params = [(k, v) for k, v in request.args.items() if k != 'page']
     query_string_no_page = urlencode(pagination_params) if pagination_params else ''
     
-    return render_template('tickets/list.html', 
-                         tickets=tickets, 
-                         form=form, 
+    today = datetime.now().date()
+    default_date_from = request.args.get('date_from') or today.replace(day=1).strftime('%Y-%m-%d')
+    default_date_to = request.args.get('date_to') or today.strftime('%Y-%m-%d')
+    date_filter_type = request.args.get('date_filter_type', 'closed_at')
+    criticita_note = request.args.get('criticita_note', '')
+    tempi_stimati_note = request.args.get('tempi_stimati_note', '')
+
+    return render_template('tickets/list.html',
+                         tickets=tickets,
+                         form=form,
                          default_filter_applied=default_filter_applied,
                          current_sort_by=sort_by,
                          current_sort_order=sort_order,
-                         query_string_no_page=query_string_no_page)
+                         query_string_no_page=query_string_no_page,
+                         report_default_date_from=default_date_from,
+                         report_default_date_to=default_date_to,
+                         report_date_filter_type=date_filter_type,
+                         report_criticita_note=criticita_note,
+                         report_tempi_stimati_note=tempi_stimati_note)
 
 
 @tickets_bp.route('/api/macchine_disponibili')
@@ -319,10 +331,13 @@ def new_ticket():
             created_by_id=current_user.id,
             department_id=department_id,
             categoria=form.categoria.data,
+            tipo_operazione=form.tipo_operazione_macchine.data,
             priorita=form.priorita.data,
             stato=form.stato.data,
             assigned_to_id=form.assigned_to.data if form.assigned_to.data and form.assigned_to.data != 0 else current_user.id,
             due_date=form.due_date.data,
+            ora_inizio_lavoro=form.ora_inizio_lavoro.data,
+            ora_fine_lavoro=form.ora_fine_lavoro.data,
             tempo_stimato=form.tempo_stimato.data,
             note_interne=form.note_interne.data
         )
@@ -568,6 +583,7 @@ def edit_ticket(id):
         form.cliente.data = ticket.cliente
         form.assigned_to.data = ticket.assigned_to
         form.tags.data = ', '.join(ticket.tag_list)
+        form.tipo_operazione_macchine.data = ticket.tipo_operazione or ''
 
         # Pre-popola le macchine del cliente se esiste
         if ticket.cliente_id:
@@ -604,10 +620,13 @@ def edit_ticket(id):
         ticket.descrizione = form.descrizione.data
         ticket.cliente_id = form.cliente.data if form.cliente.data else None
         ticket.categoria = form.categoria.data
+        ticket.tipo_operazione = form.tipo_operazione_macchine.data
         ticket.priorita = form.priorita.data
         ticket.stato = form.stato.data
         ticket.assigned_to_id = form.assigned_to.data if form.assigned_to.data and form.assigned_to.data != 0 else None
         ticket.due_date = form.due_date.data
+        ticket.ora_inizio_lavoro = form.ora_inizio_lavoro.data
+        ticket.ora_fine_lavoro = form.ora_fine_lavoro.data
         ticket.tempo_stimato = form.tempo_stimato.data
         ticket.note_interne = form.note_interne.data
         
@@ -1102,6 +1121,85 @@ def export_tickets():
     response.headers['Content-Disposition'] = 'attachment; filename=tickets.csv'
     
     return response
+
+
+def _apply_ticket_report_date_filter(base_query, date_filter_type, date_start, date_end):
+    """Applica il filtro data richiesto per report ticket."""
+    if date_filter_type == 'created_at':
+        return base_query.filter(Ticket.created_at.between(date_start, date_end))
+    if date_filter_type == 'closed_at':
+        return base_query.filter(Ticket.closed_at.isnot(None), Ticket.closed_at.between(date_start, date_end))
+    if date_filter_type == 'due_date':
+        return base_query.filter(Ticket.due_date.isnot(None), Ticket.due_date.between(date_start, date_end))
+    if date_filter_type == 'resolved_at':
+        return base_query.filter(Ticket.resolved_at.isnot(None), Ticket.resolved_at.between(date_start, date_end))
+    if date_filter_type == 'all':
+        return base_query.filter(or_(
+            Ticket.created_at.between(date_start, date_end),
+            and_(Ticket.closed_at.isnot(None), Ticket.closed_at.between(date_start, date_end)),
+            and_(Ticket.due_date.isnot(None), Ticket.due_date.between(date_start, date_end)),
+            and_(Ticket.resolved_at.isnot(None), Ticket.resolved_at.between(date_start, date_end))
+        ))
+    return base_query.filter(Ticket.closed_at.isnot(None), Ticket.closed_at.between(date_start, date_end))
+
+
+@tickets_bp.route('/export-report-pdf')
+@login_required
+def export_report_pdf():
+    """Esporta report ticket chiusi in PDF e lo salva tra i documenti."""
+    from app.services.ticket_report_pdf import (
+        build_ticket_daily_report_pdf,
+        build_ticket_report_file_name,
+        get_filter_range
+    )
+
+    start_raw = (request.args.get('date_from') or '').strip()
+    end_raw = (request.args.get('date_to') or '').strip()
+    date_filter_type = (request.args.get('date_filter_type') or 'closed_at').strip()
+    criticita_note = (request.args.get('criticita_note') or '').strip()
+    tempi_stimati_note = (request.args.get('tempi_stimati_note') or '').strip()
+
+    if not start_raw or not end_raw:
+        flash('Inserisci data inizio e data fine per esportare il report PDF.', 'warning')
+        return redirect(url_for('tickets.list_tickets'))
+
+    try:
+        date_start, date_end, date_from, date_to = get_filter_range(start_raw, end_raw)
+    except ValueError:
+        flash('Formato date non valido. Usa il formato corretto gg/mm/aaaa dal selettore.', 'error')
+        return redirect(url_for('tickets.list_tickets'))
+
+    if date_from > date_to:
+        flash('Intervallo date non valido: "Data da" deve essere minore o uguale a "Data a".', 'error')
+        return redirect(url_for('tickets.list_tickets'))
+
+    base_query = filter_by_department_access(Ticket.query, Ticket).filter(Ticket.stato == 'Chiuso')
+    filtered_query = _apply_ticket_report_date_filter(base_query, date_filter_type, date_start, date_end)
+    tickets = filtered_query.order_by(Ticket.closed_at.desc(), Ticket.id.desc()).all()
+
+    if not tickets:
+        flash('Nessun ticket chiuso trovato nel range selezionato.', 'warning')
+        return redirect(url_for('tickets.list_tickets'))
+
+    docs_root = current_app.config['DOCS_FOLDER']
+    save_dir = os.path.join(docs_root, 'altro', 'report_ticket')
+    os.makedirs(save_dir, exist_ok=True)
+
+    filename = build_ticket_report_file_name(date_from, date_to, current_user.username)
+    pdf_path = os.path.join(save_dir, filename)
+
+    build_ticket_daily_report_pdf(
+        pdf_path=pdf_path,
+        tickets=tickets,
+        created_by_name=current_user.full_name,
+        date_from=date_from,
+        date_to=date_to,
+        criticita_note=criticita_note,
+        tempi_stimati_note=tempi_stimati_note
+    )
+
+    flash('Report PDF generato e salvato in Documenti > altro > report_ticket.', 'success')
+    return send_file(pdf_path, as_attachment=True, download_name=filename)
 
 
 @tickets_bp.route('/calendar')

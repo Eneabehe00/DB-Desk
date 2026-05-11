@@ -25,6 +25,7 @@ class Ticket(db.Model):
     
     # Classificazione
     categoria = db.Column(db.String(50), nullable=False, default='Generale')  # Bug, Feature, Supporto, etc.
+    tipo_operazione = db.Column(db.String(80))  # Tipo operazione macchine/attivita
     priorita = db.Column(db.String(20), nullable=False, default='Media')    # Bassa, Media, Alta, Critica
     stato = db.Column(db.String(20), nullable=False, default='Aperto')      # Aperto, In Lavorazione, Risolto, Chiuso
     
@@ -38,6 +39,8 @@ class Ticket(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     due_date = db.Column(db.DateTime)  # Scadenza
+    ora_inizio_lavoro = db.Column(db.DateTime)  # Ora inizio intervento/attivita
+    ora_fine_lavoro = db.Column(db.DateTime)  # Ora fine intervento/attivita
     resolved_at = db.Column(db.DateTime)  # Quando è stato risolto
     closed_at = db.Column(db.DateTime)    # Quando è stato chiuso
     
@@ -256,6 +259,7 @@ class Ticket(db.Model):
             'titolo': self.titolo,
             'descrizione': self.descrizione,
             'categoria': self.categoria,
+            'tipo_operazione': self.tipo_operazione,
             'priorita': self.priorita,
             'stato': self.stato,
             'cliente_id': self.cliente_id,
@@ -267,6 +271,8 @@ class Ticket(db.Model):
             'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
             'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at,
             'due_date': self.due_date.isoformat() if hasattr(self.due_date, 'isoformat') else self.due_date,
+            'ora_inizio_lavoro': self.ora_inizio_lavoro.isoformat() if hasattr(self.ora_inizio_lavoro, 'isoformat') else self.ora_inizio_lavoro,
+            'ora_fine_lavoro': self.ora_fine_lavoro.isoformat() if hasattr(self.ora_fine_lavoro, 'isoformat') else self.ora_fine_lavoro,
             'resolved_at': self.resolved_at.isoformat() if hasattr(self.resolved_at, 'isoformat') else self.resolved_at,
             'closed_at': self.closed_at.isoformat() if hasattr(self.closed_at, 'isoformat') else self.closed_at,
             'tags': self.tag_list,
