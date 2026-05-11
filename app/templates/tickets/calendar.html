@@ -38,19 +38,15 @@
                                     {{ ticket.priorita }}
                                 </div>
                 </div>
-                            <div class="ticket-title">{{ ticket.titolo }}</div>
+                            <div class="ticket-title">
+                                {{ ticket.titolo[:40] }}{% if ticket.titolo|length > 40 %}...{% endif %}
+                            </div>
                             <div class="ticket-info">
                                 <small class="text-muted">
                                     <i class="bi bi-building"></i>
-                                    {{ ticket.cliente.ragione_sociale }}
+                                    {{ ticket.cliente.ragione_sociale[:28] }}{% if ticket.cliente.ragione_sociale|length > 28 %}...{% endif %}
                                 </small>
-                                {% if ticket.assigned_to %}
-                                <small class="text-muted">
-                                    <i class="bi bi-person"></i>
-                                    {{ ticket.assigned_to.full_name }}
-                                </small>
-                                {% endif %}
-                    </div>
+                            </div>
                             <div class="ticket-status">
                                 <span class="badge status-{{ ticket.stato|lower|replace(' ', '-') }}">
                                     {{ ticket.stato }}
@@ -106,7 +102,8 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-            <div class="calendar-container">
+            <div class="calendar-scroll">
+                <div class="calendar-container">
                         <div class="calendar-grid">
                             <!-- Header giorni settimana -->
                             <div class="calendar-header">
@@ -135,16 +132,11 @@
                                         {% for ticket in tickets_data[day] %}
                                         <div class="calendar-ticket priority-{{ ticket.priorita|lower }}"
                                              data-ticket-id="{{ ticket.id }}"
-                                             title="{{ ticket.numero_ticket }}: {{ ticket.titolo }}"
+                                             title="{{ ticket.cliente.ragione_sociale }} - {{ ticket.titolo }}"
                                              {% if loop.index > 2 %}style="display: none;"{% endif %}>
                                             <div class="ticket-content">
-                                                <div class="ticket-number">{{ ticket.numero_ticket }}</div>
+                                                <div class="ticket-client-name">{{ ticket.cliente.ragione_sociale[:28] }}{% if ticket.cliente.ragione_sociale|length > 28 %}...{% endif %}</div>
                                                 <div class="ticket-title-short">{{ ticket.titolo[:30] }}{% if ticket.titolo|length > 30 %}...{% endif %}</div>
-                                                <div class="ticket-status-small">
-                                                    <span class="badge status-{{ ticket.stato|lower|replace(' ', '-') }}">
-                                                        {{ ticket.stato }}
-                                                    </span>
-                                                </div>
                                             </div>
                                         </div>
                                         {% endfor %}
@@ -162,6 +154,7 @@
                             </div>
                         </div>
                     </div>
+            </div>
                 </div>
             </div>
         </div>
@@ -198,6 +191,33 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+
+<script>
+// Ottimizzazione performance sidebar su tablet
+(function() {
+    if (window.innerWidth <= 1024) {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            let resizeTimeout;
+            
+            // Observer per cambiamenti di classe sulla sidebar
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class') {
+                        document.body.classList.add('sidebar-resizing');
+                        clearTimeout(resizeTimeout);
+                        resizeTimeout = setTimeout(function() {
+                            document.body.classList.remove('sidebar-resizing');
+                        }, 350); // Leggermente più lungo della transizione sidebar (0.3s)
+                    }
+                });
+            });
+            
+            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+        }
+    }
+})();
+</script>
 
 <script>
 // Dati globali per JavaScript

@@ -17,16 +17,26 @@
     max-height: calc(100vh - 250px);
     overflow-y: auto;
     border-radius: 0.5rem;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.ticket-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 .ticket-item {
-    padding: 1rem;
+    padding: 0.75rem;
     border-bottom: 1px solid var(--calendar-border);
     cursor: grab;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     background: white;
     position: relative;
     overflow: hidden; /* Fix per la scrollbar orizzontale */
+    touch-action: manipulation; /* Elimina il delay da 300ms su mobile */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .ticket-item:hover {
@@ -142,6 +152,32 @@
     border-radius: 0.5rem;
 }
 
+.calendar-scroll {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky header dentro il wrapper scrollabile */
+.calendar-scroll .calendar-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.calendar-scroll .week-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.calendar-scroll .day-view-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
 .calendar-grid {
     display: flex;
     flex-direction: column;
@@ -150,7 +186,7 @@
 
 .calendar-header {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(100px, 1fr));
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     border-bottom: 2px solid var(--calendar-border);
 }
@@ -169,7 +205,7 @@
 
 .calendar-body {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(100px, 1fr));
 }
 
 .calendar-day {
@@ -178,7 +214,7 @@
     border-top: none;
     position: relative;
     background: white;
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
@@ -231,7 +267,7 @@
     border-left: 3px solid;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
     position: relative;
     flex-shrink: 0;
 }
@@ -278,9 +314,13 @@
     color: var(--primary-color);
 }
 
-.ticket-status-small .badge {
-    font-size: 0.6rem;
-    padding: 0.1rem 0.3rem;
+.ticket-client-name {
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Indicatore ticket nascosti */
@@ -293,7 +333,7 @@
     text-align: center;
     margin-top: 0.2rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 .tickets-overflow:hover {
@@ -330,7 +370,7 @@
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     color: #64748b;
     border-radius: 0;
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     position: relative;
     cursor: pointer;
     min-width: 80px;
@@ -473,6 +513,11 @@
     background: white;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
 }
 
 .week-day-column:hover {
@@ -540,6 +585,11 @@
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 4px;
+    overflow: hidden;
 }
 
 .day-hour-line:hover {
@@ -563,18 +613,15 @@
 .week-ticket {
     background: white;
     border-radius: 0.3rem;
-    padding: 0.3rem;
-    margin: 0.2rem;
-    font-size: 0.7rem;
+    padding: 0.25rem 0.35rem;
+    margin: 0;
+    font-size: 0.68rem;
     border-left: 3px solid;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.2s ease;
-    position: absolute;
-    top: 5px;
-    left: 2px;
-    right: 2px;
-    z-index: 2;
+    width: 100%;
+    flex: 0 0 auto;
 }
 
 .week-ticket:hover {
@@ -602,12 +649,6 @@
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
 }
 
-.week-ticket .ticket-number {
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 0.1rem;
-}
-
 .week-ticket .ticket-title-short {
     font-weight: 500;
     line-height: 1.2;
@@ -616,10 +657,6 @@
 
 /* Week Overflow Indicator */
 .week-overflow {
-    position: absolute;
-    bottom: 2px;
-    left: 2px;
-    right: 2px;
     background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
     color: #64748b;
     font-size: 0.6rem;
@@ -628,6 +665,7 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-top: auto; /* appoggiato in basso nella colonna flessibile */
 }
 
 .week-overflow:hover {
@@ -639,18 +677,15 @@
 .day-ticket {
     background: white;
     border-radius: 0.4rem;
-    padding: 0.5rem;
-    margin: 0.3rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.45rem;
+    margin: 0;
+    font-size: 0.75rem;
     border-left: 4px solid;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.2s ease;
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    z-index: 2;
+    width: 100%;
+    flex: 0 0 auto;
 }
 
 .day-ticket:hover {
@@ -678,17 +713,14 @@
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
 }
 
-.day-ticket .ticket-number {
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 0.2rem;
-}
-
 .day-ticket .ticket-title {
     font-weight: 500;
     margin-bottom: 0.2rem;
     color: #1e293b;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .day-ticket .ticket-client {
@@ -697,11 +729,134 @@
     font-style: italic;
 }
 
+/* Overflow indicator per la vista giorno */
+.day-overflow {
+    margin-top: auto; /* appoggiato in basso nella riga flessibile */
+    align-self: center;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    color: #64748b;
+    font-size: 0.62rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.day-overflow:hover {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #475569;
+}
+
+/* Tablet landscape / schermi più piccoli: meno altezza verticale */
+@media (max-width: 1024px) {
+    .day-view-content {
+        min-height: auto;
+    }
+
+    .day-view-header {
+        padding: 1rem;
+    }
+
+    .calendar-scroll {
+        max-height: calc(100vh - 180px);
+    }
+
+    .day-time-slot {
+        height: 55px;
+    }
+
+    .day-hour-line {
+        height: 55px;
+    }
+
+    .week-time-row {
+        min-height: 55px;
+    }
+
+    /* Migliora larghezza colonne calendario per tablet orizzontali */
+    .calendar-body {
+        grid-template-columns: repeat(7, minmax(120px, 1fr));
+    }
+
+    .calendar-day {
+        min-height: 110px;
+        padding: 0.4rem;
+    }
+
+    .calendar-ticket {
+        padding: 0.35rem;
+        font-size: 0.7rem;
+    }
+
+    .ticket-client-name {
+        font-size: 0.7rem;
+        line-height: 1.1;
+    }
+
+    .ticket-title-short {
+        font-size: 0.65rem;
+        line-height: 1.2;
+    }
+}
+
+/* Tablet in landscape orientation - larghezza minima garantita */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+    .calendar-body {
+        grid-template-columns: repeat(7, minmax(140px, 1fr));
+    }
+    
+    .calendar-header {
+        grid-template-columns: repeat(7, minmax(140px, 1fr));
+    }
+
+    .calendar-day {
+        min-height: 100px;
+        padding: 0.45rem;
+    }
+
+    .calendar-ticket {
+        padding: 0.4rem;
+        font-size: 0.72rem;
+    }
+
+    .ticket-client-name {
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .ticket-title-short {
+        font-size: 0.68rem;
+    }
+
+    /* Assicura che l'overflow orizzontale sia gestito */
+    .calendar-scroll {
+        overflow-x: auto;
+    }
+}
+
+/* Ottimizzazione performance per tablet - riduce lag durante resize sidebar */
+@media (max-width: 1024px) {
+    .sidebar-resizing * {
+        transition: none !important;
+    }
+    
+    .sidebar-resizing .calendar-ticket,
+    .sidebar-resizing .ticket-item,
+    .sidebar-resizing .calendar-day {
+        transition: none !important;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .calendar-day {
         min-height: 80px;
         padding: 0.3rem;
+    }
+
+    .calendar-scroll {
+        max-height: calc(100vh - 200px);
     }
     
     .day-number {
@@ -765,24 +920,25 @@
 }
 
 /* Scrollbar personalizzata */
-.ticket-list::-webkit-scrollbar,
+.ticket-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
 .day-tickets::-webkit-scrollbar {
     width: 6px;
 }
 
-.ticket-list::-webkit-scrollbar-track,
 .day-tickets::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 3px;
 }
 
-.ticket-list::-webkit-scrollbar-thumb,
 .day-tickets::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 3px;
 }
 
-.ticket-list::-webkit-scrollbar-thumb:hover,
 .day-tickets::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
@@ -812,4 +968,137 @@
 .today .day-number {
     color: var(--primary-color);
     font-weight: 700;
+}
+
+/* Ticket Modal (stessa modale per giorno/settimana/mese) */
+.ticket-modal-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, #f8fafc, #eef2ff);
+    border: 1px solid #e2e8f0;
+}
+
+.ticket-modal-count {
+    font-size: 0.85rem;
+    color: #334155;
+    font-weight: 600;
+}
+
+.ticket-modal-hint {
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.ticket-modal-tickets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ticket-modal-ticket {
+    background: white;
+    border-radius: 0.6rem;
+    padding: 0.85rem;
+    border-left: 4px solid;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ticket-modal-ticket:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+}
+
+.ticket-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.2rem;
+}
+
+.ticket-modal-title {
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.25;
+    margin-bottom: 0.55rem;
+}
+
+.ticket-modal-client {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.ticket-modal-ticket-number {
+    font-size: 0.75rem;
+    color: #475569;
+    margin-bottom: 0.3rem;
+}
+
+.ticket-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.ticket-modal-assignee {
+    font-size: 0.8rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.ticket-modal-assignee-empty {
+    color: #64748b;
+}
+
+.ticket-modal-open {
+    font-size: 0.78rem;
+    color: #1d4ed8;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.ticket-modal-ticket.priority-critica {
+    border-left-color: var(--priority-critica);
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.ticket-modal-ticket.priority-alta {
+    border-left-color: var(--priority-alta);
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.ticket-modal-ticket.priority-media {
+    border-left-color: var(--priority-media);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.ticket-modal-ticket.priority-bassa {
+    border-left-color: var(--priority-bassa);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+@media (max-width: 768px) {
+    .ticket-modal-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ticket-modal-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

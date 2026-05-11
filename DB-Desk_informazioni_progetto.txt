@@ -1,0 +1,300 @@
+================================================================================
+                    DB-DESK — DOCUMENTO INFORMATIVO SUL PROGETTO
+         (profilo: sistema informativo aziendale per assistenza e ticket)
+                    Data di redazione: 9 maggio 2026
+================================================================================
+
+Con riferimento alla richiesta di inquadramento del sistema informativo, si
+ritiene opportuno fornire le seguenti precisazioni, strutturate in modo da
+consentire una consultazione ordinata e una eventuale allegazione a pratiche
+interne di governance o di audit tecnico-organizzativo.
+
+
+--------------------------------------------------------------------------------
+1. APERTURA E SCOPO DEL DOCUMENTO
+--------------------------------------------------------------------------------
+
+1.1 Finalità
+Il presente testo descrive, per quanto di competenza tecnico-informatica, il
+progetto software denominato "DB-Desk", le sue funzionalità principali,
+l’architettura applicativa, i collegamenti con i sistemi periferici (database,
+posta elettronica, file system) e i confini tra responsabilità tecniche di
+funzionamento degli strumenti e responsabilità gestionali sui processi
+aziendali che tali strumenti supportano.
+
+1.2 Ambito di utilizzo previsto
+DB-Desk risulta progettato per l’impiego in ambiente di rete locale (LAN) o
+rete estesa controllata (es. VPN/ZeroTier, come indicato nella documentazione
+di installazione), con accesso tramite browser web. La valutazione commerciale,
+contrattuale e organizzativa dell’adozione del sistema resta distinta dalla
+responsabilità tecnica di corretta installazione, configurazione e
+manutenzione ordinaria dell’applicazione.
+
+
+--------------------------------------------------------------------------------
+2. CONTESTO E POSIZIONAMENTO DEL SISTEMA
+--------------------------------------------------------------------------------
+
+2.1 Natura del prodotto
+DB-Desk è un’applicazione web per la gestione integrata di ticket di
+assistenza, anagrafiche clienti, documentazione, magazzino ricambi, anagrafica
+macchine e fogli tecnici di intervento (con generazione PDF, raccolta firme e
+canali di invio documentazione). Il cuore applicativo è realizzato in Python
+con il framework Flask; la persistenza dati avviene su database relazionale
+MySQL/MariaDB tramite SQLAlchemy.
+
+2.2 Utenti tipici e processi supportati
+Gli strumenti informatici messi a disposizione consentono di:
+  • registrare e tracciare richieste di assistenza (ticket) con stati,
+    priorità, scadenze e assegnazioni;
+  • collegare i ticket a clienti, reparti, macchine e ricambi ove applicabile;
+  • produrre reportistica strutturata e statistiche;
+  • gestire documenti archiviati per categorie (moduli Docs);
+  • supportare flussi di magazzino e prenotazioni con vista calendario dedicata;
+  • compilare fogli tecnici d’intervento con workflow a step, firme e PDF.
+
+Si precisa che l’efficacia organizzativa di tali processi dipende anche da
+indicazioni aziendali su priorità, regole operative e utilizzo coerente da
+parte degli utenti autorizzati.
+
+
+--------------------------------------------------------------------------------
+3. ELENCO DELLE COMPONENTI FUNZIONALI PRINCIPALI
+--------------------------------------------------------------------------------
+
+Le attività di realizzazione e consolidamento del sistema hanno portato alla
+disponibilità dei seguenti macro-moduli (compatibilmente con le versioni in uso
+nel repository e con la configurazione effettiva dell’ambiente di esercizio):
+
+  3.1 Autenticazione e profilazione
+      Login, gestione sessioni (Flask-Login), protezione CSRF (Flask-WTF),
+      utenti con ruoli e reparti (department), permessi granulari lato
+      applicazione (decoratori e controlli in app/utils/permissions.py).
+
+  3.2 Dashboard (area principale)
+      Indicatori, azioni rapide e collegamenti alle aree operative; supporto
+      alla consultazione dello stato complessivo dei ticket.
+
+  3.3 Gestione ticket
+      CRUD ticket, filtri, assegnazioni, allegati, sotto-attività (subtask),
+      collegamento a ricambi e macchine, export CSV ove implementato, calendario
+      ticket con viste mese/settimana/giorno e API per aggiornamento date
+      (routes in app/routes/tickets.py; front-end calendar.css / calendar.js).
+
+  3.4 Gestione clienti
+      Anagrafica clienti, dettaglio e relazioni con ticket e storicità.
+
+  3.5 Report
+      Statistiche e analisi su ticket, utenti e clienti (blueprint reports).
+
+  3.6 Impostazioni di sistema
+      Configurazioni, gestione utenti (profili amministrativi), monitoraggio
+      log applicativi ove previsto dall’interfaccia, strumenti collegati
+      all’import email.
+
+  3.7 Documentazione (Docs)
+      Archivio documenti con categorie, ricerca, upload, estensioni consentite
+      configurabili tramite variabili d’ambiente.
+
+  3.8 Magazzino
+      Gestione ricambi e calendario prenotazioni (app/routes/magazzino.py,
+      template dedicati).
+
+  3.9 Macchine
+      Anagrafica e dettaglio macchine, collegamenti con ticket e interventi.
+
+  3.10 Fogli tecnici
+      Workflow multi-step, dati economici e di intervento, firme digitali
+      salvate come file, generazione PDF (ReportLab), possibilità di invio
+      tramite posta (integrazione Flask-Mail con parametri configurabili).
+
+
+--------------------------------------------------------------------------------
+4. DETTAGLIO TECNICO-OPERATIVO
+--------------------------------------------------------------------------------
+
+4.1 Stack tecnologico (sintesi)
+  Componente              Tecnologia / libreria principale
+  --------------------    -------------------------------------------
+  Runtime                 Python 3.8+
+  Framework web           Flask 2.3.x
+  ORM / DB                Flask-SQLAlchemy, PyMySQL (URI MySQL)
+  Autenticazione          Flask-Login
+  Form e validazione      Flask-WTF, WTForms
+  PDF                     reportlab
+  Scheduler               APScheduler (es. poll import email)
+  Server WSGI produzione  Waitress
+  Posta in ingresso       imapclient (IMAP, configurazione .env)
+  Altre dipendenze        cryptography, python-dotenv, email-validator
+
+4.2 Struttura applicativa
+  • Pattern factory: create_app() in app/__init__.py registra i blueprint:
+    auth, main, tickets, clients, reports, settings, docs, magazzino,
+    macchine, fogli_tecnici.
+  • All’avvio vengono assicurate le directory di upload (allegati, documenti,
+    PDF fogli tecnici, cartella firme).
+  • Viene avviato lo scheduler per l’import email quando previsto dalla
+    configurazione (servizio email_scheduler).
+
+4.3 Configurazione e variabili d’ambiente
+  Il file config.py carica le impostazioni da .env (python-dotenv). Si
+  evidenziano in particolare:
+  • credenziali e host database (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT);
+  • SECRET_KEY per sessioni e protezioni Flask;
+  • FLASK_HOST, FLASK_PORT, FLASK_DEBUG, distinzione Development/Production;
+  • limiti upload (MAX_CONTENT_LENGTH_BYTES) ed elenchi estensioni ammesse
+    (ALLOWED_DOC_EXTENSIONS, ALLOWED_ATTACHMENT_EXTENSIONS);
+  • blocco EMAIL_* per IMAP (abilitazione, host, SSL, verifica certificati,
+    cartella, filtri mittenti/oggetto, modalità bozza vs import automatico,
+    intervallo di poll EMAIL_POLL_SECONDS);
+  • parametri opzionali Waitress in produzione (thread, timeout, limite
+    connessioni), come da README del progetto.
+
+4.4 Modello dati (elementi significativi)
+  • Ticket: numero progressivo strutturato, titolo, descrizione, categoria,
+    priorità, stato, legami con cliente, creatore, assegnatario, reparto,
+    scadenze e timestamp di risoluzione/chiusura; relazioni con allegati,
+    subtask, ricambi (tabella di associazione con quantità), macchine.
+  • Utente: credenziali con hash password (Werkzeug), ruolo, reparto, flag
+    amministrativo legacy (is_admin) integrato con il sistema permessi.
+  • Foglio tecnico: stato di avanzamento (bozza, compilazione, completamento,
+    invio), dati economici, garanzia, geografia intervento, firme, path PDF,
+    tracciamento invio email, step e JSON per avanzamento wizard.
+  • Ulteriori entità: clienti, reparti, ruoli, ricambi, macchine, allegati,
+    bozze e logica import email (modelli dedicati in app/models/).
+
+4.5 Sicurezza applicativa (perimetro tecnico)
+  • CSRF attivo a livello Flask-WTF.
+  • Password non memorizzate in chiaro (hash).
+  • Controlli di autorizzazione basati su ruolo, permesso esplicito e, ove
+    previsto, accesso per reparto (require_permission, require_role,
+    require_department_access).
+  Si precisa che la sicurezza end-to-end (rete, hardening OS, backup,
+  gestione credenziali, segregazione dati) richiede convergenza con le policy
+  aziendali di infrastrutture e non è sostituibile dalla sola applicazione.
+
+4.6 Integrazione email
+  • Import: IMAP verso caselle tipo Office365/Outlook, con possibilità di
+    test connessione da interfaccia impostazioni, filtri e conversione in
+    ticket o bozze.
+  • Invio: modulo Flask-Mail configurato (nel codice risultano parametri SMTP
+    di esempio/fornitore Aruba); l’effettiva configurazione deve essere allineata
+    al provider di posta aziendale e alle credenziali autorizzate.
+  • Scheduler: frequenza di controllo configurabile (default indicativo 300 s).
+
+4.7 Gestione file e logging
+  • Allegati ticket e documenti in uploads/ con sottocartelle strutturate.
+  • Log applicativi in logs/ (main ed error), con possibilità di consultazione
+    da interfaccia ove implementato; in deployment come servizio Windows si
+    possono integrare log di stdout/stderr (cfr. README).
+
+4.8 Modalità di esercizio
+  • Sviluppo: server Flask con debug (run.py / script batch dedicati).
+  • Produzione: Waitress tramite wsgi.py, con parametri di concorrenza
+    configurabili; opzione servizio Windows con NSSM per continuità operativa.
+
+
+--------------------------------------------------------------------------------
+5. CHIARIMENTO DELLE RESPONSABILITÀ
+--------------------------------------------------------------------------------
+
+5.1 Responsabilità tecnico-informatica (perimetro ordinario)
+Rientra nella competenza tecnico-informatica ordinaria, salvo diverso accordo
+scritto:
+  • installazione e aggiornamento dell’applicazione e delle dipendenze;
+  • configurazione coerente del file .env e del database;
+  • verifica della connettività tra application server e MySQL;
+  • abilitazione e test delle integrazioni IMAP/SMTP secondo policy di sicurezza;
+  • gestione degli spazi su disco per upload e log, con rotazione ove prevista;
+  • troubleshooting su errori applicativi ricostruibili da log e code base.
+
+5.2 Responsabilità gestionale e di processo
+Restano di competenza delle funzioni di business e di governo del dato:
+  • definizione di SLA, priorità e regole di escalation sui ticket;
+  • validazione commerciale degli importi e delle condizioni riportate sui fogli
+    tecnici;
+  • decisioni su archiviazione, conservazione documentale e privacy;
+  • assegnazione dei ruoli utente e dei permessi in linea con il principio del
+    minimo privilegio;
+  • interpretazione dei report ai fini decisionali.
+
+5.3 Confini tra "strumento" e "contenuto"
+Si evidenzia che il sistema garantisce strumenti per inserire, modificare e
+estrarre dati strutturati; la correttezza sostanziale dei contenuti inseriti
+dagli utenti e l’allineamento alle procedure interne non sono automaticamente
+verificati dal software salvo dove esplicitamente previsto da validazioni.
+
+
+--------------------------------------------------------------------------------
+6. TABELLE RIEPILOGATIVE
+--------------------------------------------------------------------------------
+
+Tabella A — Blueprint e prefissi URL (indicativi)
++----------------------+---------------------------+---------------------------+
+| Area                 | Prefisso URL              | Note                      |
++----------------------+---------------------------+---------------------------+
+| Autenticazione       | /auth                     | Login, sessioni           |
+| Home / dashboard     | / (main_bp)               | Viste principali          |
+| Ticket               | /tickets                  | Include /calendar, API    |
+| Clienti              | /clients                  | Anagrafica                |
+| Report               | /reports                  | Statistiche               |
+| Impostazioni         | /settings                 | Config, import email, log |
+| Documenti            | /docs                     | Archivio file             |
+| Magazzino            | /magazzino                | Incluso calendario        |
+| Macchine             | /macchine                 | Schede macchina           |
+| Fogli tecnici        | /fogli-tecnici            | PDF e firme               |
++----------------------+---------------------------+---------------------------+
+
+Tabella B — Directory upload rilevanti
++---------------------------+--------------------------------------------------+
+| Percorso (relativo root)  | Contenuto tipico                                 |
++---------------------------+--------------------------------------------------+
+| uploads/attachments       | Allegati ticket                                  |
+| uploads/docs            | Documentazione modulo Docs                       |
+| uploads/fogli_tecnici_pdf| PDF generati da fogli tecnici                    |
+| uploads/signatures      | Immagini firma cliente/tecnico                   |
++---------------------------+--------------------------------------------------+
+
+Tabella C — Ambiente di esecuzione
++------------------+---------------+------------------------+------------------+
+| Profilo          | Server        | Debug                  | Uso consigliato  |
++------------------+---------------+------------------------+------------------+
+| Development      | Flask dev     | Abilitato              | Solo test/sviluppo|
+| Production       | Waitress      | Disabilitato           | Esercizio        |
++------------------+---------------+------------------------+------------------+
+
+
+--------------------------------------------------------------------------------
+7. ATTIVITÀ RESIDUE O CONDIZIONATE
+--------------------------------------------------------------------------------
+
+Eventuali ulteriori sviluppi funzionali, personalizzazioni di workflow,
+integrazioni con ERP/CRM esterni, hardening avanzato, disaster recovery e
+procedure di backup automatizzato potranno essere effettuati a seguito di
+specifiche indicazioni aziendali, stime di impatto e definizione delle
+priorità operative.
+
+Ove non siano state formalizzate richieste o autorizzazioni, le attività
+restano da intendersi come non pianificate nel perimetro corrente.
+
+
+--------------------------------------------------------------------------------
+8. DISPONIBILITÀ COLLABORATIVA E CHIUSURA
+--------------------------------------------------------------------------------
+
+Per quanto di competenza tecnico-informatica, gli strumenti descritti risultano
+implementati nel codice sorgente del progetto DB-Desk e risultano disponibili e
+consultabili per verifiche, collaudi e documentazione operativa, compatibilmente
+con le esigenze quotidiane e con le priorità comunicate dall’organizzazione.
+
+Si conferma la disponibilità a fornire ulteriore supporto tecnico e operativo
+per approfondimenti su moduli specifici, procedure di deployment, analisi di log
+o piani di aggiornamento, previa definizione degli obiettivi e delle risorse
+impegnate.
+
+Resta ferma la piena disponibilità a fornire supporto tecnico e operativo nei
+limiti del mandato e delle competenze di reparto attribuite.
+
+================================================================================
+                        FINE DOCUMENTO INFORMATIVO
+================================================================================

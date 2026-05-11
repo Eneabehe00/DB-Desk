@@ -7,6 +7,9 @@ class TicketCalendar {
         this.viewMode = 'month'; // month, week, day
         this.currentDate = new Date();
         this.maxVisibleTickets = 2;
+        this.sidebarListenersInitialized = false;
+        this.sidebarDropInitialized = false;
+        this.keydownListenerInitialized = false;
 
         // Reparto selezionato dalla UI (admin/dev). Per utenti non admin/dev viene comunque impostato.
         this.departmentId = (window.calendarData && window.calendarData.departmentId !== null)
@@ -29,11 +32,14 @@ class TicketCalendar {
 
     setupEventListeners() {
         // Drag events per ticket nella sidebar
-        const ticketItems = document.querySelectorAll('.ticket-item');
-        ticketItems.forEach(item => {
-            item.addEventListener('dragstart', this.onTicketDragStart.bind(this));
-            item.addEventListener('dragend', this.onTicketDragEnd.bind(this));
-        });
+        if (!this.sidebarListenersInitialized) {
+            const ticketItems = document.querySelectorAll('.ticket-item');
+            ticketItems.forEach(item => {
+                item.addEventListener('dragstart', this.onTicketDragStart.bind(this));
+                item.addEventListener('dragend', this.onTicketDragEnd.bind(this));
+            });
+            this.sidebarListenersInitialized = true;
+        }
 
         // Drop events per giorni del calendario
         const calendarDays = document.querySelectorAll('.calendar-day:not(.empty)');
@@ -60,9 +66,10 @@ class TicketCalendar {
 
         // Drop zone per rimuovere ticket (sidebar)
         const ticketList = document.querySelector('.ticket-list');
-        if (ticketList) {
+        if (ticketList && !this.sidebarDropInitialized) {
             ticketList.addEventListener('dragover', this.onSidebarDragOver.bind(this));
             ticketList.addEventListener('drop', this.onSidebarDrop.bind(this));
+            this.sidebarDropInitialized = true;
         }
 
         // Click su overflow tickets
@@ -72,7 +79,10 @@ class TicketCalendar {
         });
 
         // Keyboard shortcuts
-        document.addEventListener('keydown', this.onKeyDown.bind(this));
+        if (!this.keydownListenerInitialized) {
+            document.addEventListener('keydown', this.onKeyDown.bind(this));
+            this.keydownListenerInitialized = true;
+        }
     }
 
     limitVisibleTickets() {
@@ -149,15 +159,15 @@ class TicketCalendar {
     renderMonthView() {
         const calendarContainer = document.querySelector('.calendar-container');
         calendarContainer.classList.add('month-view');
-        
-        // Se siamo in una vista diversa, ricarica la pagina per ripristinare la vista mensile originale
-        if (this.viewMode !== 'month' && this.originalMonthHTML) {
-            console.log('Switching back to month view - reloading page');
-            window.location.reload();
-            return;
+
+        const calendarGrid = document.querySelector('.calendar-grid');
+        if (this.originalMonthHTML) {
+            // Ripristino reale del DOM mensile: nessun refresh pagina necessario.
+            calendarGrid.innerHTML = this.originalMonthHTML;
+            this.setupEventListeners(); // ricollega listeners su month appena renderizzato
+            this.limitVisibleTickets();
+            this.highlightToday();
         }
-        
-        console.log('Month view activated');
     }
 
 
@@ -262,19 +272,19 @@ class TicketCalendar {
                         const dayTickets = weekTickets[dateStr] || [];
                         
                         // Mostra i ticket solo nella prima riga (8:00) per ogni giorno
-                        const ticketsHtml = hour === 8 && dayTickets.length > 0 ? 
-                            dayTickets.slice(0, 3).map((ticket, index) => `
-                                <div class="week-ticket priority-${ticket.priorita.toLowerCase()}" 
+                        const maxVisible = 2;
+                        const ticketsHtml = hour === 8 && dayTickets.length > 0 ?
+                            dayTickets.slice(0, maxVisible).map(ticket => `
+                                <div class="week-ticket priority-${ticket.priorita.toLowerCase()}"
                                      data-ticket-id="${ticket.id}"
-                                     title="${ticket.numero_ticket}: ${ticket.titolo}"
-                                     style="top: ${5 + (index * 25)}px;">
-                                    <div class="ticket-number">${ticket.numero_ticket}</div>
+                                     title="${ticket.cliente || 'Cliente non disponibile'} - ${ticket.titolo}">
+                                    <div class="ticket-client-name">${ticket.cliente || 'Cliente non disponibile'}</div>
                                     <div class="ticket-title-short">${ticket.titolo.substring(0, 15)}${ticket.titolo.length > 15 ? '...' : ''}</div>
                                 </div>
                             `).join('') : '';
                         
-                        const overflowHtml = hour === 8 && dayTickets.length > 3 ? 
-                            `<div class="week-overflow">+${dayTickets.length - 3}</div>` : '';
+                        const overflowHtml = hour === 8 && dayTickets.length > maxVisible ?
+                            `<div class="week-overflow">+${dayTickets.length - maxVisible} altri</div>` : '';
                         
                         return `
                             <div class="week-day-column" 
@@ -320,22 +330,28 @@ class TicketCalendar {
                 hourTickets = dayTickets.slice(startIndex, endIndex);
             }
             
-            const ticketsHtml = hourTickets.map((ticket, index) => `
-                <div class="day-ticket priority-${ticket.priorita.toLowerCase()}" 
+            const visibleTickets = hourTickets.slice(0, this.maxVisibleTickets);
+            const overflowCount = hourTickets.length - visibleTickets.length;
+
+            const ticketsHtml = visibleTickets.map(ticket => `
+                <div class="day-ticket priority-${ticket.priorita.toLowerCase()}"
                      data-ticket-id="${ticket.id}"
-                     title="${ticket.numero_ticket}: ${ticket.titolo}"
-                     style="top: ${5 + (index * 60)}px; z-index: ${10 + index};">
-                    <div class="ticket-number">${ticket.numero_ticket}</div>
-                    <div class="ticket-title">${ticket.titolo}</div>
-                    <div class="ticket-client">${ticket.cliente}</div>
+                     title="${ticket.cliente || 'Cliente non disponibile'} - ${ticket.titolo}">
+                    <div class="ticket-client-name">${ticket.cliente || 'Cliente non disponibile'}</div>
+                    <div class="ticket-title">${ticket.titolo.substring(0, 18)}${ticket.titolo.length > 18 ? '...' : ''}</div>
                 </div>
             `).join('');
+
+            const dayOverflowHtml = overflowCount > 0
+                ? `<div class="day-overflow">+${overflowCount} altri</div>`
+                : '';
             
             eventsHtml += `
                 <div class="day-hour-line" 
                      data-date="${this.formatDate(date)}" 
                      data-hour="${hour}">
                     ${ticketsHtml}
+                    ${dayOverflowHtml}
                 </div>
             `;
         }
@@ -431,6 +447,12 @@ class TicketCalendar {
             ticket.addEventListener('dragstart', this.onCalendarTicketDragStart.bind(this));
             ticket.addEventListener('dragend', this.onTicketDragEnd.bind(this));
             ticket.draggable = true;
+        });
+
+        // Click sugli overflow ticket (quando ci sono più ticket del massimo per riga)
+        const dayOverflows = document.querySelectorAll('.day-overflow');
+        dayOverflows.forEach(overflow => {
+            overflow.addEventListener('click', this.onDayOverflowClick.bind(this));
         });
     }
 
@@ -607,6 +629,15 @@ class TicketCalendar {
         }
     }
 
+    onDayOverflowClick(e) {
+        e.stopPropagation();
+        const line = e.target.closest('.day-hour-line');
+        const date = line?.dataset?.date;
+        if (date) {
+            this.showDayModal(date);
+        }
+    }
+
     async showDayModal(date) {
         try {
             const response = await fetch(this.buildCalendarTicketsUrl(date));
@@ -622,9 +653,9 @@ class TicketCalendar {
     }
 
     renderDayModal(date, tickets) {
-        const modal = document.getElementById('dayModal') || this.createDayModal();
+        const modal = document.getElementById('ticketModal');
         const modalTitle = modal.querySelector('.modal-title');
-        const modalBody = modal.querySelector('.modal-body');
+        const modalBody = document.getElementById('modal-body-content');
         
         // Format date
         const dateObj = new Date(date + 'T00:00:00');
@@ -645,40 +676,53 @@ class TicketCalendar {
                 </div>
             `;
         } else {
-            let ticketsHtml = '<div class="day-modal-tickets">';
-            
-            tickets.forEach(ticket => {
-                ticketsHtml += `
-                    <div class="day-modal-ticket priority-${ticket.priorita.toLowerCase()}" 
-                         onclick="window.location.href='/tickets/${ticket.id}'">
-                        <div class="ticket-header-modal">
-                            <div class="ticket-number-modal">${ticket.numero_ticket}</div>
-                            <div class="priority-badge priority-${ticket.priorita.toLowerCase()}">
-                                ${ticket.priorita}
+            const ticketsHtml = tickets.map(ticket => {
+                const priorityClass = ticket.priorita.toLowerCase();
+                const titleShort = ticket.titolo.length > 50
+                    ? `${ticket.titolo.substring(0, 50)}...`
+                    : ticket.titolo;
+                const clientName = ticket.cliente || 'Cliente non disponibile';
+                const assigneeHtml = ticket.assigned_to
+                    ? `<div class="ticket-modal-assignee"><i class="bi bi-person-gear"></i> ${ticket.assigned_to}</div>`
+                    : '<div class="ticket-modal-assignee ticket-modal-assignee-empty"><i class="bi bi-person-x"></i> Non assegnato</div>';
+
+                return `
+                    <div class="ticket-modal-ticket priority-${priorityClass}"
+                         onclick="window.location.href='/tickets/${ticket.id}'"
+                         role="button"
+                         tabindex="0">
+                        <div class="ticket-modal-header">
+                            <div class="ticket-modal-client">${clientName}</div>
+                            <div class="priority-badge priority-${priorityClass}">${ticket.priorita}</div>
+                        </div>
+                        <div class="ticket-modal-ticket-number">${ticket.numero_ticket}</div>
+                        <div class="ticket-modal-title">${titleShort}</div>
+                        <div class="ticket-modal-footer">
+                            ${assigneeHtml}
+                            <div class="ticket-modal-open">
+                                Apri ticket <i class="bi bi-arrow-right-short"></i>
                             </div>
                         </div>
-                        <div class="ticket-title-modal">${ticket.titolo}</div>
-                        <div class="ticket-info-modal">
-                            <small class="text-muted">
-                                <i class="bi bi-building"></i> ${ticket.cliente}
-                                ${ticket.assigned_to ? `<br><i class="bi bi-person"></i> ${ticket.assigned_to}` : ''}
-                            </small>
-                        </div>
-                        <div class="ticket-status-modal">
-                            <span class="badge status-${ticket.stato.toLowerCase().replace(' ', '-')}">
-                                ${ticket.stato}
-                            </span>
-                        </div>
-                    </div>
+                    </div> 
                 `;
-            });
-            
-            ticketsHtml += '</div>';
-            modalBody.innerHTML = ticketsHtml;
+            }).join('');
+
+            modalBody.innerHTML = `
+                <div class="ticket-modal-summary">
+                    <div class="ticket-modal-count">
+                        <i class="bi bi-collection"></i>
+                        ${tickets.length} ticket programmati
+                    </div>
+                    <div class="ticket-modal-hint">Clicca una card per aprire il dettaglio.</div>
+                </div>
+                <div class="ticket-modal-tickets">
+                    ${ticketsHtml}
+                </div>
+            `;
         }
         
         // Show modal
-        const bsModal = new bootstrap.Modal(modal);
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
         bsModal.show();
     }
 
@@ -885,8 +929,14 @@ class TicketCalendar {
 
     onCalendarTicketClick(e) {
         e.stopPropagation();
-        const ticketId = e.target.closest('.calendar-ticket').dataset.ticketId;
-        this.showTicketDetails(ticketId);
+        const ticketEl = e.target.closest('.calendar-ticket, .day-ticket, .week-ticket');
+        if (!ticketEl) return;
+
+        // La data è definita sul contenitore (month/day/week)
+        const date = ticketEl.closest('[data-date]')?.dataset?.date;
+        if (date) {
+            this.showDayModal(date);
+        }
     }
 
     async showTicketDetails(ticketId) {
@@ -1008,72 +1058,189 @@ document.addEventListener('DOMContentLoaded', function() {
 // Touch support for mobile drag and drop
 function addTouchSupport() {
     let touchItem = null;
+    let touchClone = null;
     let touchOffset = { x: 0, y: 0 };
-    
-    document.addEventListener('touchstart', function(e) {
-        const target = e.target.closest('.ticket-item, .calendar-ticket');
-        if (target) {
-            touchItem = target;
-            const touch = e.touches[0];
-            const rect = target.getBoundingClientRect();
-            touchOffset.x = touch.clientX - rect.left;
-            touchOffset.y = touch.clientY - rect.top;
-            
-            target.classList.add('dragging');
-            e.preventDefault();
+    let startX = 0;
+    let startY = 0;
+    let latestTouch = null;
+    let dragActive = false;
+    let longPressTimer = null;
+    let lockedBodyScroll = false;
+
+    // 150 ms hold = drag starts; if finger moves >8 px before timer fires = scroll intent
+    const LONG_PRESS_MS = 150;
+    const CANCEL_THRESHOLD_PX = 8;
+
+    function getDropZoneFromPoint(clientX, clientY) {
+        if (touchClone) touchClone.style.display = 'none';
+        const el = document.elementFromPoint(clientX, clientY);
+        if (touchClone) touchClone.style.display = '';
+        return el?.closest('.calendar-day:not(.empty), .week-day-column, .day-hour-line');
+    }
+
+    function activateDrag(item) {
+        dragActive = true;
+
+        // Haptic feedback when drag locks in
+        if (navigator.vibrate) navigator.vibrate(30);
+
+        const touch = latestTouch;
+        const rect = item.getBoundingClientRect();
+        touchOffset.x = touch.clientX - rect.left;
+        touchOffset.y = touch.clientY - rect.top;
+
+        // Floating clone follows the finger — original stays dimmed in place
+        touchClone = item.cloneNode(true);
+        touchClone.style.cssText = `
+            position: fixed;
+            left: ${rect.left}px;
+            top: ${rect.top}px;
+            width: ${rect.width}px;
+            z-index: 9999;
+            opacity: 0.88;
+            transform: rotate(3deg) scale(1.06);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+            pointer-events: none;
+            border-radius: 8px;
+            transition: transform 0.08s ease;
+        `;
+        document.body.appendChild(touchClone);
+
+        item.style.opacity = '0.3';
+        item.style.transition = 'opacity 0.15s ease';
+
+        document.body.style.overflow = 'hidden';
+        lockedBodyScroll = true;
+
+        // Register the dragged ticket so updateTicketDate can find it
+        if (window.ticketCalendar) {
+            window.ticketCalendar.draggedTicket = {
+                id: item.dataset.ticketId,
+                number: item.dataset.ticketNumber,
+                title: item.dataset.ticketTitle,
+                priority: item.dataset.ticketPriority,
+                status: item.dataset.ticketStatus,
+                element: item
+            };
+            window.ticketCalendar.showDropZones();
         }
-    });
-    
-    document.addEventListener('touchmove', function(e) {
+    }
+
+    function cancelPress() {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
         if (touchItem) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            
-            // Create visual feedback
-            touchItem.style.position = 'fixed';
-            touchItem.style.left = (touch.clientX - touchOffset.x) + 'px';
-            touchItem.style.top = (touch.clientY - touchOffset.y) + 'px';
-            touchItem.style.zIndex = '9999';
-            touchItem.style.transform = 'rotate(5deg) scale(1.05)';
-            
-            // Highlight drop zones
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const dropZone = elementBelow?.closest('.calendar-day:not(.empty)');
-            
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            if (dropZone) {
-                dropZone.classList.add('drag-over');
-            }
-        }
-    });
-    
-    document.addEventListener('touchend', function(e) {
-        if (touchItem) {
-            const touch = e.changedTouches[0];
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const dropZone = elementBelow?.closest('.calendar-day:not(.empty)');
-            
-            // Reset styles
-            touchItem.style.position = '';
-            touchItem.style.left = '';
-            touchItem.style.top = '';
-            touchItem.style.zIndex = '';
             touchItem.style.transform = '';
-            touchItem.classList.remove('dragging');
-            
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            
-            // Handle drop
-            if (dropZone && window.ticketCalendar) {
-                const ticketId = touchItem.dataset.ticketId;
-                const date = dropZone.dataset.date;
-                if (ticketId && date) {
-                    window.ticketCalendar.updateTicketDate(ticketId, date);
-                }
-            }
-            
-            touchItem = null;
+            touchItem.style.transition = '';
         }
+        touchItem = null;
+        latestTouch = null;
+    }
+
+    function finishDrag(finalTouch) {
+        if (!touchItem) return;
+
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+
+        const dropZone = (dragActive && finalTouch)
+            ? getDropZoneFromPoint(finalTouch.clientX, finalTouch.clientY)
+            : null;
+
+        // Remove floating clone
+        if (touchClone) {
+            touchClone.remove();
+            touchClone = null;
+        }
+
+        // Restore original element
+        touchItem.style.opacity = '';
+        touchItem.style.transform = '';
+        touchItem.style.transition = '';
+        touchItem.classList.remove('dragging');
+
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+        if (dragActive && window.ticketCalendar) {
+            const ticketId = touchItem.dataset.ticketId;
+            const date = dropZone?.dataset?.date;
+            if (ticketId && date) {
+                window.ticketCalendar.updateTicketDate(ticketId, date);
+            }
+            window.ticketCalendar.hideDropZones();
+            window.ticketCalendar.draggedTicket = null;
+        }
+
+        touchItem = null;
+        latestTouch = null;
+        dragActive = false;
+
+        if (lockedBodyScroll) {
+            document.body.style.overflow = '';
+            lockedBodyScroll = false;
+        }
+    }
+
+    document.addEventListener('touchstart', function(e) {
+        const target = e.target.closest('.ticket-item');
+        if (!target) return;
+
+        touchItem = target;
+        dragActive = false;
+        latestTouch = e.touches[0];
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+
+        // Subtle scale-down feedback while holding
+        target.style.transform = 'scale(0.96)';
+        target.style.transition = 'transform 0.1s ease';
+
+        longPressTimer = setTimeout(() => {
+            longPressTimer = null;
+            if (!touchItem) return;
+            touchItem.style.transform = '';
+            touchItem.style.transition = '';
+            activateDrag(touchItem);
+        }, LONG_PRESS_MS);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!touchItem) return;
+
+        const touch = e.touches[0];
+        latestTouch = touch;
+
+        if (!dragActive) {
+            // Cancel drag intent if finger moved too far before timer fires (scroll gesture)
+            const dist = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+            if (dist > CANCEL_THRESHOLD_PX) {
+                cancelPress();
+            }
+            return;
+        }
+
+        e.preventDefault();
+
+        // Move the clone
+        if (touchClone) {
+            touchClone.style.left = (touch.clientX - touchOffset.x) + 'px';
+            touchClone.style.top  = (touch.clientY - touchOffset.y) + 'px';
+        }
+
+        // Highlight drop zone under finger
+        const dropZone = getDropZoneFromPoint(touch.clientX, touch.clientY);
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        if (dropZone) dropZone.classList.add('drag-over');
+    }, { passive: false });
+
+    document.addEventListener('touchend', function(e) {
+        if (!touchItem) return;
+        finishDrag(e.changedTouches[0]);
+    });
+
+    document.addEventListener('touchcancel', function() {
+        cancelPress();
+        finishDrag(null);
     });
 }
 

@@ -8,6 +8,19 @@
     <meta name="user-name" content="{{ current_user.full_name }}">
     {% endif %}
     <title>{% block title %}DB-Desk - Sistema Gestione Ticket{% endblock %}</title>
+    <script>
+        (function() {
+            try {
+                const isDesktopOrTablet = window.innerWidth >= 576;
+                const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isDesktopOrTablet && isCollapsed) {
+                    document.documentElement.classList.add('sidebar-precollapsed');
+                }
+            } catch (e) {
+                // ignore localStorage access issues
+            }
+        })();
+    </script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
@@ -51,31 +64,68 @@
             transition: width 0.3s ease, transform 0.3s ease;
             overflow-x: hidden;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            scrollbar-width: none;
         }
-        
-        /* Webkit scrollbar styling per la sidebar */
+
         .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+            display: none;
         }
         
         .sidebar.collapsed {
             width: 95px;
             overflow-y: auto;
+        }
+
+        html.sidebar-precollapsed .sidebar {
+            width: 95px;
+            overflow-y: auto;
+        }
+
+        html.sidebar-precollapsed .sidebar .nav-link {
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 12px 4px !important;
+            margin: 4px 8px !important;
+            width: 60px !important;
+            height: 48px !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+
+        html.sidebar-precollapsed .sidebar .nav-link i {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 20px !important;
+            line-height: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        html.sidebar-precollapsed .sidebar .nav-link-text {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        html.sidebar-precollapsed .sidebar .sidebar-brand-text {
+            opacity: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
+        }
+
+        html.sidebar-precollapsed .sidebar .nav-section-title {
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         /* Forza la visualizzazione corretta delle icone */
@@ -410,6 +460,18 @@
             position: relative;
             padding: 0 15px;
         }
+        
+        /* Evita animazioni durante il ripristino stato sidebar al load */
+        .sidebar-initializing .sidebar,
+        .sidebar-initializing .main-content,
+        .sidebar-initializing .sidebar-toggle,
+        .sidebar-initializing .sidebar .nav-link,
+        .sidebar-initializing .sidebar .nav-link-text,
+        .sidebar-initializing .sidebar-brand-text,
+        .sidebar-initializing .nav-section-title {
+            transition: none !important;
+        }
+
         @media (min-width: 768px) {
             .main-content {
                 margin-left: 280px;
@@ -417,6 +479,10 @@
                 padding: 0 24px;
             }
             .main-content.sidebar-collapsed {
+                margin-left: 95px;
+                width: calc(100% - 95px);
+            }
+            html.sidebar-precollapsed .main-content {
                 margin-left: 95px;
                 width: calc(100% - 95px);
             }
@@ -836,6 +902,7 @@
         
         // Sidebar Toggle Functionality
         document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('sidebar-initializing');
             const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebarCloseMobile = document.getElementById('sidebarCloseMobile');
             const sidebar = document.getElementById('sidebarMenu');
@@ -872,10 +939,18 @@
                 const savedState = localStorage.getItem('sidebarCollapsed');
                 const isCollapsed = savedState === 'true';
                 applySidebarState(isCollapsed);
+                document.documentElement.classList.toggle('sidebar-precollapsed', isCollapsed);
             }
             
             // Posiziona inizialmente il toggle
             updateTogglePosition();
+            
+            // Riattiva le transizioni dopo aver applicato lo stato iniziale
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.remove('sidebar-initializing');
+                });
+            });
             
             // Gestisce il click sul pulsante toggle
             if (sidebarToggle) {
@@ -888,6 +963,7 @@
                     // Salva lo stato solo se siamo su desktop/tablet
                     if (isDesktopOrTablet()) {
                         localStorage.setItem('sidebarCollapsed', newState.toString());
+                        document.documentElement.classList.toggle('sidebar-precollapsed', newState);
                     }
                 });
             }
@@ -922,6 +998,7 @@
                     const savedState = localStorage.getItem('sidebarCollapsed');
                     const isCollapsed = savedState === 'true';
                     applySidebarState(isCollapsed);
+                    document.documentElement.classList.toggle('sidebar-precollapsed', isCollapsed);
                 }
                 updateTogglePosition();
             });
