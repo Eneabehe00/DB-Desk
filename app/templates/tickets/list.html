@@ -143,7 +143,7 @@
     <div class="card-header">
         <h5 class="card-title mb-0">
             <i class="bi bi-file-earmark-pdf"></i>
-            Report Giornaliero Ticket Chiusi (PDF)
+            Report Giornaliero Ticket Assegnati a Me (PDF)
         </h5>
     </div>
     <div class="card-body">
@@ -161,18 +161,18 @@
                 <select class="form-select" name="date_filter_type">
                     <option value="closed_at" {% if report_date_filter_type == 'closed_at' %}selected{% endif %}>Data chiusura</option>
                     <option value="created_at" {% if report_date_filter_type == 'created_at' %}selected{% endif %}>Data apertura</option>
+                    <option value="updated_at" {% if report_date_filter_type == 'updated_at' %}selected{% endif %}>Data modifica</option>
                     <option value="due_date" {% if report_date_filter_type == 'due_date' %}selected{% endif %}>Data intervento/scadenza</option>
                     <option value="resolved_at" {% if report_date_filter_type == 'resolved_at' %}selected{% endif %}>Data risoluzione</option>
-                    <option value="all" {% if report_date_filter_type == 'all' %}selected{% endif %}>Tutte (con scelta filtro)</option>
+                    <option value="all" {% if report_date_filter_type == 'all' %}selected{% endif %}>Tutte (creazione + modifica + altri eventi)</option>
                 </select>
             </div>
-            <div class="col-md-5">
-                <label class="form-label">Criticita rilevate / non concluse (manuale)</label>
-                <textarea class="form-control" name="criticita_note" rows="2" placeholder="Compila qui eventuali criticita per il report...">{{ report_criticita_note }}</textarea>
-            </div>
-            <div class="col-md-9">
-                <label class="form-label">Tempi stimati completamento attivita in corso (manuale)</label>
-                <textarea class="form-control" name="tempi_stimati_note" rows="2" placeholder="Compila qui i tempi stimati...">{{ report_tempi_stimati_note }}</textarea>
+            <div class="col-md-7 d-flex align-items-end">
+                <div class="alert alert-info w-100 mb-0 py-2">
+                    Le sezioni <strong>B</strong> e <strong>C</strong> del PDF vengono compilate automaticamente
+                    dai campi ticket: <em>Criticita rilevate</em>, <em>Attivita non concluse</em>,
+                    <em>Data/Ora intervento stimato</em>.
+                </div>
             </div>
             <div class="col-md-3 d-flex align-items-end">
                 <button type="submit" class="btn btn-danger w-100">

@@ -111,6 +111,12 @@ def _ensure_ticket_report_columns():
         alter_statements.append("ALTER TABLE tickets ADD COLUMN ora_fine_lavoro DATETIME NULL")
     if 'tipo_operazione' not in existing_columns:
         alter_statements.append("ALTER TABLE tickets ADD COLUMN tipo_operazione VARCHAR(80) NULL")
+    if 'criticita_rilevate' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN criticita_rilevate TEXT NULL")
+    if 'attivita_non_concluse' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN attivita_non_concluse TEXT NULL")
+    if 'data_ora_intervento_stimato' not in existing_columns:
+        alter_statements.append("ALTER TABLE tickets ADD COLUMN data_ora_intervento_stimato DATETIME NULL")
 
     if not alter_statements:
         return

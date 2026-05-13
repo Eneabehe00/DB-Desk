@@ -47,6 +47,9 @@ class Ticket(db.Model):
     # Informazioni aggiuntive
     tags = db.Column(db.String(200))  # Tag separati da virgola
     note_interne = db.Column(db.Text)
+    criticita_rilevate = db.Column(db.Text)
+    attivita_non_concluse = db.Column(db.Text)
+    data_ora_intervento_stimato = db.Column(db.DateTime)
     tempo_stimato = db.Column(db.Integer)  # In minuti
     tempo_impiegato = db.Column(db.Integer)  # In minuti
     
@@ -280,5 +283,8 @@ class Ticket(db.Model):
             'is_scaduto': self.is_scaduto,
             'giorni_alla_scadenza': self.giorni_alla_scadenza,
             'tempo_stimato': self.tempo_stimato,
-            'tempo_impiegato': self.tempo_impiegato
+            'tempo_impiegato': self.tempo_impiegato,
+            'criticita_rilevate': self.criticita_rilevate,
+            'attivita_non_concluse': self.attivita_non_concluse,
+            'data_ora_intervento_stimato': self.data_ora_intervento_stimato.isoformat() if hasattr(self.data_ora_intervento_stimato, 'isoformat') else self.data_ora_intervento_stimato
         }

@@ -16,7 +16,7 @@ def _fmt_date_it(value):
 def _fmt_time_it(value):
     if not value:
         return ''
-    return value.strftime('%H:%M')
+    return value.strftime('%d/%m/%Y %H:%M')
 
 
 def _label_tipo_operazione(value):
@@ -29,6 +29,11 @@ def _label_tipo_operazione(value):
     return labels.get(value, value or '')
 
 
+def _paragraph_cell(value, style):
+    text = (value or '').strip()
+    return Paragraph(text.replace('\n', '<br/>') if text else '&nbsp;', style)
+
+
 def _to_day_range(dt_value, is_end=False):
     if not dt_value:
         return None
@@ -36,14 +41,14 @@ def _to_day_range(dt_value, is_end=False):
     return datetime.combine(day, time.max if is_end else time.min)
 
 
-def build_ticket_daily_report_pdf(pdf_path, tickets, created_by_name, date_from, date_to, criticita_note='', tempi_stimati_note=''):
+def build_ticket_daily_report_pdf(pdf_path, tickets, created_by_name, date_from, date_to):
     styles = getSampleStyleSheet()
     normal = ParagraphStyle(
         'TicketReportNormal',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=9,
-        leading=12
+        fontSize=8,
+        leading=10
     )
     bold = ParagraphStyle(
         'TicketReportBold',
@@ -63,6 +68,18 @@ def build_ticket_daily_report_pdf(pdf_path, tickets, created_by_name, date_from,
         fontSize=11,
         leading=13,
         alignment=1
+    )
+    table_cell = ParagraphStyle(
+        'TicketReportTableCell',
+        parent=normal,
+        fontSize=7.5,
+        leading=9
+    )
+    table_header = ParagraphStyle(
+        'TicketReportTableHeader',
+        parent=bold,
+        fontSize=8,
+        leading=9
     )
 
     doc = SimpleDocTemplate(
@@ -95,49 +112,100 @@ def build_ticket_daily_report_pdf(pdf_path, tickets, created_by_name, date_from,
     rows = [headers]
     for ticket in tickets:
         rows.append([
-            ticket.numero_ticket or '',
-            _fmt_time_it(ticket.ora_inizio_lavoro),
-            _fmt_time_it(ticket.ora_fine_lavoro),
-            ticket.cliente.ragione_sociale if ticket.cliente else '',
-            _label_tipo_operazione(ticket.tipo_operazione or ticket.categoria),
-            (ticket.descrizione or '')[:95],
-            ticket.stato or '',
-            (ticket.note_interne or '')[:65]
+            _paragraph_cell(ticket.numero_ticket or '', table_cell),
+            _paragraph_cell(_fmt_time_it(ticket.ora_inizio_lavoro), table_cell),
+            _paragraph_cell(_fmt_time_it(ticket.ora_fine_lavoro), table_cell),
+            _paragraph_cell(ticket.cliente.ragione_sociale if ticket.cliente else '', table_cell),
+            _paragraph_cell(_label_tipo_operazione(ticket.tipo_operazione or ticket.categoria), table_cell),
+            _paragraph_cell(ticket.descrizione or '', table_cell),
+            _paragraph_cell(ticket.stato or '', table_cell),
+            _paragraph_cell(ticket.note_interne or '', table_cell)
         ])
-
-    min_rows = 14
-    while len(rows) - 1 < min_rows:
-        rows.append([''] * len(headers))
+    rows[0] = [_paragraph_cell(h, table_header) for h in headers]
 
     table = Table(
         rows,
-        colWidths=[1.4 * cm, 1.8 * cm, 1.8 * cm, 3.1 * cm, 2.3 * cm, 4.8 * cm, 1.7 * cm, 2.3 * cm]
+        colWidths=[1.6 * cm, 1.7 * cm, 1.7 * cm, 3.3 * cm, 2.6 * cm, 4.9 * cm, 1.8 * cm, 2.6 * cm],
+        repeatRows=1
     )
     table.setStyle(TableStyle([
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('FONTSIZE', (0, 0), (-1, -1), 7.5),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f2f2f2')),
         ('LEADING', (0, 1), (-1, -1), 9),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
     ]))
     story.append(table)
     story.append(Spacer(1, 8))
 
     story.append(Paragraph('<b>B) Criticita rilevate e attivita non concluse</b>', bold))
-    criticita_text = criticita_note.strip() if criticita_note else '\n\n\n'
-    criticita_box = Table([[Paragraph(criticita_text.replace('\n', '<br/>'), normal)]], colWidths=[18.2 * cm], rowHeights=[2.8 * cm])
-    criticita_box.setStyle(TableStyle([('BOX', (0, 0), (-1, -1), 0.6, colors.black), ('VALIGN', (0, 0), (-1, -1), 'TOP')]))
     story.append(Spacer(1, 4))
-    story.append(criticita_box)
+    b_headers = [
+        _paragraph_cell('N. ticket', table_header),
+        _paragraph_cell('Criticita rilevate', table_header),
+        _paragraph_cell('Attivita non concluse', table_header)
+    ]
+    b_rows = [b_headers]
+    for ticket in tickets:
+        if ticket.criticita_rilevate or ticket.attivita_non_concluse:
+            b_rows.append([
+                _paragraph_cell(ticket.numero_ticket, table_cell),
+                _paragraph_cell(ticket.criticita_rilevate or '-', table_cell),
+                _paragraph_cell(ticket.attivita_non_concluse or '-', table_cell)
+            ])
+    if len(b_rows) == 1:
+        b_rows.append([
+            _paragraph_cell('-', table_cell),
+            _paragraph_cell('Nessuna criticita rilevata nel periodo.', table_cell),
+            _paragraph_cell('Nessuna attivita non conclusa nel periodo.', table_cell)
+        ])
+    criticita_table = Table(b_rows, colWidths=[2.3 * cm, 8 * cm, 7.9 * cm], repeatRows=1)
+    criticita_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f2f2f2')),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP')
+    ]))
+    story.append(criticita_table)
     story.append(Spacer(1, 8))
 
     story.append(Paragraph('<b>C) Tempi stimati di completamento delle attivita in corso</b>', bold))
-    tempi_text = tempi_stimati_note.strip() if tempi_stimati_note else '\n\n\n'
-    tempi_box = Table([[Paragraph(tempi_text.replace('\n', '<br/>'), normal)]], colWidths=[18.2 * cm], rowHeights=[2.8 * cm])
-    tempi_box.setStyle(TableStyle([('BOX', (0, 0), (-1, -1), 0.6, colors.black), ('VALIGN', (0, 0), (-1, -1), 'TOP')]))
     story.append(Spacer(1, 4))
-    story.append(tempi_box)
+    c_headers = [
+        _paragraph_cell('N. ticket', table_header),
+        _paragraph_cell('Stato', table_header),
+        _paragraph_cell('Data/Ora intervento stimato', table_header),
+        _paragraph_cell('Note', table_header)
+    ]
+    c_rows = [c_headers]
+    for ticket in tickets:
+        if ticket.stato != 'Chiuso':
+            c_rows.append([
+                _paragraph_cell(ticket.numero_ticket, table_cell),
+                _paragraph_cell(ticket.stato or '-', table_cell),
+                _paragraph_cell(_fmt_time_it(ticket.data_ora_intervento_stimato) or '-', table_cell),
+                _paragraph_cell(ticket.attivita_non_concluse or ticket.note_interne or '-', table_cell)
+            ])
+    if len(c_rows) == 1:
+        c_rows.append([
+            _paragraph_cell('-', table_cell),
+            _paragraph_cell('-', table_cell),
+            _paragraph_cell('Nessun ticket aperto nel periodo.', table_cell),
+            _paragraph_cell('-', table_cell)
+        ])
+    tempi_table = Table(c_rows, colWidths=[2.2 * cm, 2.6 * cm, 4.2 * cm, 9.2 * cm], repeatRows=1)
+    tempi_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f2f2f2')),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP')
+    ]))
+    story.append(tempi_table)
     story.append(Spacer(1, 12))
 
     story.append(Paragraph('Trasmissione: il presente report deve essere compilato in ogni sua parte e trasmesso entro la fine della giornata lavorativa.', normal))

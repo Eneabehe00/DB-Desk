@@ -85,6 +85,9 @@ class TicketForm(FlaskForm):
     tempo_stimato = IntegerField('Tempo Stimato (minuti)', validators=[Optional()])
     
     note_interne = TextAreaField('Note Interne', validators=[Optional()])
+    criticita_rilevate = TextAreaField('Criticita Rilevate', validators=[Optional()])
+    attivita_non_concluse = TextAreaField('Attivita Non Concluse', validators=[Optional()])
+    data_ora_intervento_stimato = DateTimeField('Data/Ora Intervento Stimato', validators=[Optional()], format='%Y-%m-%dT%H:%M')
     
     # Campo per macchine collegate (supporta selezione multipla)
     macchine = SelectMultipleField('Macchine Collegate', choices=[], coerce=safe_int_or_none,

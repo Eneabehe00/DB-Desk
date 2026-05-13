@@ -398,6 +398,32 @@
                             </div>
                         </div>
                         {% endif %}
+
+                        {% if ticket.criticita_rilevate or ticket.attivita_non_concluse or ticket.data_ora_intervento_stimato %}
+                        <div class="mt-4">
+                            <h6 class="fw-bold mb-3 text-uppercase small text-muted">Dati Report Strutturati</h6>
+                            <div class="border rounded-3 p-3 bg-light">
+                                {% if ticket.criticita_rilevate %}
+                                <div class="mb-2">
+                                    <div class="small text-muted fw-bold">Criticita rilevate</div>
+                                    <div>{{ ticket.criticita_rilevate | replace('\n', '<br>') | safe }}</div>
+                                </div>
+                                {% endif %}
+                                {% if ticket.attivita_non_concluse %}
+                                <div class="mb-2">
+                                    <div class="small text-muted fw-bold">Attivita non concluse</div>
+                                    <div>{{ ticket.attivita_non_concluse | replace('\n', '<br>') | safe }}</div>
+                                </div>
+                                {% endif %}
+                                {% if ticket.data_ora_intervento_stimato %}
+                                <div>
+                                    <div class="small text-muted fw-bold">Intervento stimato</div>
+                                    <div>{{ ticket.data_ora_intervento_stimato.strftime('%d/%m/%Y %H:%M') }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Tab Materiali (Ricambi) -->

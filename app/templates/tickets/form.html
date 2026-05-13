@@ -690,6 +690,18 @@
                                 <label class="form-label fw-bold">Note Interne</label>
                                 {{ form.note_interne(class="form-control", rows="3", placeholder="Note visibili solo al team...") }}
                             </div>
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">Criticita Rilevate</label>
+                                {{ form.criticita_rilevate(class="form-control", rows="3", placeholder="Eventuali criticita riscontrate sul ticket...") }}
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">Attivita Non Concluse</label>
+                                {{ form.attivita_non_concluse(class="form-control", rows="3", placeholder="Attivita rimaste in sospeso...") }}
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">Data/Ora Intervento Stimato (ticket aperti)</label>
+                                {{ form.data_ora_intervento_stimato(class="form-control", type="datetime-local") }}
+                            </div>
                         </div>
                     </div>
 
