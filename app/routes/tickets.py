@@ -1176,7 +1176,10 @@ def export_report_pdf():
         flash('Intervallo date non valido: "Data da" deve essere minore o uguale a "Data a".', 'error')
         return redirect(url_for('tickets.list_tickets'))
 
-    base_query = filter_by_department_access(Ticket.query, Ticket).filter(Ticket.assigned_to_id == current_user.id)
+    base_query = filter_by_department_access(Ticket.query, Ticket).filter(
+        Ticket.assigned_to_id == current_user.id,
+        Ticket.escluso_da_report_giornaliero.is_(False),
+    )
     filtered_query = _apply_ticket_report_date_filter(base_query, date_filter_type, date_start, date_end)
     # Ordine cronologico: prima l'orario lavoro se compilato, altrimenti chiusura/risoluzione/scadenza/creazione
     sort_time = func.coalesce(

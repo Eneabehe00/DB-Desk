@@ -162,6 +162,10 @@
 
 {% block extra_js %}
 <script>
+function getCSRFToken() {
+  return document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+}
+
 // Carica lo status dello scheduler al caricamento della pagina
 document.addEventListener('DOMContentLoaded', function() {
   refreshSchedulerStatus();
@@ -172,7 +176,10 @@ document.addEventListener('DOMContentLoaded', function() {
 function runEmailImport() {
   fetch('{{ url_for("settings.run_email_import") }}', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'}
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
   })
   .then(response => response.json())
   .then(data => {
@@ -196,7 +203,10 @@ function testIMAPConnection() {
 
   fetch('{{ url_for("settings.test_imap_connection") }}', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'}
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
   })
   .then(response => response.json())
   .then(data => {
@@ -305,7 +315,10 @@ function startScheduler() {
 
     fetch('{{ url_for("settings.start_email_scheduler") }}', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
     })
     .then(response => response.json())
     .then(data => {
@@ -335,7 +348,10 @@ function stopScheduler() {
 
     fetch('{{ url_for("settings.stop_email_scheduler") }}', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
     })
     .then(response => response.json())
     .then(data => {
@@ -360,7 +376,10 @@ function restartScheduler() {
   if (confirm('Riavviare lo scheduler email?')) {
     fetch('{{ url_for("settings.restart_email_scheduler") }}', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
     })
     .then(response => response.json())
     .then(data => {
@@ -382,7 +401,10 @@ function convertDraft(draftId) {
   if (confirm('Convertire questa email in ticket?')) {
     fetch(`/settings/email_import/drafts/${draftId}/convert`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    },
       body: JSON.stringify({})
     })
     .then(response => response.json())
@@ -401,7 +423,10 @@ function ignoreDraft(draftId) {
   if (confirm('Ignorare questa email?')) {
     fetch(`/settings/email_import/drafts/${draftId}/ignore`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    }
     })
     .then(response => response.json())
     .then(data => {

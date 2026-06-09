@@ -17,9 +17,9 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-2 text-center mb-3">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
-                             style="width: 80px; height: 80px;">
-                            <i class="bi bi-person fs-1"></i>
+                        <div class="profile-avatar rounded-circle d-inline-flex align-items-center justify-content-center fw-semibold"
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: #fff; font-size: 1.5rem;">
+                            {{ user.first_name[:1] }}{{ user.last_name[:1] }}
                         </div>
                     </div>
                     <div class="col-md-10">

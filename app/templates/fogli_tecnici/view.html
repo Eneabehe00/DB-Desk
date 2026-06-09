@@ -81,16 +81,17 @@
     .bg-soft-info { background-color: #e0f2fe !important; }
     .bg-soft-secondary { background-color: #f1f5f9 !important; }
 
-    /* Custom scrollbar per le tab */
+    /* Tab: visibili tutte (wrap), scroll orizzontale solo su schermi stretti */
     .nav-tabs-container {
         overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        padding-bottom: 5px;
+        padding-bottom: 4px;
     }
-    .nav-tabs-container::-webkit-scrollbar {
-        display: none;
+    .nav-tabs-container .nav-pills-custom {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .nav-tabs-container .nav-item {
+        flex-shrink: 0;
     }
 
     .info-row {
@@ -141,6 +142,9 @@
 {% endblock %}
 
 {% block content %}
+{% set totale_macchine = foglio.macchine_collegate.count() + (1 if foglio.macchina_manuale else 0) %}
+{% set totale_ricambi = foglio.ricambi_utilizzati.count() + (1 if foglio.ricambio_manuale else 0) %}
+{% set totale_movimenti = totale_movimenti|default(movimenti_macchine|length if movimenti_macchine is defined else 0) %}
 <div class="row">
     <div class="col-lg-12 mb-4">
         <!-- Modern Header -->
@@ -283,11 +287,11 @@
             </div>
             <h6 class="text-muted mb-1">Ricambi Utilizzati</h6>
             <div class="d-flex align-items-end gap-2">
-                <h4 class="fw-bold mb-0">{{ foglio.ricambi_utilizzati.count() }}</h4>
+                <h4 class="fw-bold mb-0">{{ totale_ricambi }}</h4>
                 <span class="small text-muted">pezzi</span>
             </div>
             <div class="progress mt-3" style="height: 6px;">
-                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ [100, (foglio.ricambi_utilizzati.count() or 0) * 10] | min }}%"></div>
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ [100, (totale_ricambi or 0) * 10] | min }}%"></div>
             </div>
         </div>
     </div>
@@ -299,11 +303,11 @@
             </div>
             <h6 class="text-muted mb-1">Macchine Coinvolte</h6>
             <div class="d-flex align-items-end gap-2">
-                <h4 class="fw-bold mb-0">{{ foglio.macchine_collegate.count() }}</h4>
+                <h4 class="fw-bold mb-0">{{ totale_macchine }}</h4>
                 <span class="small text-muted">macchine</span>
             </div>
             <div class="progress mt-3" style="height: 6px;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {{ [100, (foglio.macchine_collegate.count() or 0) * 25] | min }}%"></div>
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ [100, (totale_macchine or 0) * 25] | min }}%"></div>
             </div>
         </div>
     </div>
@@ -322,22 +326,25 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="macchine-tab" data-bs-toggle="tab" data-bs-target="#macchine" type="button" role="tab">
                                 <i class="bi bi-gear me-2"></i>Macchine
-                                {% if foglio.macchine_collegate.count() > 0 %}
-                                    <span class="badge rounded-pill bg-primary ms-1">{{ foglio.macchine_collegate.count() }}</span>
+                                {% if totale_macchine > 0 %}
+                                    <span class="badge rounded-pill bg-primary ms-1">{{ totale_macchine }}</span>
                                 {% endif %}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="materiali-tab" data-bs-toggle="tab" data-bs-target="#materiali" type="button" role="tab">
                                 <i class="bi bi-box-seam me-2"></i>Materiali
-                                {% if foglio.ricambi_utilizzati.count() > 0 %}
-                                    <span class="badge rounded-pill bg-warning text-dark ms-1">{{ foglio.ricambi_utilizzati.count() }}</span>
+                                {% if totale_ricambi > 0 %}
+                                    <span class="badge rounded-pill bg-warning text-dark ms-1">{{ totale_ricambi }}</span>
                                 {% endif %}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="movimenti-tab" data-bs-toggle="tab" data-bs-target="#movimenti" type="button" role="tab">
+                            <button class="nav-link" id="movimenti-tab" data-bs-toggle="tab" data-bs-target="#movimenti-pane" type="button" role="tab">
                                 <i class="bi bi-arrow-left-right me-2"></i>Movimenti
+                                {% if totale_movimenti > 0 %}
+                                    <span class="badge rounded-pill bg-info ms-1">{{ totale_movimenti }}</span>
+                                {% endif %}
                             </button>
                         </li>
                     </ul>
@@ -366,8 +373,39 @@
 
                     <!-- Tab Macchine -->
                     <div class="tab-pane fade" id="macchine" role="tabpanel">
-                        {% if foglio.macchine_collegate.count() > 0 %}
+                        {% if foglio.tipo_operazione_macchine %}
+                        <div class="alert alert-light border d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 py-2 px-3">
+                            <div>
+                                <span class="small text-muted text-uppercase fw-bold">Tipo operazione</span>
+                                <div class="fw-semibold">{{ tipo_operazione_label }}</div>
+                            </div>
+                            {% if totale_movimenti > 0 %}
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill"
+                                    onclick="document.getElementById('movimenti-tab').click()">
+                                <i class="bi bi-arrow-left-right me-1"></i>Vedi {{ totale_movimenti }} movimenti
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if totale_macchine > 0 %}
                         <div class="row g-3">
+                            {% if foglio.macchina_manuale %}
+                            <div class="col-md-6">
+                                <div class="card border rounded-3 h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-soft-warning rounded-3 p-2 me-3">
+                                                <i class="bi bi-pencil-square text-warning fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ foglio.macchina_manuale }}</div>
+                                                <div class="small text-muted">Inserita manualmente</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                             {% for macchina in foglio.macchine_collegate %}
                             <div class="col-md-6">
                                 <div class="card border rounded-3 h-100 shadow-sm">
@@ -399,7 +437,7 @@
 
                     <!-- Tab Materiali -->
                     <div class="tab-pane fade" id="materiali" role="tabpanel">
-                        {% if foglio.ricambi_utilizzati.count() > 0 %}
+                        {% if totale_ricambi > 0 %}
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border-0">
                                 <thead class="bg-light">
@@ -410,6 +448,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% if foglio.ricambio_manuale %}
+                                    <tr>
+                                        <td><span class="fw-bold text-warning">—</span></td>
+                                        <td>{{ foglio.ricambio_manuale }} <span class="badge bg-warning-subtle text-warning-emphasis ms-1">Manuale</span></td>
+                                        <td class="text-end"></td>
+                                    </tr>
+                                    {% endif %}
                                     {% for ricambio in foglio.ricambi_utilizzati %}
                                     <tr onclick="window.location.href='{{ url_for('magazzino.dettaglio_ricambio', id=ricambio.id) }}'" style="cursor: pointer;">
                                         <td><span class="fw-bold text-primary">{{ ricambio.codice }}</span></td>
@@ -431,7 +476,12 @@
                     </div>
 
                     <!-- Tab Movimenti -->
-                    <div class="tab-pane fade" id="movimenti" role="tabpanel">
+                    <div class="tab-pane fade" id="movimenti-pane" role="tabpanel">
+                        {% if foglio.tipo_operazione_macchine %}
+                        <p class="small text-muted mb-3">
+                            Operazione: <strong>{{ tipo_operazione_label }}</strong>
+                        </p>
+                        {% endif %}
                         {% if movimenti_macchine %}
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border-0">
@@ -449,18 +499,28 @@
                                     <tr>
                                         <td class="small">{{ movimento.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                                         <td>
-                                            <div class="fw-bold small">{{ movimento.macchina.codice if movimento.macchina else 'N/A' }}</div>
+                                            {% if movimento.macchina %}
+                                            <a href="{{ url_for('macchine.detail_macchina', macchina_id=movimento.macchina.id) }}"
+                                               class="fw-bold small text-decoration-none">
+                                                {{ movimento.macchina.codice }}
+                                            </a>
+                                            <div class="text-muted" style="font-size: 0.7rem;">
+                                                {{ movimento.macchina.marca }} {{ movimento.macchina.modello }}
+                                            </div>
+                                            {% else %}
+                                            <span class="text-muted small">Macchina non disponibile</span>
+                                            {% endif %}
                                         </td>
                                         <td class="small">{{ movimento.tipo_movimento }}</td>
                                         <td class="small">
                                             {% if movimento.stato_precedente != movimento.stato_nuovo %}
                                                 {{ movimento.stato_precedente }} → {{ movimento.stato_nuovo }}
                                             {% else %}
-                                                {{ movimento.stato_nuovo }}
+                                                {{ movimento.stato_nuovo or '—' }}
                                             {% endif %}
                                         </td>
-                                        <td class="small text-truncate" style="max-width: 150px;" title="{{ movimento.note }}">
-                                            {{ movimento.note or '' }}
+                                        <td class="small" style="max-width: 220px;" title="{{ movimento.note }}">
+                                            {{ movimento.note or '—' }}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -470,7 +530,16 @@
                         {% else %}
                         <div class="text-center py-5 text-muted">
                             <i class="bi bi-arrow-left-right fs-1 mb-3 d-block opacity-25"></i>
-                            <p>Nessun movimento macchine registrato.</p>
+                            <p class="mb-1">Nessun movimento macchine registrato per questo foglio.</p>
+                            {% if foglio.tipo_operazione_macchine %}
+                            <p class="small">
+                                È impostata l'operazione <strong>{{ tipo_operazione_label }}</strong>, ma non risultano
+                                movimenti collegati. Compila di nuovo lo step 2 dall'app oppure usa lo script di test
+                                con scenario <code>max</code> / <code>prestito</code>.
+                            </p>
+                            {% else %}
+                            <p class="small">I movimenti vengono creati quando salvi lo step 2 con un tipo operazione sulle macchine.</p>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>

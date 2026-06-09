@@ -3,14 +3,10 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Dettagli Tecnici{% endblock %}
 
-{% block page_subtitle %}
-<div style="font-size: 0.95rem; line-height: 1.4;">
-    <div class="d-flex flex-wrap gap-3">
-        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:35] }}{% if foglio.cliente.ragione_sociale|length > 35 %}...{% endif %}</span>
-        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:35] }}{% if foglio.titolo|length > 35 %}...{% endif %}</span>
-        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
-    </div>
-</div>
+{% block page_subtitle %}{% endblock %}
+
+{% block flash_messages %}
+{% include 'fogli_tecnici/_flash_toasts.html' %}
 {% endblock %}
 
 {% block extra_head %}
@@ -18,129 +14,147 @@
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
+<div class="tablet-container ft-mobile-step">
 
-    <!-- Progress Bar -->
-    <div class="steps-progress">
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Base</span>
-        </div>
-        <div class="step-item active">
-            2 <span class="step-label">Tecnico</span>
-        </div>
-        <div class="step-item">
-            3 <span class="step-label">Lavori</span>
-        </div>
-        <div class="step-item">
-            4 <span class="step-label">Commerciale</span>
-        </div>
-        <div class="step-item">
-            5 <span class="step-label">Firma</span>
-        </div>
-    </div>
+    {% set current_step = 2 %}
+    {% include 'fogli_tecnici/_steps_progress.html' %}
 
-    <!-- Info Riepilogo -->
-    <div class="form-container py-3 mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-soft-primary p-3 rounded-circle">
-                        <i class="bi bi-building fs-4 text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1 small text-uppercase fw-bold">Cliente</h6>
-                        <h5 class="mb-0 fw-bold text-dark">{{ foglio.cliente.ragione_sociale }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <span class="badge-soft badge-soft-info">
-                    <i class="bi bi-calendar-event me-1"></i>
-                    {{ foglio.data_intervento.strftime('%d/%m/%Y') }}
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Operazioni in Corso -->
-    <div class="form-container border-warning bg-soft-warning mb-4" id="operazioniInCorso" style="display: none;">
-        <h6 class="fw-bold text-warning mb-3">
-            <i class="bi bi-info-circle me-2"></i>
-            Operazioni in Corso per questo Cliente
-        </h6>
-        <div id="operazioniList" class="mb-3">
-            <!-- Le operazioni verranno caricate dinamicamente -->
-        </div>
-        <div>
-            <button type="button" class="btn btn-warning btn-sm fw-bold rounded-pill px-3" id="applicaSuggerimenti">
-                <i class="bi bi-magic me-1"></i>
-                Applica Suggerimenti Automatici
-            </button>
-        </div>
-    </div>
-
-    <!-- Form -->
     <form method="POST" id="step2Form">
         {{ form.hidden_tag() }}
 
-        <div class="form-container">
-            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-gear me-2"></i>Dettagli Tecnici Intervento</h5>
-            
-            <div class="form-grid">
-                <!-- Macchine Coinvolte (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label">
-                        <i class="bi bi-gear"></i>
-                        Macchine Coinvolte
-                    </label>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <a href="{{ url_for('macchine.create_macchina', cliente_id=foglio.cliente_id) }}" 
-                           class="btn btn-sm btn-outline-primary" 
-                           target="_blank"
-                           title="Apre la creazione di una nuova macchina associata a questo cliente in una nuova scheda. Dopo aver salvato, torna qui e aggiorna la pagina per vedere la macchina in elenco.">
-                            <i class="bi bi-plus-circle me-1"></i>
-                            Aggiungi macchina per questo cliente
-                        </a>
+        <!-- Tab navigazione -->
+        <div class="ft-tabs" role="tablist">
+            <button type="button" class="ft-tab active" data-tab="macchine" role="tab" aria-selected="true">
+                <i class="bi bi-gear-wide-connected"></i>
+                Macchine
+                <span class="ft-tab-badge" id="macchineTabBadge" style="display:none;">0</span>
+            </button>
+            <button type="button" class="ft-tab" data-tab="operazione" role="tab" aria-selected="false">
+                <i class="bi bi-tools"></i>
+                Operazione
+                <span class="ft-tab-badge" id="operazioneTabBadge" style="display:none;">✓</span>
+            </button>
+            <button type="button" class="ft-tab" data-tab="manuale" role="tab" aria-selected="false">
+                <i class="bi bi-pencil"></i>
+                Manuale
+            </button>
+        </div>
+
+        <!-- Pannello Macchine -->
+        <div class="ft-tab-panel active" id="panelMacchine" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
+
+                    <div class="ft-alert-banner mb-3" id="operazioniInCorso" style="display: none;">
+                        <div class="ft-alert-banner-title">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            Operazioni in corso per questo cliente
+                        </div>
+                        <div id="operazioniList"></div>
+                        <button type="button" class="ft-btn-apply" id="applicaSuggerimenti">
+                            <i class="bi bi-magic"></i>
+                            Applica suggerimenti automatici
+                        </button>
                     </div>
-                    <div class="machine-selector" id="machineSelector">
-                        <div id="machinesList">
-                            <div class="text-center text-muted p-4">
-                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                Caricamento macchine del cliente...
-                            </div>
+
+                    <a href="{{ url_for('macchine.create_macchina', cliente_id=foglio.cliente_id) }}"
+                       class="ft-btn-secondary mb-3" target="_blank"
+                       title="Apre la creazione di una nuova macchina in una nuova scheda">
+                        <i class="bi bi-plus-circle"></i>
+                        Aggiungi macchina per questo cliente
+                    </a>
+
+                    <div class="ft-chips-strip" id="selectedMachinesChips"></div>
+
+                    <div class="ft-search-wrap">
+                        <div class="ft-search-input">
+                            <i class="bi bi-search"></i>
+                            <input type="search" id="machinesSearch" placeholder="Cerca per codice, marca, modello..." autocomplete="off" enterkeyhint="search">
+                            <button type="button" class="ft-search-clear" id="clearMachinesSearch" aria-label="Cancella ricerca">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ft-filter-row mb-2" id="machinesFilters">
+                        <button type="button" class="ft-filter-btn active" data-filter="all">Tutte</button>
+                        <button type="button" class="ft-filter-btn" data-filter="selezionate">Selezionate</button>
+                    </div>
+
+                    <div class="ft-touch-list" id="machinesList">
+                        <div class="ft-empty-state">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <div class="mt-2">Caricamento macchine...</div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Macchina Manuale (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="macchina_manuale">
-                        <i class="bi bi-plus-circle"></i>
-                        {{ form.macchina_manuale.label.text }}
-                    </label>
-                    {{ form.macchina_manuale(class="form-control" + (" is-invalid" if form.macchina_manuale.errors else ""), placeholder="es. Stampante HP LaserJet Pro 400") }}
-                </div>
+        <!-- Pannello Operazione -->
+        <div class="ft-tab-panel" id="panelOperazione" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
 
-                <!-- Tipo Operazione Macchine (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="tipo_operazione_macchine">
+                    <label class="form-label mb-2">
                         <i class="bi bi-tools"></i>
-                        {{ form.tipo_operazione_macchine.label.text }}
+                        Tipo operazione
                     </label>
-                    {{ form.tipo_operazione_macchine(class="form-select" + (" is-invalid" if form.tipo_operazione_macchine.errors else "")) }}
-                </div>
+                    {{ form.tipo_operazione_macchine(class="ft-hidden-select", id="tipo_operazione_macchine") }}
+                    <div class="ft-op-grid mb-3" id="tipoOperazioneGrid">
+                        <button type="button" class="ft-op-chip" data-value="">
+                            <i class="bi bi-dash-circle"></i>
+                            Nessuna operazione
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="riparazione_cliente">
+                            <i class="bi bi-house-gear"></i>
+                            Riparazione presso cliente
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="prestito_semplice">
+                            <i class="bi bi-arrow-left-right"></i>
+                            Prestito d'uso semplice
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="riparazione_sede_con_prestito">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Riparazione in sede con prestito
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="riparazione_sede">
+                            <i class="bi bi-truck"></i>
+                            Riparazione in sede (solo ritiro)
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="consegna_riparata">
+                            <i class="bi bi-box-seam"></i>
+                            Consegna macchina riparata
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="ritiro_riparazione">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Ritiro per riparazione
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="rientro_prestito">
+                            <i class="bi bi-arrow-return-left"></i>
+                            Rientro da prestito
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="rientro_riparazione">
+                            <i class="bi bi-arrow-return-right"></i>
+                            Rientro da riparazione
+                        </button>
+                        <button type="button" class="ft-op-chip" data-value="altro">
+                            <i class="bi bi-three-dots"></i>
+                            Altro
+                        </button>
+                    </div>
 
-                <!-- Macchine Sostitutive -->
-                <div class="form-field grid-span-2" id="macchineSubstituteSection" style="display: none;">
-                    <label class="form-label">
-                        <i class="bi bi-arrow-repeat"></i>
-                        Macchine Sostitutive (Prestito)
-                    </label>
-                    <div class="machine-selector" id="substituteMachineSelector">
-                        <div id="substituteMachinesList">
-                            <div class="text-center text-muted p-4">
-                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                Caricamento macchine disponibili...
+                    <div id="prestitoSection" style="display: none;">
+                        <label class="form-label mb-2">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Macchine in prestito
+                        </label>
+                        <p class="ft-field-hint mb-2">Seleziona le macchine da lasciare al cliente durante la riparazione.</p>
+                        <div class="ft-chips-strip" id="selectedSubstituteChips"></div>
+                        <div class="ft-touch-list" id="substituteMachinesList">
+                            <div class="ft-empty-state">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                <div class="mt-2">Caricamento macchine disponibili...</div>
                             </div>
                         </div>
                     </div>
@@ -148,18 +162,30 @@
             </div>
         </div>
 
-        <!-- Hidden fields per macchine selezionate -->
+        <!-- Pannello Manuale -->
+        <div class="ft-tab-panel" id="panelManuale" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
+                    <label class="form-label mb-2" for="macchina_manuale">
+                        <i class="bi bi-plus-circle"></i>
+                        Macchina non in elenco
+                    </label>
+                    {{ form.macchina_manuale(class="ft-field-input" + (" is-invalid" if form.macchina_manuale.errors else ""), id="macchina_manuale", placeholder="es. Stampante HP LaserJet Pro 400") }}
+                    <p class="ft-field-hint">Usa questo campo solo se la macchina non è registrata nel sistema.</p>
+                </div>
+            </div>
+        </div>
+
         <input type="hidden" name="macchine" id="selectedMachines" value="">
         <input type="hidden" name="macchine_sostitutive" id="selectedSubstituteMachines" value="">
 
-        <!-- Azioni del Form -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-            <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-ghost">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
+        <div class="fixed-action-bar ft-action-bar">
+            <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-ghost" aria-label="Indietro">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-sm-inline ms-1">Indietro</span>
             </a>
             <button type="submit" class="btn btn-primary-large" id="nextButton">
-                <span>Avanti</span>
+                Avanti
                 <i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
@@ -171,331 +197,320 @@ document.addEventListener('DOMContentLoaded', function() {
     const clienteId = {{ foglio.cliente_id }};
     const selectedMachinesInput = document.getElementById('selectedMachines');
     const selectedSubstituteMachinesInput = document.getElementById('selectedSubstituteMachines');
-    const nextButton = document.getElementById('nextButton');
     const machinesList = document.getElementById('machinesList');
     const substituteMachinesList = document.getElementById('substituteMachinesList');
-    const macchineSubstituteSection = document.getElementById('macchineSubstituteSection');
+    const prestitoSection = document.getElementById('prestitoSection');
     const tipoOperazioneSelect = document.getElementById('tipo_operazione_macchine');
+    const tipoOperazioneGrid = document.getElementById('tipoOperazioneGrid');
     const operazioniInCorso = document.getElementById('operazioniInCorso');
     const operazioniList = document.getElementById('operazioniList');
     const applicaSuggerimentiBtn = document.getElementById('applicaSuggerimenti');
-    
+    const machinesSearch = document.getElementById('machinesSearch');
+    const clearMachinesSearch = document.getElementById('clearMachinesSearch');
+    const selectedMachinesChips = document.getElementById('selectedMachinesChips');
+    const selectedSubstituteChips = document.getElementById('selectedSubstituteChips');
+    const macchineTabBadge = document.getElementById('macchineTabBadge');
+    const operazioneTabBadge = document.getElementById('operazioneTabBadge');
+    const macchinaManualeInput = document.getElementById('macchina_manuale');
+
     let selectedMachines = new Set();
     let selectedSubstituteMachines = new Set();
     let currentOperations = [];
-    
-    // Carica macchine del cliente
+    let allMachines = [];
+    let machineMap = {};
+    let substituteMachineMap = {};
+    let currentFilter = 'all';
+    let searchTimeout;
+
+    // Tab switching (come step 3)
+    document.querySelectorAll('.ft-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.dataset.tab;
+            document.querySelectorAll('.ft-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === target);
+                t.setAttribute('aria-selected', t.dataset.tab === target);
+            });
+            document.querySelectorAll('.ft-tab-panel').forEach(p => {
+                p.classList.toggle('active', p.id === `panel${target.charAt(0).toUpperCase() + target.slice(1)}`);
+            });
+        });
+    });
+
+    if (macchinaManualeInput && macchinaManualeInput.value.trim()) {
+        document.querySelector('[data-tab="manuale"]').click();
+    }
+
+    // Filtri macchine
+    document.querySelectorAll('#machinesFilters .ft-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#machinesFilters .ft-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            applyMachineFilters();
+        });
+    });
+
+    function syncOperazioneChips(value) {
+        tipoOperazioneSelect.value = value;
+        tipoOperazioneGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+            chip.classList.toggle('selected', chip.dataset.value === value);
+        });
+        const showPrestito = value === 'riparazione_sede_con_prestito';
+        prestitoSection.style.display = showPrestito ? '' : 'none';
+        operazioneTabBadge.style.display = value ? '' : 'none';
+        if (!showPrestito) {
+            selectedSubstituteMachines.clear();
+            updateSelectedSubstituteMachines();
+            renderSubstituteChips();
+        }
+    }
+
+    tipoOperazioneGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+        chip.addEventListener('click', () => syncOperazioneChips(chip.dataset.value));
+    });
+    syncOperazioneChips(tipoOperazioneSelect.value || '');
+
     if (clienteId) {
         loadClientMachines(clienteId);
         loadClientOngoingOperations(clienteId);
     }
-    
-    // Carica macchine disponibili per sostituzione
     loadAvailableMachines();
-    
-    // Gestisci visibilità sezione macchine sostitutive
-    tipoOperazioneSelect.addEventListener('change', function() {
-        if (this.value === 'riparazione_sede_con_prestito') {
-            macchineSubstituteSection.style.display = 'block';
-        } else {
-            macchineSubstituteSection.style.display = 'none';
-            // Deseleziona tutte le macchine sostitutive
-            selectedSubstituteMachines.clear();
-            updateSelectedSubstituteMachines();
-        }
+
+    machinesSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => applyMachineFilters(), 200);
     });
-    
-    // Inizializza visibilità basata sul valore corrente
-    if (tipoOperazioneSelect.value === 'riparazione_sede_con_prestito') {
-        macchineSubstituteSection.style.display = 'block';
+    clearMachinesSearch.addEventListener('click', () => {
+        machinesSearch.value = '';
+        applyMachineFilters();
+        machinesSearch.focus();
+    });
+
+    function applyMachineFilters() {
+        const q = machinesSearch.value.toLowerCase().trim();
+        let filtered = allMachines;
+
+        if (currentFilter === 'selezionate') {
+            filtered = filtered.filter(m => selectedMachines.has(m.id));
+        }
+
+        if (q) {
+            filtered = filtered.filter(m =>
+                (m.codice || '').toLowerCase().includes(q) ||
+                (m.marca || '').toLowerCase().includes(q) ||
+                (m.modello || '').toLowerCase().includes(q) ||
+                (m.sn || '').toLowerCase().includes(q) ||
+                (m.tipo || '').toLowerCase().includes(q)
+            );
+        }
+
+        renderMachines(filtered);
     }
-    
+
     function loadClientMachines(clienteId) {
         fetch(`{{ url_for('fogli_tecnici.get_client_machines', cliente_id=0) }}`.replace('0', clienteId))
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    renderMachines(data.machines);
-                    
-                    // Pre-seleziona macchine già associate
+                    allMachines = data.machines;
+                    data.machines.forEach(m => { machineMap[m.id] = m; });
+                    applyMachineFilters();
                     {% if foglio.macchine_collegate %}
-                    const preselectedMachines = [
-                        {% for macchina in foglio.macchine_collegate %}
-                        {{ macchina.id }}{% if not loop.last %},{% endif %}
-                        {% endfor %}
-                    ];
-                    
-                    preselectedMachines.forEach(machineId => {
-                        selectMachine(machineId, true);
-                    });
+                    [{% for macchina in foglio.macchine_collegate %}{{ macchina.id }}{% if not loop.last %},{% endif %}{% endfor %}]
+                        .forEach(id => selectMachine(id, true));
                     {% endif %}
-                    
                 } else {
-                    showError('Errore nel caricamento delle macchine');
+                    showMachinesError('Errore nel caricamento delle macchine');
                 }
             })
-            .catch(error => {
-                showError('Errore di connessione durante il caricamento delle macchine');
-            });
+            .catch(() => showMachinesError('Errore di connessione'));
     }
-    
+
     function renderMachines(machines) {
         if (machines.length === 0) {
             machinesList.innerHTML = `
-                <div class="text-center text-muted p-4">
-                    <i class="bi bi-gear mb-2 d-block" style="font-size: 2rem;"></i>
-                    Nessuna macchina trovata per questo cliente
-                </div>
-            `;
+                <div class="ft-empty-state">
+                    <i class="bi bi-gear"></i>
+                    <div>Nessuna macchina trovata</div>
+                </div>`;
             return;
         }
-        
-        machinesList.innerHTML = machines.map(machine => `
-            <div class="machine-item" data-machine-id="${machine.id}">
-                <div class="form-check m-0">
-                    <input type="checkbox" class="form-check-input machine-checkbox" id="machine_${machine.id}">
-                </div>
-                <div class="machine-info flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-dark fs-5">${machine.codice}</span>
-                        <span class="badge-soft badge-soft-secondary small">${machine.tipo || 'N/D'}</span>
+        machinesList.innerHTML = machines.map(m => `
+            <div class="ft-touch-card${selectedMachines.has(m.id) ? ' selected' : ''}"
+                 data-machine-id="${m.id}" role="button" tabindex="0" aria-pressed="${selectedMachines.has(m.id)}">
+                <div class="ft-touch-card-main">
+                    <div class="ft-touch-card-code">${escapeHtml(m.codice)}</div>
+                    <div class="ft-touch-card-sub">${escapeHtml(m.marca)} ${escapeHtml(m.modello)}</div>
+                    <div class="ft-touch-card-meta">
+                        ${m.tipo ? `<span class="badge-soft badge-soft-secondary small">${escapeHtml(m.tipo)}</span>` : ''}
+                        ${m.sn ? `<span class="text-muted small">S/N: ${escapeHtml(m.sn)}</span>` : ''}
                     </div>
-                    <div class="text-muted small">${machine.marca} ${machine.modello}</div>
-                    ${machine.sn ? `<div class="text-muted small">S/N: ${machine.sn}</div>` : ''}
                 </div>
+                <div class="ft-touch-check"><i class="bi bi-check-lg"></i></div>
             </div>
         `).join('');
-        
-        // Aggiungi event listeners
-        document.querySelectorAll('#machinesList .machine-item').forEach(item => {
-            const machineId = parseInt(item.dataset.machineId);
-            const checkbox = item.querySelector('.machine-checkbox');
-            
-            // Click su tutta la card
-            item.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    toggleMachine(machineId);
-                }
-            });
-            
-            checkbox.addEventListener('change', function() {
-                selectMachine(machineId, this.checked);
-            });
+
+        machinesList.querySelectorAll('[data-machine-id]').forEach(card => {
+            const id = parseInt(card.dataset.machineId);
+            const handler = () => toggleMachine(id);
+            card.addEventListener('click', handler);
+            card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } });
         });
     }
-    
-    function toggleMachine(machineId) {
-        const checkbox = document.getElementById(`machine_${machineId}`);
-        const isSelected = !checkbox.checked;
-        checkbox.checked = isSelected;
-        selectMachine(machineId, isSelected);
+
+    function toggleMachine(id) {
+        selectMachine(id, !selectedMachines.has(id));
     }
-    
-    function selectMachine(machineId, select) {
-        const item = document.querySelector(`[data-machine-id="${machineId}"]`);
-        const checkbox = document.getElementById(`machine_${machineId}`);
-        
+
+    function selectMachine(id, select) {
+        const card = machinesList.querySelector(`[data-machine-id="${id}"]`);
         if (select) {
-            selectedMachines.add(machineId);
-            item.classList.add('selected');
-            checkbox.checked = true;
+            selectedMachines.add(id);
+            if (card) { card.classList.add('selected'); card.setAttribute('aria-pressed', 'true'); }
         } else {
-            selectedMachines.delete(machineId);
-            item.classList.remove('selected');
-            checkbox.checked = false;
+            selectedMachines.delete(id);
+            if (card) { card.classList.remove('selected'); card.setAttribute('aria-pressed', 'false'); }
         }
-        
         updateSelectedMachines();
-        validateForm();
+        renderMachineChips();
+        if (currentFilter === 'selezionate') applyMachineFilters();
     }
-    
+
     function updateSelectedMachines() {
         selectedMachinesInput.value = Array.from(selectedMachines).join(',');
+        const n = selectedMachines.size;
+        macchineTabBadge.textContent = n;
+        macchineTabBadge.style.display = n > 0 ? '' : 'none';
     }
-    
+
+    function renderMachineChips() {
+        selectedMachinesChips.innerHTML = Array.from(selectedMachines).map(id => {
+            const m = machineMap[id];
+            const label = m ? m.codice : `#${id}`;
+            return `<span class="ft-chip"><span class="ft-chip-label">${escapeHtml(label)}</span>
+                <button type="button" class="ft-chip-remove" data-remove-machine="${id}" aria-label="Rimuovi"><i class="bi bi-x"></i></button></span>`;
+        }).join('');
+        selectedMachinesChips.querySelectorAll('[data-remove-machine]').forEach(btn => {
+            btn.addEventListener('click', e => { e.stopPropagation(); selectMachine(parseInt(btn.dataset.removeMachine), false); });
+        });
+    }
+
+    function loadAvailableMachines() {
+        fetch(`{{ url_for('fogli_tecnici.get_available_machines') }}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    data.machines.forEach(m => { substituteMachineMap[m.id] = m; });
+                    renderSubstituteMachines(data.machines);
+                } else {
+                    showSubstituteError('Errore nel caricamento');
+                }
+            })
+            .catch(() => showSubstituteError('Errore di connessione'));
+    }
+
+    function renderSubstituteMachines(machines) {
+        if (machines.length === 0) {
+            substituteMachinesList.innerHTML = `<div class="ft-empty-state"><i class="bi bi-gear"></i><div>Nessuna macchina disponibile per il prestito</div></div>`;
+            return;
+        }
+        substituteMachinesList.innerHTML = machines.map(m => `
+            <div class="ft-touch-card${selectedSubstituteMachines.has(m.id) ? ' selected' : ''}"
+                 data-substitute-id="${m.id}" role="button" tabindex="0">
+                <div class="ft-touch-card-main">
+                    <div class="ft-touch-card-code">${escapeHtml(m.codice)}</div>
+                    <div class="ft-touch-card-sub">${escapeHtml(m.marca)} ${escapeHtml(m.modello)}</div>
+                    <div class="ft-touch-card-meta"><span class="badge-soft badge-soft-success small">Disponibile</span></div>
+                </div>
+                <div class="ft-touch-check"><i class="bi bi-check-lg"></i></div>
+            </div>
+        `).join('');
+
+        substituteMachinesList.querySelectorAll('[data-substitute-id]').forEach(card => {
+            const id = parseInt(card.dataset.substituteId);
+            card.addEventListener('click', () => toggleSubstitute(id));
+        });
+    }
+
+    function toggleSubstitute(id) {
+        const select = !selectedSubstituteMachines.has(id);
+        const card = substituteMachinesList.querySelector(`[data-substitute-id="${id}"]`);
+        if (select) {
+            selectedSubstituteMachines.add(id);
+            if (card) card.classList.add('selected');
+        } else {
+            selectedSubstituteMachines.delete(id);
+            if (card) card.classList.remove('selected');
+        }
+        updateSelectedSubstituteMachines();
+        renderSubstituteChips();
+    }
+
     function updateSelectedSubstituteMachines() {
         selectedSubstituteMachinesInput.value = Array.from(selectedSubstituteMachines).join(',');
     }
-    
-    function loadAvailableMachines() {
-        fetch(`{{ url_for('fogli_tecnici.get_available_machines') }}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    renderSubstituteMachines(data.machines);
-                } else {
-                    showSubstituteError('Errore nel caricamento delle macchine disponibili');
-                }
-            })
-            .catch(error => {
-                showSubstituteError('Errore di connessione durante il caricamento delle macchine');
-            });
-    }
-    
-    function renderSubstituteMachines(machines) {
-        if (machines.length === 0) {
-            substituteMachinesList.innerHTML = `
-                <div class="text-center text-muted p-4">
-                    <i class="bi bi-gear mb-2 d-block" style="font-size: 2rem;"></i>
-                    Nessuna macchina disponibile per il prestito
-                </div>
-            `;
-            return;
-        }
-        
-        substituteMachinesList.innerHTML = machines.map(machine => `
-            <div class="machine-item" data-substitute-machine-id="${machine.id}">
-                <div class="form-check m-0">
-                    <input type="checkbox" class="form-check-input substitute-machine-checkbox" id="substitute_machine_${machine.id}">
-                </div>
-                <div class="machine-info flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-dark fs-5">${machine.codice}</span>
-                        <span class="badge-soft badge-soft-success small">Disponibile</span>
-                    </div>
-                    <div class="text-muted small">${machine.marca} ${machine.modello}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        // Aggiungi event listeners per macchine sostitutive
-        document.querySelectorAll('#substituteMachinesList .machine-item').forEach(item => {
-            const machineId = parseInt(item.dataset.substituteMachineId);
-            const checkbox = item.querySelector('.substitute-machine-checkbox');
-            
-            // Click su tutta la card
-            item.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    toggleSubstituteMachine(machineId);
-                }
-            });
-            
-            checkbox.addEventListener('change', function() {
-                selectSubstituteMachine(machineId, this.checked);
-            });
+
+    function renderSubstituteChips() {
+        selectedSubstituteChips.innerHTML = Array.from(selectedSubstituteMachines).map(id => {
+            const m = substituteMachineMap[id];
+            const label = m ? m.codice : `#${id}`;
+            return `<span class="ft-chip"><span class="ft-chip-label">${escapeHtml(label)}</span>
+                <button type="button" class="ft-chip-remove" data-remove-sub="${id}"><i class="bi bi-x"></i></button></span>`;
+        }).join('');
+        selectedSubstituteChips.querySelectorAll('[data-remove-sub]').forEach(btn => {
+            btn.addEventListener('click', e => { e.stopPropagation(); toggleSubstitute(parseInt(btn.dataset.removeSub)); });
         });
     }
-    
-    function toggleSubstituteMachine(machineId) {
-        const checkbox = document.getElementById(`substitute_machine_${machineId}`);
-        const isSelected = !checkbox.checked;
-        checkbox.checked = isSelected;
-        selectSubstituteMachine(machineId, isSelected);
+
+    function showMachinesError(msg) {
+        machinesList.innerHTML = `<div class="ft-empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>${msg}</div></div>`;
     }
-    
-    function selectSubstituteMachine(machineId, select) {
-        const item = document.querySelector(`[data-substitute-machine-id="${machineId}"]`);
-        const checkbox = document.getElementById(`substitute_machine_${machineId}`);
-        
-        if (select) {
-            selectedSubstituteMachines.add(machineId);
-            item.classList.add('selected');
-            checkbox.checked = true;
-        } else {
-            selectedSubstituteMachines.delete(machineId);
-            item.classList.remove('selected');
-            checkbox.checked = false;
-        }
-        
-        updateSelectedSubstituteMachines();
-        validateForm();
+    function showSubstituteError(msg) {
+        substituteMachinesList.innerHTML = `<div class="ft-empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>${msg}</div></div>`;
     }
-    
-    function showSubstituteError(message) {
-        substituteMachinesList.innerHTML = `
-            <div class="text-center text-danger p-4">
-                <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                ${message}
-            </div>
-        `;
-    }
-    
-    function validateForm() {
-        // Il form è sempre valido ora che non ci sono campi obbligatori
-        const isValid = true;
-        nextButton.disabled = !isValid;
-    }
-    
-    function showError(message) {
-        machinesList.innerHTML = `
-            <div class="text-center text-danger p-4">
-                <i class="bi bi-exclamation-triangle mb-2 d-block" style="font-size: 2rem;"></i>
-                ${message}
-            </div>
-        `;
-    }
-    
+
     function loadClientOngoingOperations(clienteId) {
         fetch(`{{ url_for('fogli_tecnici.get_client_ongoing_operations', cliente_id=0) }}`.replace('0', clienteId))
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success && data.has_operations) {
                     currentOperations = data.operazioni_in_corso;
-                    renderOngoingOperations(data.operazioni_in_corso);
-                    operazioniInCorso.style.display = 'block';
+                    operazioniList.innerHTML = data.operazioni_in_corso.map(op => `
+                        <div class="ft-op-card">
+                            <div class="ft-op-card-code">${escapeHtml(op.macchina.codice)} — ${escapeHtml(op.macchina.marca)} ${escapeHtml(op.macchina.modello)}</div>
+                            <div class="text-muted small">${escapeHtml(op.descrizione)}</div>
+                            <div class="ft-op-card-suggest"><i class="bi bi-arrow-right-short"></i> ${escapeHtml(op.operazione_suggerita_label)}</div>
+                        </div>
+                    `).join('');
+                    operazioniInCorso.style.display = '';
                 } else {
                     operazioniInCorso.style.display = 'none';
                     currentOperations = [];
                 }
             })
-            .catch(error => {
-                console.error('Errore nel caricamento operazioni in corso:', error);
-                operazioniInCorso.style.display = 'none';
-            });
+            .catch(() => { operazioniInCorso.style.display = 'none'; });
     }
-    
-    function renderOngoingOperations(operations) {
-        operazioniList.innerHTML = operations.map(op => `
-            <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm border-start border-4 border-warning">
-                <div>
-                    <span class="fw-bold">${op.macchina.codice}</span> - ${op.macchina.marca} ${op.macchina.modello}
-                    <br><small class="text-muted">${op.descrizione}</small>
-                </div>
-                <div class="text-end">
-                    <span class="badge bg-warning text-dark mb-1">${op.macchina.stato}</span>
-                    <div class="text-success small fw-bold">
-                        <i class="bi bi-arrow-right"></i> ${op.operazione_suggerita_label}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    // Gestisci click su "Applica Suggerimenti Automatici"
+
     applicaSuggerimentiBtn.addEventListener('click', function() {
-        if (currentOperations.length === 0) return;
-        
-        // Seleziona automaticamente le macchine coinvolte
-        currentOperations.forEach(op => {
-            selectMachine(op.macchina.id, true);
-        });
-        
-        // Imposta automaticamente il tipo di operazione più comune
-        const operazioniSuggerite = currentOperations.map(op => op.operazione_suggerita);
-        const operazionePiuComune = operazioniSuggerite.reduce((a, b, i, arr) =>
-            arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-        );
-        
-        tipoOperazioneSelect.value = operazionePiuComune;
-        
-        // Trigger change event per aggiornare UI
-        tipoOperazioneSelect.dispatchEvent(new Event('change'));
-        
-        // Feedback visivo
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Suggerimenti Applicati!';
-        this.classList.remove('btn-warning');
-        this.classList.add('btn-success');
-        
-        setTimeout(() => {
-            this.innerHTML = originalText;
-            this.classList.remove('btn-success');
-            this.classList.add('btn-warning');
-        }, 3000);
+        if (!currentOperations.length) return;
+        currentOperations.forEach(op => selectMachine(op.macchina.id, true));
+        const counts = {};
+        currentOperations.forEach(op => { counts[op.operazione_suggerita] = (counts[op.operazione_suggerita] || 0) + 1; });
+        const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+        syncOperazioneChips(best);
+        document.querySelector('[data-tab="operazione"]').click();
+        const orig = this.innerHTML;
+        this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suggerimenti applicati!';
+        this.style.background = '#10b981';
+        setTimeout(() => { this.innerHTML = orig; this.style.background = ''; }, 2500);
     });
-    
-    validateForm();
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
 });
 </script>
 {% endblock %}
-

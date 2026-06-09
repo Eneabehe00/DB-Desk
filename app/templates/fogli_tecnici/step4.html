@@ -3,203 +3,151 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Commerciale{% endblock %}
 
-{% block page_subtitle %}
-<div style="font-size: 0.95rem; line-height: 1.4;">
-    <div class="d-flex flex-wrap gap-3 mb-1">
-        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:30] }}{% if foglio.cliente.ragione_sociale|length > 30 %}...{% endif %}</span>
-        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:30] }}{% if foglio.titolo|length > 30 %}...{% endif %}</span>
-        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
-    </div>
-    <div class="d-flex flex-wrap gap-3">
-        <span><i class="bi bi-flag me-1"></i><strong>Priorità:</strong> {{ foglio.priorita or 'Priorità N/A' }}</span>
-        {% if foglio.macchine_collegate %}
-        <span><i class="bi bi-gear me-1"></i><strong>Macchine:</strong> {{ foglio.macchine_collegate.count() }}</span>
-        {% endif %}
-        {% if foglio.durata_intervento %}
-        <span><i class="bi bi-clock me-1"></i><strong>Durata:</strong> {{ foglio.durata_intervento }} min</span>
-        {% endif %}
-        {% if foglio.ricambi_utilizzati %}
-        <span><i class="bi bi-wrench me-1"></i><strong>Ricambi:</strong> {{ foglio.ricambi_utilizzati.count() }}</span>
-        {% endif %}
-    </div>
-</div>
+{% block page_subtitle %}{% endblock %}
+
+{% block flash_messages %}
+{% include 'fogli_tecnici/_flash_toasts.html' %}
 {% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
-<style>
-    .currency-input {
-        position: relative;
-    }
-    
-    .currency-symbol {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #64748b;
-        font-weight: 600;
-        z-index: 2;
-    }
-    
-    .currency-input .form-control {
-        padding-left: 2.5rem;
-    }
-    
-    .form-switch .form-check-input {
-        width: 3rem;
-        height: 1.5rem;
-        cursor: pointer;
-    }
-    
-    .form-switch .form-check-label {
-        padding-left: 0.5rem;
-        padding-top: 0.2rem;
-        cursor: pointer;
-        font-weight: 600;
-        color: #475569;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
+<div class="tablet-container ft-mobile-step">
 
-    <!-- Progress Bar -->
-    <div class="steps-progress">
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Base</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Tecnico</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Lavori</span>
-        </div>
-        <div class="step-item active">
-            4 <span class="step-label">Commerciale</span>
-        </div>
-        <div class="step-item">
-            5 <span class="step-label">Firma</span>
-        </div>
+    {% set current_step = 4 %}
+    {% include 'fogli_tecnici/_steps_progress.html' %}
+
+    <div class="ft-summary-row">
+        <span class="ft-context-pill">
+            <i class="bi bi-building"></i>
+            <span><strong>{{ foglio.cliente.ragione_sociale }}</strong></span>
+        </span>
+        <span class="ft-context-pill">
+            <i class="bi bi-calendar-event"></i>
+            <span>{{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'N/A' }}</span>
+        </span>
+        {% if foglio.macchine_collegate %}
+        <span class="ft-context-pill">
+            <i class="bi bi-gear"></i>
+            <span>{{ foglio.macchine_collegate.count() }} macchine</span>
+        </span>
+        {% endif %}
+        {% if foglio.ricambi_utilizzati %}
+        <span class="ft-context-pill">
+            <i class="bi bi-wrench"></i>
+            <span>{{ foglio.ricambi_utilizzati.count() }} ricambi</span>
+        </span>
+        {% endif %}
     </div>
 
-    <!-- Info Riepilogo -->
-    <div class="form-container py-3 mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-soft-primary p-3 rounded-circle">
-                        <i class="bi bi-building fs-4 text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1 small text-uppercase fw-bold">Cliente</h6>
-                        <h5 class="mb-0 fw-bold text-dark">{{ foglio.cliente.ragione_sociale }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    {% if foglio.macchine_collegate %}
-                    <span class="badge-soft badge-soft-secondary">
-                        <i class="bi bi-gear me-1"></i>
-                        {{ foglio.macchine_collegate.count() }} Macchine
-                    </span>
-                    {% endif %}
-                    {% if foglio.ricambi_utilizzati %}
-                    <span class="badge-soft badge-soft-warning">
-                        <i class="bi bi-wrench me-1"></i>
-                        {{ foglio.ricambi_utilizzati.count() }} Ricambi
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form -->
     <form method="POST" id="step4Form">
         {{ form.hidden_tag() }}
 
-        <div class="form-container">
-            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-currency-euro me-2"></i>Dettagli Commerciali</h5>
-            
-            <div class="form-grid">
-                <!-- Modalità di Pagamento (colonna sinistra) -->
-                <div class="form-field">
-                    <label class="form-label" for="modalita_pagamento">
-                        <i class="bi bi-credit-card"></i>
-                        {{ form.modalita_pagamento.label.text }}
-                    </label>
-                    {{ form.modalita_pagamento(class="form-select" + (" is-invalid" if form.modalita_pagamento.errors else "")) }}
+        <!-- Pagamento -->
+        <div class="ft-section open" id="sectionPagamento">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionPagamento">
+                <span class="ft-section-title">
+                    <i class="bi bi-credit-card"></i>
+                    Pagamento
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                <label class="form-label mb-2">
+                    <i class="bi bi-wallet2"></i>
+                    Modalità di pagamento
+                </label>
+                {{ form.modalita_pagamento(class="ft-hidden-select" + (" is-invalid" if form.modalita_pagamento.errors else ""), id="modalita_pagamento") }}
+                <div class="ft-op-grid mb-3" id="pagamentoGrid">
+                    {% for value, label in form.modalita_pagamento.choices %}
+                    <button type="button" class="ft-op-chip" data-value="{{ value }}">
+                        <i class="bi bi-{% if value == 'Contanti' %}cash-stack{% elif value == 'Bonifico bancario' %}bank{% elif value == 'Assegno' %}file-earmark-text{% elif 'Carta' in value %}credit-card{% elif value == 'PayPal' %}paypal{% elif value == 'Fatturazione differita' %}calendar-check{% else %}dash-circle{% endif %}"></i>
+                        {{ label }}
+                    </button>
+                    {% endfor %}
                 </div>
 
-                <!-- Importo Intervento (colonna destra) -->
-                <div class="form-field">
-                    <label class="form-label" for="importo_intervento">
-                        <i class="bi bi-calculator"></i>
-                        {{ form.importo_intervento.label.text }}
-                    </label>
-                    <div class="currency-input">
-                        <span class="currency-symbol">€</span>
-                        {{ form.importo_intervento(class="form-control" + (" is-invalid" if form.importo_intervento.errors else ""), placeholder="0,00", step="0.01") }}
-                    </div>
+                <label class="form-label" for="importo_intervento">
+                    <i class="bi bi-calculator"></i>
+                    Importo intervento
+                </label>
+                <div class="ft-currency-wrap">
+                    <span class="ft-currency-symbol">€</span>
+                    {{ form.importo_intervento(class="ft-field-input" + (" is-invalid" if form.importo_intervento.errors else ""), id="importo_intervento", placeholder="0,00", step="0.01", inputmode="decimal") }}
+                </div>
+                {% if form.importo_intervento.errors %}
+                <div class="text-danger small mt-1">{% for error in form.importo_intervento.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tempi e km -->
+        <div class="ft-section open" id="sectionTempi">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionTempi">
+                <span class="ft-section-title">
+                    <i class="bi bi-clock"></i>
+                    Tempi e spostamento
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                <label class="form-label" for="durata_intervento">Durata intervento</label>
+                <div class="ft-input-suffix mb-3">
+                    {{ form.durata_intervento(class="" + (" is-invalid" if form.durata_intervento.errors else ""), id="durata_intervento", placeholder="es. 120", inputmode="numeric") }}
+                    <span class="ft-suffix-label">min</span>
                 </div>
 
-                <!-- Durata Intervento (colonna sinistra) -->
-                <div class="form-field">
-                    <label class="form-label" for="durata_intervento">
-                        <i class="bi bi-clock"></i>
-                        Durata intervento (minuti)
-                    </label>
-                    <div class="input-group">
-                        {{ form.durata_intervento(class="form-control" + (" is-invalid" if form.durata_intervento.errors else ""), placeholder="es. 120") }}
-                        <span class="input-group-text bg-white border-start-0 text-muted" style="border-radius: 0 0.75rem 0.75rem 0;">min</span>
-                    </div>
-                </div>
-
-                <!-- Km Percorsi (colonna destra) -->
-                <div class="form-field">
-                    <label class="form-label" for="km_percorsi">
-                        <i class="bi bi-geo-alt"></i>
-                        Km percorsi
-                    </label>
-                    <div class="input-group">
-                        {{ form.km_percorsi(class="form-control" + (" is-invalid" if form.km_percorsi.errors else ""), placeholder="es. 25") }}
-                        <span class="input-group-text bg-white border-start-0 text-muted" style="border-radius: 0 0.75rem 0.75rem 0;">km</span>
-                    </div>
-                </div>
-
-                <!-- Intervento già pagato (full width) -->
-                <div class="form-field grid-span-2 mt-2">
-                    <div class="form-check form-switch p-0 d-flex align-items-center">
-                        {{ form.pagamento_immediato(class="form-check-input ms-0 me-3", id="pagamento_immediato") }}
-                        <label class="form-check-label" for="pagamento_immediato">
-                            L'intervento è stato già pagato dal cliente
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Intervento in garanzia (full width) -->
-                <div class="form-field grid-span-2">
-                    <div class="form-check form-switch p-0 d-flex align-items-center">
-                        {{ form.intervento_in_garanzia(class="form-check-input ms-0 me-3", id="intervento_in_garanzia") }}
-                        <label class="form-check-label" for="intervento_in_garanzia">
-                            Intervento in garanzia
-                        </label>
-                    </div>
+                <label class="form-label" for="km_percorsi">Km percorsi</label>
+                <div class="ft-input-suffix">
+                    {{ form.km_percorsi(class="" + (" is-invalid" if form.km_percorsi.errors else ""), id="km_percorsi", placeholder="es. 25", inputmode="numeric", step="1", min="0", max="9999") }}
+                    <span class="ft-suffix-label">km</span>
                 </div>
             </div>
         </div>
 
-        <!-- Azioni del Form -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-            <a href="{{ url_for('fogli_tecnici.step3', id=foglio.id) }}" class="btn btn-ghost">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
+        <!-- Opzioni -->
+        <div class="ft-section open" id="sectionOpzioni">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionOpzioni">
+                <span class="ft-section-title">
+                    <i class="bi bi-sliders"></i>
+                    Opzioni
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                <label class="ft-toggle-row" id="togglePagato">
+                    <span class="ft-toggle-label">
+                        <i class="bi bi-check2-circle"></i>
+                        Intervento già pagato dal cliente
+                    </span>
+                    <span class="ft-toggle-switch">
+                        {{ form.pagamento_immediato(id="pagamento_immediato") }}
+                        <span class="ft-toggle-slider"></span>
+                    </span>
+                </label>
+
+                <label class="ft-toggle-row" id="toggleGaranzia">
+                    <span class="ft-toggle-label">
+                        <i class="bi bi-shield-check"></i>
+                        Intervento in garanzia
+                    </span>
+                    <span class="ft-toggle-switch">
+                        {{ form.intervento_in_garanzia(id="intervento_in_garanzia") }}
+                        <span class="ft-toggle-slider"></span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="fixed-action-bar ft-action-bar">
+            <a href="{{ url_for('fogli_tecnici.step3', id=foglio.id) }}" class="btn btn-ghost" aria-label="Indietro">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-sm-inline ms-1">Indietro</span>
             </a>
             <button type="submit" class="btn btn-primary-large" id="nextButton">
-                <span>Avanti</span>
+                Avanti
                 <i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
@@ -211,58 +159,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const importoInput = document.getElementById('importo_intervento');
     const durataInput = document.getElementById('durata_intervento');
     const kmInput = document.getElementById('km_percorsi');
+    const pagamentoSelect = document.getElementById('modalita_pagamento');
+    const pagamentoGrid = document.getElementById('pagamentoGrid');
+    const pagamentoImmediato = document.getElementById('pagamento_immediato');
+    const interventoGaranzia = document.getElementById('intervento_in_garanzia');
 
-    // Formattazione automatica importo
+    document.querySelectorAll('[data-toggle-section]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById(this.dataset.toggleSection).classList.toggle('open');
+        });
+    });
+
+    function syncPagamentoChips(value) {
+        pagamentoSelect.value = value;
+        pagamentoGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+            chip.classList.toggle('selected', chip.dataset.value === value);
+        });
+    }
+    pagamentoGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+        chip.addEventListener('click', () => syncPagamentoChips(chip.dataset.value));
+    });
+    syncPagamentoChips(pagamentoSelect.value || 'Non specificato');
+
+    function updateToggleRow(checkbox, rowId) {
+        const cb = document.getElementById(rowId === 'togglePagato' ? 'pagamento_immediato' : 'intervento_in_garanzia');
+        const row = document.getElementById(rowId);
+        if (row && cb) row.classList.toggle('active', cb.checked);
+    }
+    [pagamentoImmediato, interventoGaranzia].forEach(cb => {
+        if (!cb) return;
+        cb.addEventListener('change', () => {
+            updateToggleRow(cb.id === 'pagamento_immediato' ? 'togglePagato' : 'toggleGaranzia');
+        });
+        updateToggleRow(cb.id === 'pagamento_immediato' ? 'togglePagato' : 'toggleGaranzia');
+    });
+
     if (importoInput) {
         importoInput.addEventListener('input', function() {
-            let value = this.value.replace(/[^\d.,]/g, '');
-            value = value.replace(',', '.');
+            let value = this.value.replace(/[^\d.,]/g, '').replace(',', '.');
             if (value.includes('.')) {
                 const parts = value.split('.');
-                if (parts[1] && parts[1].length > 2) {
-                    value = parts[0] + '.' + parts[1].substring(0, 2);
-                }
+                if (parts[1] && parts[1].length > 2) value = parts[0] + '.' + parts[1].substring(0, 2);
             }
             this.value = value;
         });
-
         importoInput.addEventListener('blur', function() {
             if (this.value && !isNaN(parseFloat(this.value))) {
-                const num = parseFloat(this.value);
-                this.value = num.toFixed(2);
+                this.value = parseFloat(this.value).toFixed(2);
             }
         });
     }
-
-    // Formattazione automatica durata (solo numeri interi)
-    if (durataInput) {
-        durataInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^\d]/g, '');
-        });
-    }
-
-    // Formattazione automatica km
-    if (kmInput) {
-        kmInput.addEventListener('input', function() {
-            let value = this.value.replace(/[^\d.,]/g, '');
-            value = value.replace(',', '.');
-            if (value.includes('.')) {
-                const parts = value.split('.');
-                if (parts[1] && parts[1].length > 1) {
-                    value = parts[0] + '.' + parts[1].substring(0, 1);
-                }
-            }
-            this.value = value;
-        });
-
-        kmInput.addEventListener('blur', function() {
-            if (this.value && !isNaN(parseFloat(this.value))) {
-                const num = parseFloat(this.value);
-                this.value = num.toFixed(1);
-            }
-        });
-    }
+    if (durataInput) durataInput.addEventListener('input', function() { this.value = this.value.replace(/[^\d]/g, ''); });
+    if (kmInput) kmInput.addEventListener('input', function() { this.value = this.value.replace(/[^\d]/g, ''); });
 });
 </script>
 {% endblock %}
-

@@ -175,10 +175,14 @@
         </div>
         {% endif %}
         
-        {% if foglio.macchine_collegate.count() > 0 %}
+        {% set totale_macchine = foglio.macchine_collegate.count() + (1 if foglio.macchina_manuale else 0) %}
+        {% if totale_macchine > 0 %}
         <div class="info-section">
             <h3>Macchine Coinvolte</h3>
             <ul>
+                {% if foglio.macchina_manuale %}
+                <li>{{ foglio.macchina_manuale }} <em>(inserita manualmente)</em></li>
+                {% endif %}
                 {% for macchina in foglio.macchine_collegate %}
                 <li>{{ macchina.codice }} - {{ macchina.marca }} {{ macchina.modello }}</li>
                 {% endfor %}

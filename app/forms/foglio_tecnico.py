@@ -17,6 +17,21 @@ def safe_int_or_none(value):
         return None
 
 
+def optional_km_integer(form, field):
+    """Accetta km come intero (es. 25 o 25.0) e normalizza field.data."""
+    raw = field.data
+    if raw is None or str(raw).strip() == '':
+        field.data = None
+        return
+    try:
+        n = int(float(str(raw).replace(',', '.').strip()))
+    except (ValueError, TypeError):
+        raise ValidationError('Inserisci solo numeri interi (es. 25)')
+    if n < 0 or n > 9999:
+        raise ValidationError('Inserisci un valore da 0 a 9999 km')
+    field.data = n
+
+
 def get_clienti():
     """Funzione per ottenere tutti i clienti attivi"""
     return Cliente.query.filter_by(is_active=True).order_by(Cliente.ragione_sociale).all()
@@ -186,9 +201,8 @@ class FoglioTecnicoStep4Form(FlaskForm):
         NumberRange(min=1, max=1440, message='Da 1 a 1440 minuti (24 ore)')
     ])
 
-    km_percorsi = IntegerField('Kilometri Percorsi', validators=[
-        Optional(),
-        NumberRange(min=0, max=9999, message='Da 0 a 9999 km')
+    km_percorsi = StringField('Kilometri Percorsi', validators=[
+        optional_km_integer
     ])
 
     submit = SubmitField('Avanti →')
@@ -213,10 +227,8 @@ class FoglioTecnicoFinalizeForm(FlaskForm):
     """Form per finalizzazione del foglio tecnico"""
     
     azione = SelectField('Azione da Eseguire', choices=[
-        ('salva_bozza', 'Salva come Bozza'),
-        ('genera_pdf', 'Genera PDF'),
-        ('invia_email', 'Invia per Email'),
-        ('genera_e_invia', 'Genera PDF e Invia per Email')
+        ('genera_e_chiudi', 'Genera e chiudi'),
+        ('genera_e_invia', 'Genera e invia'),
     ], validators=[DataRequired()])
     
     email_destinatario = StringField('Email Destinatario', validators=[
@@ -234,7 +246,7 @@ class FoglioTecnicoFinalizeForm(FlaskForm):
     
     def validate_email_destinatario(self, field):
         """Validazione email quando l'azione richiede invio"""
-        if self.azione.data in ['invia_email', 'genera_e_invia']:
+        if self.azione.data == 'genera_e_invia':
             if not field.data:
                 raise ValidationError('Email destinatario obbligatoria per l\'invio')
 

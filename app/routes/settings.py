@@ -564,6 +564,31 @@ def database():
     return render_template('settings/database.html', stats=stats, db_info=db_info)
 
 
+def _find_mysqldump():
+    """Trova l'eseguibile mysqldump (PATH o installazioni MySQL comuni su Windows)."""
+    import shutil
+
+    configured = os.environ.get('MYSQLDUMP_PATH', '').strip()
+    if configured and os.path.isfile(configured):
+        return configured
+
+    found = shutil.which('mysqldump')
+    if found:
+        return found
+
+    for version in ('8.4', '8.0', '5.7'):
+        candidate = os.path.join(
+            os.environ.get('ProgramFiles', r'C:\Program Files'),
+            'MySQL',
+            f'MySQL Server {version}',
+            'bin',
+            'mysqldump.exe',
+        )
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
 @settings_bp.route('/backup_db', methods=['POST'])
 @login_required
 def backup_database():
@@ -574,32 +599,45 @@ def backup_database():
     try:
         from datetime import datetime
         import subprocess
-        from config import Config
+        from config import Config, basedir
+
+        mysqldump = _find_mysqldump()
+        if not mysqldump:
+            return jsonify({
+                'success': False,
+                'message': (
+                    'mysqldump non trovato. Installa MySQL client o imposta '
+                    'MYSQLDUMP_PATH nel file .env con il percorso completo.'
+                ),
+            }), 500
         
-        # Nome file backup
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_filename = f"dbdesk_backup_{timestamp}.sql"
-        backup_path = os.path.join('backups', backup_filename)
+        backup_dir = os.path.join(basedir, 'backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        backup_path = os.path.join(backup_dir, backup_filename)
         
-        # Crea directory backup se non esiste
-        os.makedirs('backups', exist_ok=True)
-        
-        # Comando mysqldump
         cmd = [
-            'mysqldump',
+            mysqldump,
             '-h', Config.DB_HOST,
             '-P', str(Config.DB_PORT),
             '-u', Config.DB_USER,
-            f'-p{Config.DB_PASSWORD}' if Config.DB_PASSWORD else '',
-            Config.DB_NAME
+            '--single-transaction',
+            '--routines',
+            '--triggers',
+            Config.DB_NAME,
         ]
+        if Config.DB_PASSWORD:
+            cmd.insert(-1, f'-p{Config.DB_PASSWORD}')
         
-        # Rimuovi parametro password vuoto
-        if not Config.DB_PASSWORD:
-            cmd.remove('')
-        
-        with open(backup_path, 'w') as backup_file:
-            result = subprocess.run(cmd, stdout=backup_file, stderr=subprocess.PIPE, text=True)
+        with open(backup_path, 'w', encoding='utf-8', newline='\n') as backup_file:
+            result = subprocess.run(
+                cmd,
+                stdout=backup_file,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
         
         if result.returncode == 0:
             return jsonify({
@@ -607,13 +645,16 @@ def backup_database():
                 'message': f'Backup creato con successo: {backup_filename}',
                 'filename': backup_filename
             })
-        else:
-            return jsonify({
-                'success': False,
-                'message': f'Errore durante il backup: {result.stderr}'
-            }), 500
+        stderr = (result.stderr or '').strip()
+        if os.path.isfile(backup_path) and os.path.getsize(backup_path) == 0:
+            os.remove(backup_path)
+        return jsonify({
+            'success': False,
+            'message': f'Errore durante il backup: {stderr or "mysqldump terminato con errore"}'
+        }), 500
     
     except Exception as e:
+        current_app.logger.exception('backup_database failed')
         return jsonify({
             'success': False,
             'message': f'Errore durante il backup: {str(e)}'

@@ -20,6 +20,19 @@ from werkzeug.utils import secure_filename
 
 fogli_tecnici_bp = Blueprint('fogli_tecnici', __name__)
 
+TIPO_OPERAZIONE_MACCHINE_LABELS = {
+    '': 'Nessuna operazione',
+    'riparazione_cliente': 'Riparazione presso cliente',
+    'prestito_semplice': 'Prestito d\'uso semplice',
+    'riparazione_sede_con_prestito': 'Riparazione in sede con prestito',
+    'riparazione_sede': 'Riparazione in sede (solo ritiro)',
+    'consegna_riparata': 'Consegna macchina riparata',
+    'ritiro_riparazione': 'Ritiro per riparazione',
+    'rientro_prestito': 'Rientro da prestito',
+    'rientro_riparazione': 'Rientro da riparazione',
+    'altro': 'Altro',
+}
+
 
 @fogli_tecnici_bp.route('/')
 @login_required
@@ -458,7 +471,7 @@ def step4(id):
         form.pagamento_immediato.data = foglio.pagamento_immediato if foglio.pagamento_immediato is not None else False
         form.intervento_in_garanzia.data = foglio.intervento_in_garanzia if getattr(foglio, 'intervento_in_garanzia', None) is not None else False
         form.durata_intervento.data = foglio.durata_intervento
-        form.km_percorsi.data = foglio.km_percorsi
+        form.km_percorsi.data = '' if foglio.km_percorsi is None else str(foglio.km_percorsi)
     
     if form.validate_on_submit():
         # Aggiorna foglio
@@ -467,7 +480,7 @@ def step4(id):
         foglio.pagamento_immediato = form.pagamento_immediato.data
         foglio.intervento_in_garanzia = form.intervento_in_garanzia.data
         foglio.durata_intervento = form.durata_intervento.data
-        foglio.km_percorsi = form.km_percorsi.data
+        foglio.km_percorsi = form.km_percorsi.data if form.km_percorsi.data is not None else None
         foglio.updated_at = datetime.utcnow()
         
         # Marca step come completato
@@ -547,54 +560,49 @@ def finalize(id):
     
     if form.validate_on_submit():
         azione = form.azione.data
-        
-        # Aggiorna email cliente se richiesto
+
         if form.email_destinatario.data and form.aggiorna_email_cliente.data and foglio.cliente:
             foglio.cliente.email = form.email_destinatario.data
             flash(f'Email predefinita del cliente aggiornata a: {form.email_destinatario.data}', 'success')
-            
+
         try:
-            if azione == 'salva_bozza':
-                foglio.stato = 'Completato'
-                foglio.completed_at = datetime.utcnow()
-                
-            elif azione == 'genera_pdf':
-                from app.services.pdf_generator import genera_pdf_foglio_tecnico
-                pdf_path = genera_pdf_foglio_tecnico(foglio.id)
-                foglio.stato = 'Completato'
-                foglio.completed_at = datetime.utcnow()
-                
-            elif azione == 'invia_email':
+            from app.services.pdf_generator import genera_pdf_foglio_tecnico
+
+            genera_pdf_foglio_tecnico(foglio.id)
+            foglio.stato = 'Completato'
+            foglio.completed_at = datetime.utcnow()
+            foglio.updated_at = datetime.utcnow()
+            db.session.commit()
+
+            if azione == 'genera_e_invia':
                 from app.services.email_sender import invia_foglio_per_email
-                invia_foglio_per_email(
-                    foglio.id, 
-                    form.email_destinatario.data,
-                    form.note_finali.data
-                )
-                
-            elif azione == 'genera_e_invia':
-                from app.services.pdf_generator import genera_pdf_foglio_tecnico
-                from app.services.email_sender import invia_foglio_per_email
-                
-                pdf_path = genera_pdf_foglio_tecnico(foglio.id)
                 invia_foglio_per_email(
                     foglio.id,
-                    form.email_destinatario.data, 
-                    form.note_finali.data
+                    form.email_destinatario.data,
+                    form.note_finali.data,
+                    genera_pdf_se_mancante=False,
                 )
-            
-            db.session.commit()
+                flash('Foglio completato, PDF generato e inviato via email.', 'success')
+            else:
+                flash('Foglio completato e PDF generato.', 'success')
+
             return redirect(url_for('fogli_tecnici.view', id=foglio.id))
-            
+
         except Exception as e:
             db.session.rollback()
             flash(f'Errore durante l\'operazione: {str(e)}', 'error')
-    
+
+    tipo_operazione_label = TIPO_OPERAZIONE_MACCHINE_LABELS.get(
+        foglio.tipo_operazione_macchine or '',
+        foglio.tipo_operazione_macchine or 'Non specificata',
+    )
+
     return render_template(
         'fogli_tecnici/finalize.html',
         form=form,
         foglio=foglio,
-        title=f'Finalizza Foglio {foglio.numero_foglio}'
+        tipo_operazione_label=tipo_operazione_label,
+        title=f'Finalizza Foglio {foglio.numero_foglio}',
     )
 
 
@@ -613,16 +621,27 @@ def view(id):
         flash(f'Il foglio è ancora in compilazione. Continua dal passo {foglio.step_corrente}.', 'info')
         return redirect(url_for(step_route, id=foglio.id))
     
-    # Ottieni i movimenti delle macchine collegati a questo foglio
     from app.models.macchina import MovimentoMacchina
-    movimenti_macchine = MovimentoMacchina.query.filter_by(foglio_id=foglio.id).order_by(MovimentoMacchina.created_at.desc()).all()
-    
-    # Solo i fogli completati possono essere visualizzati in dettaglio
+    from sqlalchemy.orm import joinedload
+
+    movimenti_macchine = (
+        MovimentoMacchina.query.options(joinedload(MovimentoMacchina.macchina))
+        .filter_by(foglio_id=foglio.id)
+        .order_by(MovimentoMacchina.created_at.desc())
+        .all()
+    )
+    tipo_operazione_label = TIPO_OPERAZIONE_MACCHINE_LABELS.get(
+        foglio.tipo_operazione_macchine or '',
+        foglio.tipo_operazione_macchine or 'Non specificata',
+    )
+
     return render_template(
         'fogli_tecnici/view.html',
         foglio=foglio,
         movimenti_macchine=movimenti_macchine,
-        title=f'Foglio {foglio.numero_foglio}'
+        totale_movimenti=len(movimenti_macchine),
+        tipo_operazione_label=tipo_operazione_label,
+        title=f'Foglio {foglio.numero_foglio}',
     )
 
 
@@ -716,6 +735,8 @@ def test_design():
         'fogli_tecnici/view.html',
         foglio=foglio,
         movimenti_macchine=movimenti_macchine,
+        totale_movimenti=0,
+        tipo_operazione_label='Nessuna operazione',
         title=f'Test Design - {foglio.numero_foglio}'
     )
 

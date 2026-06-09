@@ -3,384 +3,368 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Firme{% endblock %}
 
-{% block page_subtitle %}
-<div style="font-size: 0.95rem; line-height: 1.4;">
-    <div class="d-flex flex-wrap gap-3 mb-1">
-        <span><i class="bi bi-building me-1"></i><strong>Cliente:</strong> {{ foglio.cliente.ragione_sociale[:25] }}{% if foglio.cliente.ragione_sociale|length > 25 %}...{% endif %}</span>
-        <span><i class="bi bi-card-text me-1"></i><strong>Titolo:</strong> {{ foglio.titolo[:25] }}{% if foglio.titolo|length > 25 %}...{% endif %}</span>
-        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'Data N/A' }}</span>
-    </div>
-    <div class="d-flex flex-wrap gap-3 mb-1">
-        <span><i class="bi bi-flag me-1"></i><strong>Priorità:</strong> {{ foglio.priorita or 'Priorità N/A' }}</span>
-        {% if foglio.macchine_collegate %}
-        <span><i class="bi bi-gear me-1"></i><strong>Macchine:</strong> {{ foglio.macchine_collegate.count() }}</span>
-        {% endif %}
-        {% if foglio.durata_intervento %}
-        <span><i class="bi bi-clock me-1"></i><strong>Durata:</strong> {{ foglio.durata_intervento }} min</span>
-        {% endif %}
-    </div>
-    <div class="d-flex flex-wrap gap-3">
-        {% if foglio.ricambi_utilizzati %}
-        <span><i class="bi bi-wrench me-1"></i><strong>Ricambi:</strong> {{ foglio.ricambi_utilizzati.count() }}</span>
-        {% endif %}
-        <span><i class="bi bi-check-circle me-1" style="color: #28a745;"></i><strong>Firme:</strong> Da completare</span>
-    </div>
-</div>
+{% block page_subtitle %}{% endblock %}
+
+{% block flash_messages %}
+{% include 'fogli_tecnici/_flash_toasts.html' %}
 {% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
-<style>
-    .signature-section {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .signature-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .signature-status {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 999px;
-        margin-top: 1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-    }
-    
-    .status-unsigned { background: #fee2e2; color: #b91c1c; }
-    .status-signed { background: #dcfce7; color: #15803d; }
-    
-    .signature-actions {
-        margin-top: auto;
-        padding-top: 1rem;
-        display: flex;
-        justify-content: flex-end;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
+<div class="tablet-container ft-mobile-step">
 
-    <!-- Progress Bar -->
-    <div class="steps-progress">
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Base</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Tecnico</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Lavori</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Commerciale</span>
-        </div>
-        <div class="step-item active">
-            5 <span class="step-label">Firma</span>
-        </div>
+    {% set current_step = 5 %}
+    {% include 'fogli_tecnici/_steps_progress.html' %}
+
+    <div class="ft-summary-row">
+        <span class="ft-context-pill">
+            <i class="bi bi-building"></i>
+            <span><strong>{{ foglio.cliente.ragione_sociale }}</strong></span>
+        </span>
+        <span class="ft-context-pill">
+            <i class="bi bi-calendar-event"></i>
+            <span>{{ foglio.data_intervento.strftime('%d/%m/%Y') if foglio.data_intervento else 'N/A' }}</span>
+        </span>
+        {% if foglio.macchine_collegate %}
+        <span class="ft-context-pill"><i class="bi bi-gear"></i><span>{{ foglio.macchine_collegate.count() }} macchine</span></span>
+        {% endif %}
+        {% if foglio.durata_intervento %}
+        <span class="ft-context-pill"><i class="bi bi-clock"></i><span>{{ foglio.durata_intervento }} min</span></span>
+        {% endif %}
     </div>
 
-    <!-- Info Riepilogo -->
-    <div class="form-container py-3 mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-soft-primary p-3 rounded-circle">
-                        <i class="bi bi-building fs-4 text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1 small text-uppercase fw-bold">Cliente</h6>
-                        <h5 class="mb-0 fw-bold text-dark">{{ foglio.cliente.ragione_sociale }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    <span class="badge-soft badge-soft-info">
-                        <i class="bi bi-cash-stack me-1"></i>
-                        € {{ "{:,.2f}".format(foglio.importo_intervento or 0) }}
-                    </span>
-                    <span class="badge-soft badge-soft-secondary">
-                        <i class="bi bi-clock me-1"></i>
-                        {{ foglio.durata_intervento or 0 }} min
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form -->
     <form method="POST" id="step5Form">
         {{ form.hidden_tag() }}
 
-        <div class="form-container mb-4">
-            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-person-check me-2"></i>Chiusura e Firme</h5>
-            
-            <div class="form-grid mb-4">
-                <!-- Nome firmatario cliente (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="nome_firmatario_cliente">
-                        <i class="bi bi-person-badge"></i>
-                        Nome Firmatario per il Cliente
-                    </label>
-                    {{ form.nome_firmatario_cliente(class="form-control", placeholder="Nome e cognome di chi firma", value=foglio.cliente.ragione_sociale) }}
-                </div>
+        <!-- Firmatario -->
+        <div class="ft-section open" id="sectionFirmatario">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionFirmatario">
+                <span class="ft-section-title">
+                    <i class="bi bi-person-badge"></i>
+                    Firmatario cliente
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                {{ form.nome_firmatario_cliente(class="ft-field-input", id="nome_firmatario_cliente", placeholder="Nome e cognome di chi firma", value=foglio.cliente.ragione_sociale) }}
+                <p class="ft-field-hint">Nome della persona che firma per il cliente.</p>
             </div>
+        </div>
 
-            <div class="row g-4">
-                <!-- Firma Tecnico -->
-                <div class="col-md-6">
-                    <div class="signature-section">
-                        <div class="signature-header">
-                            <div class="bg-soft-primary p-2 rounded">
-                                <i class="bi bi-person-workspace text-primary"></i>
-                            </div>
-                            <h6 class="fw-bold m-0">Firma del Tecnico</h6>
-                        </div>
-                        <p class="text-muted small mb-3">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</p>
-                        
-                        <div class="signature-canvas-container" id="tecnicoCanvasContainer">
-                            <canvas id="tecnicoCanvas" class="signature-canvas" width="400" height="180"></canvas>
-                            <div class="signature-placeholder" id="tecnicoPlaceholder">
-                                <i class="bi bi-pen fs-2 d-block mb-2"></i>
-                                Firma qui
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="signature-status status-unsigned" id="tecnicoStatus">
-                                <i class="bi bi-x-circle"></i> Non firmata
-                            </div>
-                            <div class="signature-actions">
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="clearTecnico">
-                                    <i class="bi bi-eraser me-1"></i> Cancella
-                                </button>
-                            </div>
-                        </div>
+        <!-- Tab firme -->
+        <div class="ft-tabs" role="tablist">
+            <button type="button" class="ft-tab active" data-tab="tecnico" role="tab">
+                <i class="bi bi-person-workspace"></i>
+                Tecnico
+                <span class="ft-tab-badge" id="tecnicoTabBadge" style="display:none;">✓</span>
+            </button>
+            <button type="button" class="ft-tab" data-tab="cliente" role="tab">
+                <i class="bi bi-person-check"></i>
+                Cliente
+                <span class="ft-tab-badge" id="clienteTabBadge" style="display:none;">✓</span>
+            </button>
+        </div>
+
+        <!-- Firma Tecnico -->
+        <div class="ft-tab-panel active" id="panelTecnico" role="tabpanel">
+            <div class="ft-signature-block" id="tecnicoBlock">
+                <div class="ft-signature-header">
+                    <h3 class="ft-signature-title">
+                        <i class="bi bi-person-workspace icon-tecnico"></i>
+                        Firma del tecnico
+                    </h3>
+                </div>
+                <p class="text-muted small mb-2">{{ foglio.tecnico.first_name }} {{ foglio.tecnico.last_name }}</p>
+                <div class="ft-signature-canvas-wrap" id="tecnicoCanvasContainer">
+                    <canvas id="tecnicoCanvas" class="signature-canvas" width="400" height="200"></canvas>
+                    <div class="ft-signature-placeholder" id="tecnicoPlaceholder">
+                        <i class="bi bi-pen fs-3 d-block mb-1"></i>
+                        Firma qui con il dito
                     </div>
                 </div>
-                
-                <!-- Firma Cliente -->
-                <div class="col-md-6">
-                    <div class="signature-section">
-                        <div class="signature-header">
-                            <div class="bg-soft-success p-2 rounded">
-                                <i class="bi bi-person-check text-success"></i>
-                            </div>
-                            <h6 class="fw-bold m-0">Firma del Cliente</h6>
-                        </div>
-                        <p class="text-muted small mb-3">Conferma per presa visione e accettazione</p>
-                        
-                        <div class="signature-canvas-container" id="clienteCanvasContainer">
-                            <canvas id="clienteCanvas" class="signature-canvas" width="400" height="180"></canvas>
-                            <div class="signature-placeholder" id="clientePlaceholder">
-                                <i class="bi bi-pen fs-2 d-block mb-2"></i>
-                                Firma Cliente
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="signature-status status-unsigned" id="clienteStatus">
-                                <i class="bi bi-x-circle"></i> Non firmata
-                            </div>
-                            <div class="signature-actions">
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="clearCliente">
-                                    <i class="bi bi-eraser me-1"></i> Cancella
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="ft-signature-footer">
+                    <span class="ft-signature-status unsigned" id="tecnicoStatus">
+                        <i class="bi bi-x-circle"></i> Non firmata
+                    </span>
+                    <button type="button" class="ft-btn-clear-sig" id="clearTecnico">
+                        <i class="bi bi-eraser"></i> Cancella
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Hidden fields per le firme -->
+        <!-- Firma Cliente -->
+        <div class="ft-tab-panel" id="panelCliente" role="tabpanel">
+            <div class="ft-signature-block" id="clienteBlock">
+                <div class="ft-signature-header">
+                    <h3 class="ft-signature-title">
+                        <i class="bi bi-person-check icon-cliente"></i>
+                        Firma del cliente
+                    </h3>
+                </div>
+                <p class="text-muted small mb-2">Conferma per presa visione e accettazione</p>
+                <div class="ft-signature-canvas-wrap" id="clienteCanvasContainer">
+                    <canvas id="clienteCanvas" class="signature-canvas" width="400" height="200"></canvas>
+                    <div class="ft-signature-placeholder" id="clientePlaceholder">
+                        <i class="bi bi-pen fs-3 d-block mb-1"></i>
+                        Firma del cliente
+                    </div>
+                </div>
+                <div class="ft-signature-footer">
+                    <span class="ft-signature-status unsigned" id="clienteStatus">
+                        <i class="bi bi-x-circle"></i> Non firmata
+                    </span>
+                    <button type="button" class="ft-btn-clear-sig" id="clearCliente">
+                        <i class="bi bi-eraser"></i> Cancella
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {{ form.firma_tecnico_data() }}
         {{ form.firma_cliente_data() }}
 
-        <!-- Azioni del Form -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-            <a href="{{ url_for('fogli_tecnici.step4', id=foglio.id) }}" class="btn btn-ghost">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
+        <div class="fixed-action-bar ft-action-bar">
+            <a href="{{ url_for('fogli_tecnici.step4', id=foglio.id) }}" class="btn btn-ghost" aria-label="Indietro">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-sm-inline ms-1">Indietro</span>
             </a>
             <button type="submit" class="btn btn-success-large" id="saveButton" disabled>
-                <i class="bi bi-check-circle me-2"></i>
-                <span>Completa e Genera PDF</span>
+                <i class="bi bi-check-circle me-1"></i>
+                Completa PDF
             </button>
         </div>
     </form>
 </div>
 
 <script>
+const SIGNATURE_CANVAS_HEIGHT = 200;
+
 class SignaturePad {
     constructor(canvasId, options = {}) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.isDrawing = false;
         this.hasSignature = false;
-        
+        this.lastPoint = null;
+        this.lastMidPoint = null;
+        this.lastDrawTime = 0;
+        this.lastVelocity = 0;
+        this.currentLineWidth = 2.5;
+        this.logicalWidth = 400;
+        this.logicalHeight = SIGNATURE_CANVAS_HEIGHT;
+        this.dpr = 1;
         this.options = {
             strokeStyle: options.strokeStyle || '#1e293b',
-            lineWidth: options.lineWidth || 3,
+            lineWidth: options.lineWidth || 2.5,
+            minLineWidth: options.minLineWidth || 1.5,
+            maxLineWidth: options.maxLineWidth || 4,
+            velocityFilter: options.velocityFilter ?? 0.7,
+            minDistance: options.minDistance ?? 1.5,
             lineCap: 'round',
             lineJoin: 'round',
             ...options
         };
-        
+        this.currentLineWidth = this.options.lineWidth;
         this.onSignatureChange = options.onSignatureChange || (() => {});
         this.init();
     }
-    
+
     init() {
-        this.resizeCanvas();
         this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
         this.canvas.addEventListener('mousemove', this.draw.bind(this));
         this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
         this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
-        
         this.canvas.addEventListener('touchstart', this.handleTouch.bind(this), { passive: false });
         this.canvas.addEventListener('touchmove', this.handleTouch.bind(this), { passive: false });
         this.canvas.addEventListener('touchend', this.stopDrawing.bind(this));
-        
+        this.canvas.addEventListener('touchcancel', this.stopDrawing.bind(this));
         window.addEventListener('resize', this.resizeCanvas.bind(this));
-        
-        this.setupCtx();
+        if (typeof ResizeObserver !== 'undefined') {
+            this._resizeObserver = new ResizeObserver(() => this.resizeCanvas());
+            this._resizeObserver.observe(this.canvas);
+        }
+        requestAnimationFrame(() => requestAnimationFrame(() => this.resizeCanvas()));
     }
 
-    setupCtx() {
-        this.ctx.strokeStyle = this.options.strokeStyle;
-        this.ctx.lineWidth = this.options.lineWidth;
-        this.ctx.lineCap = this.options.lineCap;
-        this.ctx.lineJoin = this.options.lineJoin;
+    resetStrokeState() {
+        this.lastPoint = null;
+        this.lastMidPoint = null;
+        this.lastVelocity = 0;
+        this.currentLineWidth = this.options.lineWidth;
     }
-    
+
+    applyTransform() { this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); }
+
+    strokeWidthForVelocity(velocity) {
+        const { minLineWidth, maxLineWidth, lineWidth, velocityFilter } = this.options;
+        const filtered = velocityFilter * velocity + (1 - velocityFilter) * this.lastVelocity;
+        this.lastVelocity = filtered;
+        return Math.max(minLineWidth, Math.min(maxLineWidth, lineWidth - filtered * 0.02));
+    }
+
+    getCanvasLogicalSize() {
+        const rect = this.canvas.getBoundingClientRect();
+        return { width: Math.max(Math.round(rect.width), 100), height: Math.max(Math.round(rect.height), SIGNATURE_CANVAS_HEIGHT) };
+    }
+
     resizeCanvas() {
-        const container = this.canvas.parentElement;
-        const width = container.clientWidth - 32;
-        const height = 180;
-        
+        const { width: logicalWidth, height: logicalHeight } = this.getCanvasLogicalSize();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const imageData = this.hasSignature ? this.canvas.toDataURL() : null;
-        
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.setupCtx();
-        
+        this.logicalWidth = logicalWidth;
+        this.logicalHeight = logicalHeight;
+        this.dpr = dpr;
+        this.canvas.width = Math.floor(logicalWidth * dpr);
+        this.canvas.height = Math.floor(logicalHeight * dpr);
+        this.applyTransform();
         if (imageData) {
             const img = new Image();
-            img.onload = () => this.ctx.drawImage(img, 0, 0, width, height);
+            img.onload = () => { this.applyTransform(); this.ctx.drawImage(img, 0, 0, logicalWidth, logicalHeight); };
             img.src = imageData;
         }
     }
-    
+
     getPos(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
-        };
+        const touch = e.touches?.[0] || e.changedTouches?.[0];
+        const clientX = touch ? touch.clientX : e.clientX;
+        const clientY = touch ? touch.clientY : e.clientY;
+        return { x: (clientX - rect.left) * (this.logicalWidth / rect.width), y: (clientY - rect.top) * (this.logicalHeight / rect.height) };
     }
-    
-    startDrawing(e) {
-        this.isDrawing = true;
-        const pos = this.getPos(e);
+
+    drawDot(x, y, width) {
         this.ctx.beginPath();
-        this.ctx.moveTo(pos.x, pos.y);
-        if (e.cancelable) e.preventDefault();
+        this.ctx.fillStyle = this.options.strokeStyle;
+        this.ctx.arc(x, y, width / 2, 0, Math.PI * 2);
+        this.ctx.fill();
     }
-    
-    draw(e) {
-        if (!this.isDrawing) return;
-        const pos = this.getPos(e);
-        this.ctx.lineTo(pos.x, pos.y);
+
+    strokeSegment(from, control, to, lineWidth) {
+        this.ctx.beginPath();
+        this.ctx.lineWidth = lineWidth;
+        this.ctx.strokeStyle = this.options.strokeStyle;
+        this.ctx.lineCap = this.options.lineCap;
+        this.ctx.lineJoin = this.options.lineJoin;
+        this.ctx.moveTo(from.x, from.y);
+        this.ctx.quadraticCurveTo(control.x, control.y, to.x, to.y);
         this.ctx.stroke();
+    }
+
+    addPoint(pos) {
+        if (!this.lastPoint) { this.lastPoint = { x: pos.x, y: pos.y }; this.drawDot(pos.x, pos.y, this.currentLineWidth); return; }
+        const dist = Math.hypot(pos.x - this.lastPoint.x, pos.y - this.lastPoint.y);
+        if (dist < this.options.minDistance) return;
+        const now = Date.now();
+        this.currentLineWidth = this.strokeWidthForVelocity(dist / Math.max(now - this.lastDrawTime, 16));
+        this.lastDrawTime = now;
+        const mid = { x: (this.lastPoint.x + pos.x) / 2, y: (this.lastPoint.y + pos.y) / 2 };
+        if (this.lastMidPoint) this.strokeSegment(this.lastMidPoint, this.lastPoint, mid, this.currentLineWidth);
+        else this.strokeSegment(this.lastPoint, this.lastPoint, mid, this.currentLineWidth);
+        this.lastMidPoint = mid;
+        this.lastPoint = { x: pos.x, y: pos.y };
         this.hasSignature = true;
         this.onSignatureChange(true);
-        if (e.cancelable) e.preventDefault();
     }
-    
-    stopDrawing() {
-        this.isDrawing = false;
+
+    finishStroke(endPos) {
+        if (!this.lastPoint) return;
+        if (endPos && Math.hypot(endPos.x - this.lastPoint.x, endPos.y - this.lastPoint.y) >= this.options.minDistance) this.addPoint(endPos);
+        if (this.lastMidPoint && this.lastPoint) this.strokeSegment(this.lastMidPoint, this.lastPoint, this.lastPoint, this.currentLineWidth);
+        this.resetStrokeState();
     }
-    
-    handleTouch(e) {
-        if (e.type === 'touchstart') this.startDrawing(e);
-        else if (e.type === 'touchmove') this.draw(e);
-    }
-    
+
+    startDrawing(e) { this.isDrawing = true; this.resetStrokeState(); this.lastDrawTime = Date.now(); this.addPoint(this.getPos(e)); if (e.cancelable) e.preventDefault(); }
+    draw(e) { if (!this.isDrawing) return; this.addPoint(this.getPos(e)); if (e.cancelable) e.preventDefault(); }
+    stopDrawing(e) { if (!this.isDrawing) return; this.finishStroke(e ? this.getPos(e) : null); this.isDrawing = false; if (e?.cancelable) e.preventDefault(); }
+    handleTouch(e) { if (e.type === 'touchstart') this.startDrawing(e); else if (e.type === 'touchmove') this.draw(e); else if (e.type === 'touchend') this.stopDrawing(e); }
+
     clear() {
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.applyTransform();
+        this.resetStrokeState();
         this.hasSignature = false;
         this.onSignatureChange(false);
     }
-    
-    getSignatureData() {
-        return this.hasSignature ? this.canvas.toDataURL('image/png') : null;
-    }
+
+    getSignatureData() { return this.hasSignature ? this.canvas.toDataURL('image/png') : null; }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     const saveButton = document.getElementById('saveButton');
     const nomeField = document.getElementById('nome_firmatario_cliente');
-    
-    const tecnicoPad = new SignaturePad('tecnicoCanvas', {
-        onSignatureChange: (hasSig) => updateStatus('tecnico', hasSig)
+    const tecnicoTabBadge = document.getElementById('tecnicoTabBadge');
+    const clienteTabBadge = document.getElementById('clienteTabBadge');
+
+    document.querySelectorAll('[data-toggle-section]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById(this.dataset.toggleSection).classList.toggle('open');
+        });
     });
-    
-    const clientePad = new SignaturePad('clienteCanvas', {
-        onSignatureChange: (hasSig) => updateStatus('cliente', hasSig)
+
+    document.querySelectorAll('.ft-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.dataset.tab;
+            document.querySelectorAll('.ft-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === target);
+                t.setAttribute('aria-selected', t.dataset.tab === target);
+            });
+            document.getElementById('panelTecnico').classList.toggle('active', target === 'tecnico');
+            document.getElementById('panelCliente').classList.toggle('active', target === 'cliente');
+            requestAnimationFrame(() => {
+                if (target === 'tecnico') tecnicoPad.resizeCanvas();
+                else clientePad.resizeCanvas();
+            });
+        });
     });
-    
+
+    const tecnicoPad = new SignaturePad('tecnicoCanvas', { onSignatureChange: (hasSig) => updateStatus('tecnico', hasSig) });
+    const clientePad = new SignaturePad('clienteCanvas', { onSignatureChange: (hasSig) => updateStatus('cliente', hasSig) });
+
     document.getElementById('clearTecnico').addEventListener('click', () => tecnicoPad.clear());
     document.getElementById('clearCliente').addEventListener('click', () => clientePad.clear());
-    
+
     function updateStatus(type, hasSig) {
         const statusEl = document.getElementById(`${type}Status`);
         const container = document.getElementById(`${type}CanvasContainer`);
         const placeholder = document.getElementById(`${type}Placeholder`);
-        
+        const block = document.getElementById(`${type}Block`);
+        const tabBadge = type === 'tecnico' ? tecnicoTabBadge : clienteTabBadge;
+
         if (hasSig) {
-            statusEl.className = 'signature-status status-signed';
-            statusEl.innerHTML = '<i class="bi bi-check-circle-fill"></i> Firmato';
+            statusEl.className = 'ft-signature-status signed';
+            statusEl.innerHTML = '<i class="bi bi-check-circle-fill"></i> Firmata';
             container.classList.add('active');
+            if (block) block.classList.add('signed');
             placeholder.style.display = 'none';
+            if (tabBadge) tabBadge.style.display = '';
         } else {
-            statusEl.className = 'signature-status status-unsigned';
+            statusEl.className = 'ft-signature-status unsigned';
             statusEl.innerHTML = '<i class="bi bi-x-circle"></i> Non firmata';
             container.classList.remove('active');
+            if (block) block.classList.remove('signed');
             placeholder.style.display = 'block';
+            if (tabBadge) tabBadge.style.display = 'none';
         }
         validate();
     }
-    
+
     function validate() {
-        const isValid = nomeField.value.trim().length >= 2 && tecnicoPad.hasSignature && clientePad.hasSignature;
-        saveButton.disabled = !isValid;
+        saveButton.disabled = !(nomeField.value.trim().length >= 2 && tecnicoPad.hasSignature && clientePad.hasSignature);
     }
-    
+
     nomeField.addEventListener('input', validate);
-    
-    document.getElementById('step5Form').addEventListener('submit', function(e) {
+
+    document.getElementById('step5Form').addEventListener('submit', function() {
         document.getElementById('firma_tecnico_data').value = tecnicoPad.getSignatureData();
         document.getElementById('firma_cliente_data').value = clientePad.getSignatureData();
         saveButton.disabled = true;
-        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generazione in corso...';
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generazione...';
     });
 });
 </script>
 {% endblock %}
-

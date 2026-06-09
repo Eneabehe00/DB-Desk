@@ -3,141 +3,112 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Ricambi e Lavorazioni{% endblock %}
 
+{% block page_subtitle %}{% endblock %}
+
+{% block flash_messages %}
+{% include 'fogli_tecnici/_flash_toasts.html' %}
+{% endblock %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
-<style>
-    .ricambi-search-container .input-group-text {
-        background: #fff;
-        border-right: none;
-        border-radius: 0.75rem 0 0 0.75rem;
-    }
-    .ricambi-search-container .form-control {
-        border-left: none;
-        border-radius: 0 0.75rem 0.75rem 0;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
+<div class="tablet-container ft-mobile-step">
 
-    <!-- Progress Bar -->
-    <div class="steps-progress">
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Base</span>
-        </div>
-        <div class="step-item completed">
-            <i class="bi bi-check"></i> <span class="step-label">Tecnico</span>
-        </div>
-        <div class="step-item active">
-            3 <span class="step-label">Lavori</span>
-        </div>
-        <div class="step-item">
-            4 <span class="step-label">Commerciale</span>
-        </div>
-        <div class="step-item">
-            5 <span class="step-label">Firma</span>
-        </div>
-    </div>
+    {% set current_step = 3 %}
+    {% include 'fogli_tecnici/_steps_progress.html' %}
 
-    <!-- Info Riepilogo -->
-    <div class="form-container py-3 mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-soft-primary p-3 rounded-circle">
-                        <i class="bi bi-building fs-4 text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1 small text-uppercase fw-bold">Cliente</h6>
-                        <h5 class="mb-0 fw-bold text-dark">{{ foglio.cliente.ragione_sociale }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    <span class="badge-soft badge-soft-info">
-                        <i class="bi bi-calendar-event me-1"></i>
-                        {{ foglio.data_intervento.strftime('%d/%m/%Y') }}
-                    </span>
-                    {% if foglio.macchine_collegate %}
-                    <span class="badge-soft badge-soft-secondary">
-                        <i class="bi bi-gear me-1"></i>
-                        {{ foglio.macchine_collegate.count() }} Macchine
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form -->
     <form method="POST" id="step3Form">
         {{ form.hidden_tag() }}
 
-        <div class="form-container">
-            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-wrench me-2"></i>Ricambi e Lavorazioni</h5>
-            
-            <div class="form-grid">
-                <!-- Ricambi Utilizzati (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label">
-                        <i class="bi bi-wrench"></i>
-                        Ricambi Utilizzati (da Magazzino)
-                    </label>
-                    
-                    <!-- Campo ricerca ricambi -->
-                    <div class="ricambi-search-container mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text text-primary"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control" id="ricambiSearch" placeholder="Cerca ricambio per codice o descrizione..." autocomplete="off">
-                            <button class="btn btn-outline-secondary" type="button" id="clearRicambiSearch" style="border-radius: 0 0.75rem 0.75rem 0;">
-                                <i class="bi bi-x"></i>
+        <!-- Tab navigazione -->
+        <div class="ft-tabs" role="tablist">
+            <button type="button" class="ft-tab active" data-tab="ricambi" role="tab" aria-selected="true">
+                <i class="bi bi-box-seam"></i>
+                Magazzino
+                <span class="ft-tab-badge" id="ricambiTabBadge" style="display:none;">0</span>
+            </button>
+            <button type="button" class="ft-tab" data-tab="manuale" role="tab" aria-selected="false">
+                <i class="bi bi-pencil"></i>
+                Manuale
+            </button>
+            <button type="button" class="ft-tab" data-tab="note" role="tab" aria-selected="false">
+                <i class="bi bi-chat-left-text"></i>
+                Note
+            </button>
+        </div>
+
+        <!-- Pannello Ricambi -->
+        <div class="ft-tab-panel active" id="panelRicambi" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
+
+                    <div class="ft-chips-strip" id="selectedRicambiChips"></div>
+
+                    <div class="ft-search-wrap">
+                        <div class="ft-search-input">
+                            <i class="bi bi-search"></i>
+                            <input type="search" id="ricambiSearch" placeholder="Cerca codice o descrizione..." autocomplete="off" enterkeyhint="search">
+                            <button type="button" class="ft-search-clear" id="clearRicambiSearch" aria-label="Cancella ricerca">
+                                <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="ricambi-selector" id="ricambiSelector">
-                        <div id="ricambiList">
-                            <div class="text-center text-muted p-4">
-                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                Caricamento ricambi disponibili...
-                            </div>
+
+                    <div class="ft-filter-row mb-2" id="stockFilters">
+                        <button type="button" class="ft-filter-btn active" data-filter="all">Tutti</button>
+                        <button type="button" class="ft-filter-btn" data-filter="disponibile">Disponibili</button>
+                        <button type="button" class="ft-filter-btn" data-filter="sotto_scorta">Sotto scorta</button>
+                    </div>
+
+                    <div class="ft-touch-list" id="ricambiList">
+                        <div class="ft-empty-state">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <div class="mt-2">Caricamento ricambi...</div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Ricambio Manuale (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="ricambio_manuale">
-                        <i class="bi bi-plus-circle"></i>
-                        Ricambio non in magazzino
-                    </label>
-                    {{ form.ricambio_manuale(class="form-control", placeholder="es. Toner HP 85A Nero") }}
-                </div>
-
-                <!-- Lavori eseguiti (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="note_aggiuntive">
-                        <i class="bi bi-chat-left-text"></i>
-                        Lavori eseguiti / Note Intervento
-                    </label>
-                    {{ form.note_aggiuntive(class="form-control", rows="5", placeholder="Descrivi i lavori eseguiti, le riparazioni effettuate e le verifiche completate...") }}
                 </div>
             </div>
         </div>
 
-        <!-- Hidden field per ricambi selezionati -->
+        <!-- Pannello Manuale -->
+        <div class="ft-tab-panel" id="panelManuale" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
+                    <label class="form-label mb-2" for="ricambio_manuale">
+                        <i class="bi bi-plus-circle"></i>
+                        Ricambio non in magazzino
+                    </label>
+                    {{ form.ricambio_manuale(class="ft-field-input", id="ricambio_manuale", placeholder="es. Toner HP 85A Nero") }}
+                    <p class="ft-field-hint">Inserisci il nome o codice del ricambio utilizzato ma non presente a magazzino.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pannello Note -->
+        <div class="ft-tab-panel" id="panelNote" role="tabpanel">
+            <div class="ft-section open" style="margin-bottom:0;">
+                <div class="ft-section-body" style="display:block; padding: 1rem; border-top:none;">
+                    <label class="form-label mb-2" for="note_aggiuntive">
+                        <i class="bi bi-chat-left-text"></i>
+                        Lavori eseguiti / Note intervento
+                    </label>
+                    {{ form.note_aggiuntive(class="ft-field-textarea", id="note_aggiuntive", rows="8", placeholder="Descrivi i lavori eseguiti, le riparazioni effettuate e le verifiche completate...") }}
+                    <p class="ft-field-hint">Puoi usare la dettatura vocale del dispositivo per compilare più velocemente.</p>
+                </div>
+            </div>
+        </div>
+
         <input type="hidden" name="ricambi_utilizzati" id="selectedRicambi" value="">
 
-        <!-- Azioni del Form -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-            <a href="{{ url_for('fogli_tecnici.step2', id=foglio.id) }}" class="btn btn-ghost">
-                <i class="bi bi-arrow-left me-2"></i>
-                Indietro
+        <div class="fixed-action-bar ft-action-bar">
+            <a href="{{ url_for('fogli_tecnici.step2', id=foglio.id) }}" class="btn btn-ghost" aria-label="Indietro">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-sm-inline ms-1">Indietro</span>
             </a>
             <button type="submit" class="btn btn-primary-large" id="nextButton">
-                <span>Avanti</span>
+                Avanti
                 <i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
@@ -147,145 +118,187 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectedRicambiInput = document.getElementById('selectedRicambi');
-    const nextButton = document.getElementById('nextButton');
     const ricambiList = document.getElementById('ricambiList');
-    const ricambiSearchInput = document.getElementById('ricambiSearch');
-    const clearRicambiSearchBtn = document.getElementById('clearRicambiSearch');
-    
+    const ricambiSearch = document.getElementById('ricambiSearch');
+    const clearRicambiSearch = document.getElementById('clearRicambiSearch');
+    const selectedRicambiChips = document.getElementById('selectedRicambiChips');
+    const ricambiTabBadge = document.getElementById('ricambiTabBadge');
+    const ricambioManualeInput = document.getElementById('ricambio_manuale');
+    const noteInput = document.getElementById('note_aggiuntive');
+
     let selectedRicambi = new Set();
     let allRicambi = [];
+    let ricambioMap = {};
+    let currentFilter = 'all';
     let searchTimeout;
-    
-    // Carica ricambi disponibili
+
+    // Tab switching
+    document.querySelectorAll('.ft-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.dataset.tab;
+            document.querySelectorAll('.ft-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === target);
+                t.setAttribute('aria-selected', t.dataset.tab === target);
+            });
+            document.querySelectorAll('.ft-tab-panel').forEach(p => {
+                p.classList.toggle('active', p.id === `panel${target.charAt(0).toUpperCase() + target.slice(1)}`);
+            });
+        });
+    });
+
+    // Auto-switch tab se c'è contenuto manuale/note
+    if (ricambioManualeInput && ricambioManualeInput.value.trim()) {
+        document.querySelector('[data-tab="manuale"]').click();
+    }
+
+    // Filtri stock
+    document.querySelectorAll('.ft-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.ft-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            applyFilters();
+        });
+    });
+
     loadRicambi();
-    
+
+    ricambiSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => applyFilters(), 200);
+    });
+    clearRicambiSearch.addEventListener('click', () => {
+        ricambiSearch.value = '';
+        applyFilters();
+        ricambiSearch.focus();
+    });
+
     function loadRicambi() {
         fetch('{{ url_for("fogli_tecnici.api_ricambi_department") }}')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
                     allRicambi = data.ricambi;
-                    renderRicambi(data.ricambi);
-                    
-                    // Pre-seleziona ricambi già associati
+                    data.ricambi.forEach(r => { ricambioMap[r.id] = r; });
+                    applyFilters();
                     {% if foglio.ricambi_utilizzati %}
-                    const preselectedRicambi = [
-                        {% for ricambio in foglio.ricambi_utilizzati %}
-                        {{ ricambio.id }}{% if not loop.last %},{% endif %}
-                        {% endfor %}
-                    ];
-
-                    preselectedRicambi.forEach(ricambioId => {
-                        selectRicambio(ricambioId, true);
-                    });
+                    [{% for ricambio in foglio.ricambi_utilizzati %}{{ ricambio.id }}{% if not loop.last %},{% endif %}{% endfor %}]
+                        .forEach(id => selectRicambio(id, true));
                     {% endif %}
                 } else {
-                    ricambiList.innerHTML = `<div class="text-center text-danger p-4">Errore: ${data.error}</div>`;
+                    ricambiList.innerHTML = `<div class="ft-empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>${escapeHtml(data.error || 'Errore')}</div></div>`;
                 }
             })
-            .catch(error => {
-                ricambiList.innerHTML = `<div class="text-center text-danger p-4">Errore di connessione</div>`;
+            .catch(() => {
+                ricambiList.innerHTML = `<div class="ft-empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>Errore di connessione</div></div>`;
             });
+    }
+
+    function getStockCategory(r) {
+        if (r.stato === 'Esaurito' || (r.quantita !== undefined && r.quantita <= 0)) return 'esaurito';
+        if (r.stato === 'Sotto scorta') return 'sotto_scorta';
+        return 'disponibile';
+    }
+
+    function applyFilters() {
+        const q = ricambiSearch.value.toLowerCase().trim();
+        let filtered = allRicambi;
+
+        if (currentFilter === 'disponibile') {
+            filtered = filtered.filter(r => getStockCategory(r) === 'disponibile');
+        } else if (currentFilter === 'sotto_scorta') {
+            filtered = filtered.filter(r => getStockCategory(r) === 'sotto_scorta');
+        }
+
+        if (q) {
+            filtered = filtered.filter(r =>
+                (r.codice || '').toLowerCase().includes(q) ||
+                (r.descrizione || '').toLowerCase().includes(q) ||
+                (r.ubicazione || '').toLowerCase().includes(q)
+            );
+        }
+
+        renderRicambi(filtered);
     }
 
     function renderRicambi(ricambi) {
         if (ricambi.length === 0) {
-            ricambiList.innerHTML = '<div class="text-center text-muted p-4">Nessun ricambio trovato</div>';
+            ricambiList.innerHTML = `<div class="ft-empty-state"><i class="bi bi-box"></i><div>Nessun ricambio trovato</div></div>`;
             return;
         }
 
-        ricambiList.innerHTML = ricambi.map(ricambio => {
-            let stockBadge = 'badge-soft-success';
-            if (ricambio.stato === 'Esaurito') stockBadge = 'badge-soft-danger';
-            else if (ricambio.stato === 'Sotto scorta') stockBadge = 'badge-soft-warning';
+        ricambiList.innerHTML = ricambi.map(r => {
+            const cat = getStockCategory(r);
+            let badgeClass = 'badge-soft-success';
+            let badgeText = `${r.quantita} pz`;
+            if (cat === 'esaurito') { badgeClass = 'badge-soft-danger'; badgeText = 'Esaurito'; }
+            else if (cat === 'sotto_scorta') { badgeClass = 'badge-soft-warning'; badgeText = `${r.quantita} pz`; }
 
             return `
-                <div class="ricambio-item" data-ricambio-id="${ricambio.id}">
-                    <div class="form-check m-0">
-                        <input type="checkbox" class="form-check-input ricambio-checkbox" id="ricambio_${ricambio.id}">
-                    </div>
-                    <div class="ricambio-info flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-dark fs-5">${ricambio.codice}</span>
-                            <span class="badge-soft ${stockBadge} small">${ricambio.quantita} pz</span>
-                        </div>
-                        <div class="text-muted small">${ricambio.descrizione}</div>
-                        ${ricambio.ubicazione ? `<div class="text-muted small"><i class="bi bi-geo-alt small me-1"></i>${ricambio.ubicazione}</div>` : ''}
+            <div class="ft-touch-card${selectedRicambi.has(r.id) ? ' selected' : ''}"
+                 data-ricambio-id="${r.id}" role="button" tabindex="0" aria-pressed="${selectedRicambi.has(r.id)}">
+                <div class="ft-touch-card-main">
+                    <div class="ft-touch-card-code">${escapeHtml(r.codice)}</div>
+                    <div class="ft-touch-card-sub">${escapeHtml(r.descrizione)}</div>
+                    <div class="ft-touch-card-meta">
+                        <span class="badge-soft ${badgeClass} small">${badgeText}</span>
+                        ${r.ubicazione ? `<span class="text-muted small"><i class="bi bi-geo-alt"></i> ${escapeHtml(r.ubicazione)}</span>` : ''}
                     </div>
                 </div>
-            `;
+                <div class="ft-touch-check"><i class="bi bi-check-lg"></i></div>
+            </div>`;
         }).join('');
-        
-        document.querySelectorAll('#ricambiList .ricambio-item').forEach(item => {
-            const ricambioId = parseInt(item.dataset.ricambioId);
-            const checkbox = item.querySelector('.ricambio-checkbox');
-            
-            item.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    const isSelected = !checkbox.checked;
-                    checkbox.checked = isSelected;
-                    selectRicambio(ricambioId, isSelected);
-                }
-            });
-            
-            checkbox.addEventListener('change', function() {
-                selectRicambio(ricambioId, this.checked);
-            });
+
+        ricambiList.querySelectorAll('[data-ricambio-id]').forEach(card => {
+            const id = parseInt(card.dataset.ricambioId);
+            const handler = () => toggleRicambio(id);
+            card.addEventListener('click', handler);
+            card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } });
         });
     }
-    
-    function selectRicambio(ricambioId, select) {
-        const item = document.querySelector(`[data-ricambio-id="${ricambioId}"]`);
-        const checkbox = document.getElementById(`ricambio_${ricambioId}`);
-        
-        if (select) {
-            selectedRicambi.add(ricambioId);
-            if (item) item.classList.add('selected');
-            if (checkbox) checkbox.checked = true;
-        } else {
-            selectedRicambi.delete(ricambioId);
-            if (item) item.classList.remove('selected');
-            if (checkbox) checkbox.checked = false;
-        }
-        
-        updateSelectedRicambi();
+
+    function toggleRicambio(id) {
+        selectRicambio(id, !selectedRicambi.has(id));
     }
-    
+
+    function selectRicambio(id, select) {
+        const card = ricambiList.querySelector(`[data-ricambio-id="${id}"]`);
+        if (select) {
+            selectedRicambi.add(id);
+            if (card) { card.classList.add('selected'); card.setAttribute('aria-pressed', 'true'); }
+        } else {
+            selectedRicambi.delete(id);
+            if (card) { card.classList.remove('selected'); card.setAttribute('aria-pressed', 'false'); }
+        }
+        updateSelectedRicambi();
+        renderRicambiChips();
+    }
+
     function updateSelectedRicambi() {
         selectedRicambiInput.value = Array.from(selectedRicambi).join(',');
+        const n = selectedRicambi.size;
+        ricambiTabBadge.textContent = n;
+        ricambiTabBadge.style.display = n > 0 ? '' : 'none';
     }
 
-    // Ricerca
-    ricambiSearchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            const filtered = allRicambi.filter(r => 
-                r.codice.toLowerCase().includes(searchTerm) || 
-                r.descrizione.toLowerCase().includes(searchTerm)
-            );
-            renderRicambi(filtered);
-            
-            // Ripristina stati selezione dopo re-render
-            selectedRicambi.forEach(id => {
-                const item = document.querySelector(`[data-ricambio-id="${id}"]`);
-                const checkbox = document.getElementById(`ricambio_${id}`);
-                if (item) item.classList.add('selected');
-                if (checkbox) checkbox.checked = true;
-            });
-        }, 300);
-    });
-
-    clearRicambiSearchBtn.addEventListener('click', () => {
-        ricambiSearchInput.value = '';
-        renderRicambi(allRicambi);
-        selectedRicambi.forEach(id => {
-            const item = document.querySelector(`[data-ricambio-id="${id}"]`);
-            const checkbox = document.getElementById(`ricambio_${id}`);
-            if (item) item.classList.add('selected');
-            if (checkbox) checkbox.checked = true;
+    function renderRicambiChips() {
+        selectedRicambiChips.innerHTML = Array.from(selectedRicambi).map(id => {
+            const r = ricambioMap[id];
+            const label = r ? r.codice : `#${id}`;
+            return `<span class="ft-chip"><span class="ft-chip-label">${escapeHtml(label)}</span>
+                <button type="button" class="ft-chip-remove" data-remove-ricambio="${id}"><i class="bi bi-x"></i></button></span>`;
+        }).join('');
+        selectedRicambiChips.querySelectorAll('[data-remove-ricambio]').forEach(btn => {
+            btn.addEventListener('click', e => { e.stopPropagation(); selectRicambio(parseInt(btn.dataset.removeRicambio), false); });
         });
-    });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
 });
 </script>
 {% endblock %}

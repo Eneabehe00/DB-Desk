@@ -175,6 +175,10 @@
 
 {% block extra_js %}
 <script>
+function getCSRFToken() {
+  return document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+}
+
 let currentDraftId = null;
 
 function convertDraft(draftId) {
@@ -183,7 +187,10 @@ function convertDraft(draftId) {
   if (confirm('Convertire questa email in ticket?')) {
     fetch(`/settings/email_import/drafts/${currentDraftId}/convert`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()
+      },
       body: JSON.stringify({})
     })
     .then(response => response.json())
@@ -202,7 +209,10 @@ function ignoreDraft(draftId) {
   if (confirm('Ignorare questa email?')) {
     fetch(`/settings/email_import/drafts/${draftId}/ignore`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()
+      }
     })
     .then(response => response.json())
     .then(data => {

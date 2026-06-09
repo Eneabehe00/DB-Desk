@@ -1,0 +1,18 @@
+{# current_step: 1–5 #}
+{% set steps = [
+    ('Base', 1),
+    ('Tecnico', 2),
+    ('Lavori', 3),
+    ('Commerciale', 4),
+    ('Firma', 5)
+] %}
+<nav class="steps-progress" aria-label="Progresso compilazione foglio tecnico">
+    {% for label, num in steps %}
+    <div
+        class="step-segment{% if num < current_step %} completed{% elif num == current_step %} active{% endif %}"
+        role="presentation"
+        aria-hidden="true"
+        title="{{ label }}"
+    ></div>
+    {% endfor %}
+</nav>

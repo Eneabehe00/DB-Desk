@@ -3,13 +3,10 @@
 {% block title %}{{ title }} - DB-Desk{% endblock %}
 {% block page_title %}Informazioni Base{% endblock %}
 
-{% block page_subtitle %}
-<div style="font-size: 0.95rem; line-height: 1.4;">
-    <div class="d-flex flex-wrap gap-3">
-        <span><i class="bi bi-plus-circle me-1"></i><strong>Nuovo Foglio Tecnico</strong></span>
-        <span><i class="bi bi-calendar-event me-1"></i><strong>Data:</strong> {{ form.data_intervento.data.strftime('%d/%m/%Y %H:%M') if form.data_intervento.data else 'Data da definire' }}</span>
-    </div>
-</div>
+{% block page_subtitle %}{% endblock %}
+
+{% block flash_messages %}
+{% include 'fogli_tecnici/_flash_toasts.html' %}
 {% endblock %}
 
 {% block extra_head %}
@@ -17,149 +14,135 @@
 {% endblock %}
 
 {% block content %}
-<div class="tablet-container">
+<div class="tablet-container ft-mobile-step">
 
-    <!-- Progress Bar -->
-    <div class="steps-progress">
-        <div class="step-item active">
-            1 <span class="step-label">Base</span>
-        </div>
-        <div class="step-item">
-            2 <span class="step-label">Tecnico</span>
-        </div>
-        <div class="step-item">
-            3 <span class="step-label">Lavori</span>
-        </div>
-        <div class="step-item">
-            4 <span class="step-label">Commerciale</span>
-        </div>
-        <div class="step-item">
-            5 <span class="step-label">Firma</span>
-        </div>
+    {% set current_step = 1 %}
+    {% include 'fogli_tecnici/_steps_progress.html' %}
+
+    <div class="ft-context-bar">
+        <span class="ft-context-pill">
+            <i class="bi bi-plus-circle"></i>
+            <span><strong>Nuovo foglio tecnico</strong></span>
+        </span>
+        <span class="ft-context-pill" id="dataContextPill">
+            <i class="bi bi-calendar-event"></i>
+            <span id="dataContextText">{{ form.data_intervento.data.strftime('%d/%m/%Y %H:%M') if form.data_intervento.data else 'Data da definire' }}</span>
+        </span>
     </div>
 
-    <!-- Form -->
     <form method="POST" id="step1Form">
         {{ form.hidden_tag() }}
 
-        <div class="form-container">
-            <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-info-circle me-2"></i>Informazioni Generali</h5>
-            
-            <div class="form-grid">
-                <!-- Cliente (full width) -->
-                <div class="form-field grid-span-2">
-                    <label class="form-label" for="cliente_search">
-                        <i class="bi bi-person-search"></i>
-                        {{ form.cliente.label.text }}
-                    </label>
-                    <div class="position-relative client-search-container">
-                        {{ form.cliente_search(class="form-control", placeholder="Digita per cercare il cliente...", autocomplete="off") }}
-                        {{ form.cliente(id="cliente", type="hidden") }}
-                        <div class="client-suggestions" id="clientSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 0.75rem 0.75rem; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);"></div>
-                    </div>
-                    <div class="mt-2" id="modificaClienteWrap" style="display: none;">
-                        <a href="#" id="modificaClienteLink" class="btn btn-sm btn-outline-primary" target="_blank"
-                           title="Apre la pagina di modifica del cliente in una nuova scheda. Dopo aver salvato, puoi tornare qui per continuare il foglio tecnico.">
-                            <i class="bi bi-pencil-square me-1"></i> Modifica Cliente
-                        </a>
-                    </div>
-                    {% if form.cliente.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.cliente.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+        <!-- Sezione Cliente -->
+        <div class="ft-section open" id="sectionCliente">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionCliente">
+                <span class="ft-section-title">
+                    <i class="bi bi-person-search"></i>
+                    Cliente
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                <div class="position-relative client-search-container">
+                    {{ form.cliente_search(class="ft-field-input", id="cliente_search", placeholder="Cerca cliente per nome...", autocomplete="off", enterkeyhint="search") }}
+                    {{ form.cliente(id="cliente", type="hidden") }}
+                    <div class="ft-suggestions" id="clientSuggestions"></div>
                 </div>
-
-                <!-- Categoria (colonna sinistra) -->
-                <div class="form-field">
-                    <label class="form-label" for="categoria">
-                        <i class="bi bi-tag"></i>
-                        {{ form.categoria.label.text }}
-                    </label>
-                    {{ form.categoria(
-                        class="form-select" + (" is-invalid" if form.categoria.errors else "")
-                    ) }}
-                    {% if form.categoria.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.categoria.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                <div id="clientSelectedBanner" style="display:none;" class="ft-client-selected">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span id="clientSelectedText"></span>
                 </div>
-
-                <!-- Descrizione motivo chiamata (colonna destra) -->
-                <div class="form-field">
-                    <label class="form-label" for="titolo">
-                        <i class="bi bi-card-text"></i>
-                        Descrizione Dettagliata
-                    </label>
-                    {{ form.titolo(
-                        class="form-control" + (" is-invalid" if form.titolo.errors else ""),
-                        placeholder="es. Riparazione bilancia elettronica"
-                    ) }}
-                    {% if form.titolo.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.titolo.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                <div class="mt-2" id="modificaClienteWrap" style="display: none;">
+                    <a href="#" id="modificaClienteLink" class="ft-btn-secondary" target="_blank"
+                       title="Apre la modifica del cliente in una nuova scheda">
+                        <i class="bi bi-pencil-square"></i>
+                        Modifica dati cliente
+                    </a>
                 </div>
-
-                <!-- Data e ora intervento (colonna sinistra) -->
-                <div class="form-field">
-                    <label class="form-label" for="data_intervento">
-                        <i class="bi bi-calendar-event"></i>
-                        {{ form.data_intervento.label.text }}
-                    </label>
-                    {{ form.data_intervento(
-                        class="form-control" + (" is-invalid" if form.data_intervento.errors else ""),
-                        type="datetime-local"
-                    ) }}
-                    {% if form.data_intervento.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.data_intervento.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                {% if form.cliente.errors %}
+                <div class="text-danger small mt-2">
+                    {% for error in form.cliente.errors %}{{ error }}{% endfor %}
                 </div>
-
-                <!-- Indirizzo intervento (colonna destra) -->
-                <div class="form-field">
-                    <label class="form-label" for="indirizzo_intervento">
-                        <i class="bi bi-geo-alt"></i>
-                        {{ form.indirizzo_intervento.label.text }}
-                    </label>
-                    {{ form.indirizzo_intervento(
-                        class="form-control",
-                        placeholder="Lascia vuoto per usare l’indirizzo del cliente"
-                    ) }}
-                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Azioni del Form -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-ghost">
-                <i class="bi bi-x-lg me-2"></i>
-                Annulla
+        <!-- Sezione Categoria -->
+        <div class="ft-section open" id="sectionCategoria">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionCategoria">
+                <span class="ft-section-title">
+                    <i class="bi bi-tag"></i>
+                    Categoria intervento
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                {{ form.categoria(class="ft-hidden-select" + (" is-invalid" if form.categoria.errors else ""), id="categoria") }}
+                <div class="ft-op-grid" id="categoriaGrid">
+                    {% for value, label in form.categoria.choices %}
+                    <button type="button" class="ft-op-chip" data-value="{{ value }}">
+                        <i class="bi bi-{% if value == 'Riparazione' %}tools{% elif value == 'Manutenzione' %}wrench-adjustable{% elif value == 'Installazione' %}box-seam{% elif value == 'Consulenza' %}chat-dots{% elif value == 'Formazione' %}mortarboard{% elif value == 'Sopralluogo' %}binoculars{% elif value == 'Collaudo' %}clipboard-check{% else %}gear{% endif %}"></i>
+                        {{ label }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% if form.categoria.errors %}
+                <div class="text-danger small mt-2">
+                    {% for error in form.categoria.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sezione Dettagli -->
+        <div class="ft-section open" id="sectionDettagli">
+            <button type="button" class="ft-section-header" data-toggle-section="sectionDettagli">
+                <span class="ft-section-title">
+                    <i class="bi bi-card-text"></i>
+                    Dettagli intervento
+                </span>
+                <i class="bi bi-chevron-down ft-section-chevron"></i>
+            </button>
+            <div class="ft-section-body">
+                <label class="form-label" for="titolo">
+                    <i class="bi bi-card-text"></i>
+                    Descrizione dettagliata
+                </label>
+                {{ form.titolo(class="ft-field-input mb-3" + (" is-invalid" if form.titolo.errors else ""), id="titolo", placeholder="es. Riparazione bilancia elettronica") }}
+
+                <label class="form-label" for="data_intervento">
+                    <i class="bi bi-calendar-event"></i>
+                    Data e ora intervento
+                </label>
+                {{ form.data_intervento(class="ft-field-input mb-3" + (" is-invalid" if form.data_intervento.errors else ""), id="data_intervento", type="datetime-local") }}
+
+                <label class="form-label" for="indirizzo_intervento">
+                    <i class="bi bi-geo-alt"></i>
+                    Indirizzo intervento
+                </label>
+                {{ form.indirizzo_intervento(class="ft-field-input", id="indirizzo_intervento", placeholder="Lascia vuoto per usare l'indirizzo del cliente") }}
+                <p class="ft-field-hint">Opzionale — compilalo solo se diverso dalla sede del cliente.</p>
+            </div>
+        </div>
+
+        <div class="fixed-action-bar ft-action-bar">
+            <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-ghost" aria-label="Annulla">
+                <i class="bi bi-x-lg"></i>
+                <span class="d-none d-sm-inline ms-1">Annulla</span>
             </a>
             <button type="submit" class="btn btn-primary-large" id="nextButton" disabled>
-                <span>Avanti</span>
+                Avanti
                 <i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
     </form>
 </div>
 
-<!-- JavaScript per autocompletamento cliente e validazione -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const clienteSearchInput = document.getElementById('cliente_search');
     let clienteHiddenInput = document.getElementById('cliente');
-
-    // Se non trova l'elemento, cercalo per nome
-    if (!clienteHiddenInput) {
-        clienteHiddenInput = document.querySelector('input[name="cliente"]');
-    }
-
-    // Se ancora non lo trova, crealo
+    if (!clienteHiddenInput) clienteHiddenInput = document.querySelector('input[name="cliente"]');
     if (!clienteHiddenInput) {
         clienteHiddenInput = document.createElement('input');
         clienteHiddenInput.type = 'hidden';
@@ -172,215 +155,142 @@ document.addEventListener('DOMContentLoaded', function() {
     const modificaClienteWrap = document.getElementById('modificaClienteWrap');
     const modificaClienteLink = document.getElementById('modificaClienteLink');
     const categoriaSelect = document.getElementById('categoria');
+    const categoriaGrid = document.getElementById('categoriaGrid');
     const titoloInput = document.getElementById('titolo');
     const dataInput = document.getElementById('data_intervento');
     const nextButton = document.getElementById('nextButton');
+    const clientSelectedBanner = document.getElementById('clientSelectedBanner');
+    const clientSelectedText = document.getElementById('clientSelectedText');
+    const dataContextText = document.getElementById('dataContextText');
 
     let searchTimeout;
     let selectedClientId = null;
-    let formSubmitted = false;
 
-    // Autocompletamento clienti
+    document.querySelectorAll('[data-toggle-section]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById(this.dataset.toggleSection).classList.toggle('open');
+        });
+    });
+
+    function syncCategoriaChips(value) {
+        categoriaSelect.value = value;
+        categoriaGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+            chip.classList.toggle('selected', chip.dataset.value === value);
+        });
+        validateForm();
+    }
+    categoriaGrid.querySelectorAll('.ft-op-chip').forEach(chip => {
+        chip.addEventListener('click', () => syncCategoriaChips(chip.dataset.value));
+    });
+    if (categoriaSelect.value) syncCategoriaChips(categoriaSelect.value);
+
     clienteSearchInput.addEventListener('input', function() {
         const query = this.value.trim();
-
-        // Reset selezione cliente solo se il testo è cambiato rispetto al cliente selezionato
         if (selectedClientId && this.value !== this.getAttribute('data-selected-text')) {
             selectedClientId = null;
             clienteHiddenInput.value = '';
             this.removeAttribute('data-selected-text');
             if (modificaClienteWrap) modificaClienteWrap.style.display = 'none';
+            if (clientSelectedBanner) clientSelectedBanner.style.display = 'none';
         }
-
-        if (query.length < 2) {
-            hideSuggestions();
-            validateForm();
-            return;
-        }
-
+        if (query.length < 2) { hideSuggestions(); validateForm(); return; }
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            searchClients(query);
-        }, 300);
+        searchTimeout = setTimeout(() => searchClients(query), 300);
     });
 
-    // Validazione form in tempo reale
     [clienteSearchInput, categoriaSelect, titoloInput, dataInput].forEach(input => {
         input.addEventListener('input', validateForm);
         input.addEventListener('change', validateForm);
     });
 
+    dataInput.addEventListener('change', function() {
+        if (this.value && dataContextText) {
+            const d = new Date(this.value);
+            dataContextText.textContent = d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+        }
+    });
+
     function searchClients(query) {
         fetch(`{{ url_for('fogli_tecnici.search_clients') }}?q=${encodeURIComponent(query)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(clients => {
-                showSuggestions(clients);
-            })
-            .catch(error => {
-                suggestionsDiv.innerHTML = `
-                    <div class="p-3 text-danger">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Errore nella ricerca. Riprova.
-                    </div>
-                `;
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(clients => showSuggestions(clients))
+            .catch(() => {
+                suggestionsDiv.innerHTML = '<div class="ft-suggestion-item text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Errore nella ricerca</div>';
                 suggestionsDiv.style.display = 'block';
-
-                setTimeout(() => {
-                    hideSuggestions();
-                }, 3000);
+                setTimeout(hideSuggestions, 3000);
             });
     }
 
     function showSuggestions(clients) {
         suggestionsDiv.innerHTML = '';
-
         const query = clienteSearchInput.value.trim();
 
-        // Se non ci sono risultati, offri di creare
         if (clients.length === 0 && query.length >= 2) {
             const createNew = document.createElement('div');
-            createNew.className = 'p-3 border-bottom cursor-pointer text-primary fw-bold';
-            createNew.style.backgroundColor = '#f0f9ff';
-            createNew.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-plus-circle-fill me-2"></i>Crea nuovo cliente: "${query}"</span>
-                    <span class="badge bg-primary">NUOVO</span>
-                </div>
-            `;
-            createNew.addEventListener('click', function() {
-                quickCreateClient(query);
-            });
+            createNew.className = 'ft-suggestion-item ft-suggestion-create';
+            createNew.innerHTML = `<i class="bi bi-plus-circle-fill me-2"></i>Crea nuovo: "${escapeHtml(query)}"`;
+            createNew.addEventListener('click', () => quickCreateClient(query));
             suggestionsDiv.appendChild(createNew);
         } else if (clients.length > 0) {
             clients.forEach(client => {
-                const suggestion = document.createElement('div');
-                suggestion.className = 'p-3 border-bottom cursor-pointer suggestion-item';
-                suggestion.style.cursor = 'pointer';
-                suggestion.innerHTML = `<strong>${client.text}</strong><br><small class="text-muted">${client.email || 'Nessun indirizzo'}</small>`;
-                suggestion.dataset.clientId = client.id;
-                
-                suggestion.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = '#f1f5f9';
-                });
-                suggestion.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = 'transparent';
-                });
-
-                suggestion.addEventListener('click', function() {
-                    selectClient(client);
-                });
-
-                suggestionsDiv.appendChild(suggestion);
+                const item = document.createElement('div');
+                item.className = 'ft-suggestion-item';
+                item.innerHTML = `<strong>${escapeHtml(client.text)}</strong><br><small class="text-muted">${escapeHtml(client.email || 'Nessun indirizzo')}</small>`;
+                item.addEventListener('click', () => selectClient(client));
+                suggestionsDiv.appendChild(item);
             });
         }
-
         suggestionsDiv.style.display = (clients.length === 0 && query.length < 2) ? 'none' : 'block';
     }
 
     function quickCreateClient(name) {
-        // Mostra caricamento nel tastino se possibile, o semplicemente disabilita input
         clienteSearchInput.disabled = true;
-        
         fetch(`{{ url_for('fogli_tecnici.quick_create_client') }}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
             body: JSON.stringify({ ragione_sociale: name })
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             clienteSearchInput.disabled = false;
             if (data.success) {
                 selectClient(data);
-                if (data.is_new) {
-                    // Notifica successo (il pulsante "Modifica Cliente" resta sempre visibile sotto il campo)
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
-                    alert.innerHTML = `
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Cliente <strong>${data.text}</strong> creato. Usa il pulsante "Modifica Cliente" sotto per completare i dati.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
-                    `;
-                    clienteSearchInput.parentNode.appendChild(alert);
-                    setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
-                }
             } else {
-                alert('Errore nella creazione del cliente: ' + data.error);
+                alert('Errore: ' + data.error);
             }
         })
-        .catch(error => {
-            clienteSearchInput.disabled = false;
-            alert('Errore di connessione durante la creazione del cliente.');
-            console.error(error);
-        });
+        .catch(() => { clienteSearchInput.disabled = false; alert('Errore di connessione'); });
     }
 
-    function hideSuggestions() {
-        suggestionsDiv.style.display = 'none';
-    }
+    function hideSuggestions() { suggestionsDiv.style.display = 'none'; }
 
     function selectClient(client) {
         clienteSearchInput.value = client.text;
-
-        // Imposta il valore del campo hidden
         clienteHiddenInput.value = String(client.id);
-
         selectedClientId = parseInt(client.id);
-
-        // Memorizza il testo selezionato per evitare reset accidentali
         clienteSearchInput.setAttribute('data-selected-text', client.text);
-
-        // Feedback visivo immediato
         clienteSearchInput.classList.remove('is-invalid');
         clienteSearchInput.classList.add('is-valid');
-        
-        // Se il cliente è nuovo, aggiungi un indicatore visivo
-        if (client.is_new) {
-            clienteSearchInput.style.borderColor = '#fd7e14';
-            clienteSearchInput.style.borderWidth = '2px';
-            clienteSearchInput.title = 'Cliente appena creato - considera di completare i suoi dati';
-        }
 
-        // Mostra sempre il link "Modifica Cliente" (resta visibile anche dopo la scomparsa della notifica)
+        if (clientSelectedBanner && clientSelectedText) {
+            clientSelectedText.textContent = client.text;
+            clientSelectedBanner.style.display = 'flex';
+        }
         if (modificaClienteWrap && modificaClienteLink) {
             modificaClienteLink.href = '/clients/' + client.id + '/edit';
             modificaClienteWrap.style.display = 'block';
         }
-
-        // Forza un evento change sul campo hidden per sicurezza
-        const changeEvent = new Event('change', { bubbles: true });
-        clienteHiddenInput.dispatchEvent(changeEvent);
-
+        clienteHiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
         hideSuggestions();
         validateForm();
-
-        // Focus sul campo successivo
-        setTimeout(() => {
-            titoloInput.focus();
-        }, 100);
+        setTimeout(() => titoloInput.focus(), 100);
     }
 
     function validateForm() {
-        // Valido solo se abbiamo un cliente selezionato (ID presente)
         const hasClient = selectedClientId && clienteHiddenInput.value && clienteHiddenInput.value !== '' && clienteHiddenInput.value !== '0';
-        
         const hasCategoria = categoriaSelect.value !== '';
-        // Il titolo non è più obbligatorio (descrizione dettagliata)
-        const hasTitle = true;
         const hasDate = dataInput.value.trim() !== '';
-
-        const isValid = hasClient && hasCategoria && hasTitle && hasDate;
-
-        nextButton.disabled = !isValid;
-
-        // Feedback visuale campi
+        nextButton.disabled = !(hasClient && hasCategoria && hasDate);
         updateFieldValidation(clienteSearchInput, hasClient);
         updateFieldValidation(categoriaSelect, hasCategoria);
         updateFieldValidation(dataInput, hasDate);
@@ -388,65 +298,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateFieldValidation(field, isValid) {
         field.classList.remove('is-valid', 'is-invalid');
-
-        if (field.value.trim() !== '') {
+        if (field.value && field.value.trim() !== '') {
             field.classList.add(isValid ? 'is-valid' : 'is-invalid');
         }
     }
 
-    // Chiudi suggerimenti cliccando altrove
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.client-search-container')) {
-            hideSuggestions();
-        }
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.client-search-container')) hideSuggestions();
     });
 
-    // Imposta data corrente se vuota
     if (!dataInput.value) {
         const now = new Date();
-        const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        dataInput.value = localISOTime;
+        dataInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        dataInput.dispatchEvent(new Event('change'));
         validateForm();
+    } else {
+        dataInput.dispatchEvent(new Event('change'));
     }
-
-    // Validazione iniziale
     validateForm();
 
-    // Listener per quando l'utente torna dalla pagina di modifica cliente
-    window.addEventListener('focus', function() {
-        // Se c'è un cliente selezionato, ricarica i suoi dati per assicurarsi che siano aggiornati
-        if (selectedClientId && clienteHiddenInput.value) {
-            // Piccolo delay per assicurarsi che la pagina di modifica sia stata salvata
-            setTimeout(() => {
-                // Potresti aggiungere qui una chiamata AJAX per ricaricare i dati del cliente
-                // se necessario, ma per ora è sufficiente mantenere la selezione
-                console.log('Finestra riattivata - cliente selezionato:', selectedClientId);
-            }, 500);
-        }
-    });
+    function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
 });
 
-// Prevenzione accidentale chiusura pagina
+let formSubmitted = false;
 window.addEventListener('beforeunload', function(e) {
-    // Non mostrare conferma se il form è stato inviato correttamente
-    if (formSubmitted) {
-        return;
-    }
-
+    if (formSubmitted) return;
     const hasData = document.getElementById('cliente_search').value ||
                     document.getElementById('titolo').value ||
                     document.getElementById('indirizzo_intervento').value;
-
-    if (hasData) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
+    if (hasData) { e.preventDefault(); e.returnValue = ''; }
 });
-
-// Imposta flag quando il form viene inviato
-document.getElementById('step1Form').addEventListener('submit', function() {
-    formSubmitted = true;
-});
+document.getElementById('step1Form').addEventListener('submit', function() { formSubmitted = true; });
 </script>
 {% endblock %}
-

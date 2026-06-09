@@ -52,6 +52,7 @@ class Ticket(db.Model):
     data_ora_intervento_stimato = db.Column(db.DateTime)
     tempo_stimato = db.Column(db.Integer)  # In minuti
     tempo_impiegato = db.Column(db.Integer)  # In minuti
+    escluso_da_report_giornaliero = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relazione con l'utente assegnato (opzionale)
     assigned_to = db.relationship(

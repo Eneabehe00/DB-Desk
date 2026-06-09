@@ -29,7 +29,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Pagination (design unificato) -->
     <link href="{{ url_for('static', filename='css/pagination.css') }}" rel="stylesheet">
     <!-- Chart.js -->
@@ -698,56 +698,56 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
                                href="{{ url_for('main.dashboard') }}" title="Dashboard">
-                                <i class="bi bi-house-door"></i>
+                                <i class="bi bi-speedometer2"></i>
                                 <span class="nav-link-text">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('tickets.') and not request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
                                href="{{ url_for('tickets.list_tickets') }}" title="Gestione Ticket">
-                                <i class="bi bi-ticket-detailed"></i>
+                                <i class="bi bi-ticket-perforated-fill"></i>
                                 <span class="nav-link-text">Gestione Ticket</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('fogli_tecnici.') %}active{% endif %}" 
                                href="{{ url_for('fogli_tecnici.list_fogli') }}" title="Fogli Tecnici">
-                                <i class="bi bi-file-earmark-text"></i>
+                                <i class="bi bi-clipboard-check"></i>
                                 <span class="nav-link-text">Fogli Tecnici</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'tickets.calendar_view' %}active{% endif %}" 
                                href="{{ url_for('tickets.calendar_view') }}" title="Calendario">
-                                <i class="bi bi-calendar3"></i>
+                                <i class="bi bi-calendar-event"></i>
                                 <span class="nav-link-text">Calendario</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('clients.') %}active{% endif %}" 
                                href="{{ url_for('clients.list_clients') }}" title="Gestione Clienti">
-                                <i class="bi bi-building"></i>
+                                <i class="bi bi-people-fill"></i>
                                 <span class="nav-link-text">Gestione Clienti</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('magazzino.') %}active{% endif %}"
                                href="{{ url_for('magazzino.index') }}" title="Magazzino Ricambi">
-                                <i class="bi bi-box-seam"></i>
+                                <i class="bi bi-boxes"></i>
                                 <span class="nav-link-text">Magazzino Ricambi</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('macchine.') %}active{% endif %}"
                                href="{{ url_for('macchine.index') }}" title="Gestione Macchine">
-                                <i class="bi bi-gear"></i>
+                                <i class="bi bi-hdd-stack-fill"></i>
                                 <span class="nav-link-text">Gestione Macchine</span>
                             </a>
                         </li>
                          <li class="nav-item">
                              <a class="nav-link {% if request.endpoint.startswith('docs.') %}active{% endif %}"
                                 href="{{ url_for('docs.index') }}" title="Docs">
-                                 <i class="bi bi-folder"></i>
+                                 <i class="bi bi-journal-bookmark-fill"></i>
                                  <span class="nav-link-text">Docs</span>
                              </a>
                          </li>
@@ -759,7 +759,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('reports.') %}active{% endif %}" 
                                href="{{ url_for('reports.index') }}" title="Report & Analytics">
-                                <i class="bi bi-bar-chart"></i>
+                                <i class="bi bi-graph-up-arrow"></i>
                                 <span class="nav-link-text">Report & Analytics</span>
                             </a>
                         </li>
@@ -770,7 +770,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('tickets.my_tickets') }}" title="I Miei Ticket">
-                                <i class="bi bi-person-workspace"></i>
+                                <i class="bi bi-card-checklist"></i>
                                 <span class="nav-link-text">I Miei Ticket</span>
                             </a>
                         </li>
@@ -789,7 +789,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint.startswith('settings.') and request.endpoint != 'settings.profile' %}active{% endif %}" 
                                href="{{ url_for('settings.index') }}" title="Sistema & Configurazioni">
-                                <i class="bi bi-gear-wide-connected"></i>
+                                <i class="bi bi-sliders2"></i>
                                 <span class="nav-link-text">Sistema & Configurazioni</span>
                             </a>
                         </li>
@@ -869,6 +869,7 @@
                 {% endif %}
                 
                 <!-- Flash messages -->
+                {% block flash_messages %}
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -879,6 +880,7 @@
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
+                {% endblock %}
                 
                 <!-- Page content -->
                 {% block content %}{% endblock %}

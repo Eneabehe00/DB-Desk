@@ -87,6 +87,7 @@ def create_app(config_name='default'):
         
         db.create_all()
         _ensure_ticket_report_columns()
+        _ensure_fogli_tecnici_columns()
         
         # Avvia lo scheduler per l'import email automatico
         from app.services.scheduler import email_scheduler
@@ -117,6 +118,46 @@ def _ensure_ticket_report_columns():
         alter_statements.append("ALTER TABLE tickets ADD COLUMN attivita_non_concluse TEXT NULL")
     if 'data_ora_intervento_stimato' not in existing_columns:
         alter_statements.append("ALTER TABLE tickets ADD COLUMN data_ora_intervento_stimato DATETIME NULL")
+    if 'escluso_da_report_giornaliero' not in existing_columns:
+        alter_statements.append(
+            "ALTER TABLE tickets ADD COLUMN escluso_da_report_giornaliero TINYINT(1) NOT NULL DEFAULT 0"
+        )
+
+    if not alter_statements:
+        return
+
+    with db.engine.begin() as connection:
+        for statement in alter_statements:
+            connection.execute(text(statement))
+
+
+def _ensure_fogli_tecnici_columns():
+    """Corregge tipi/colonne dei fogli tecnici senza migrazioni manuali."""
+    inspector = inspect(db.engine)
+    if 'fogli_tecnici' not in inspector.get_table_names():
+        return
+
+    columns = {col['name']: col for col in inspector.get_columns('fogli_tecnici')}
+    alter_statements = []
+
+    if 'intervento_in_garanzia' not in columns:
+        alter_statements.append(
+            "ALTER TABLE fogli_tecnici "
+            "ADD COLUMN intervento_in_garanzia TINYINT(1) NOT NULL DEFAULT 0"
+        )
+
+    pagamento_col = columns.get('pagamento_immediato')
+    if pagamento_col:
+        col_type = str(pagamento_col['type']).lower()
+        if 'varchar' in col_type or 'char' in col_type:
+            alter_statements.extend([
+                "UPDATE fogli_tecnici SET pagamento_immediato = CASE "
+                "WHEN pagamento_immediato IN ('1', 'true', 'True', 'yes', 'y', 't') THEN 1 "
+                "ELSE 0 END",
+                "ALTER TABLE fogli_tecnici "
+                "MODIFY COLUMN pagamento_immediato TINYINT(1) NOT NULL DEFAULT 0 "
+                "COMMENT 'Intervento già pagato (0=No, 1=Sì)'",
+            ])
 
     if not alter_statements:
         return

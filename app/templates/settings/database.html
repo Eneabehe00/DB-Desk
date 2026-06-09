@@ -216,6 +216,14 @@
 
 {% block extra_js %}
 <script>
+function csrfHeaders() {
+    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    return {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': token,
+    };
+}
+
 // Backup database
 document.getElementById('backup-btn').addEventListener('click', function() {
     const btn = this;
@@ -226,17 +234,19 @@ document.getElementById('backup-btn').addEventListener('click', function() {
     
     fetch('{{ url_for("settings.backup_database") }}', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
+        headers: csrfHeaders(),
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            showToast(data.message || `Errore durante il backup (${response.status})`, 'danger');
+            return;
+        }
         if (data.success) {
             showToast(data.message, 'success');
             updateRecentBackups(data.filename);
         } else {
-            showToast(data.message, 'danger');
+            showToast(data.message || 'Backup non riuscito', 'danger');
         }
     })
     .catch(error => {

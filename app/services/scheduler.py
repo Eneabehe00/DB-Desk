@@ -16,6 +16,10 @@ class EmailImportScheduler:
         self.job_id = 'email_import_job'
         self.is_running = False
         self.app = app
+
+    def _reset_scheduler(self):
+        """Crea un nuovo scheduler (shutdown APScheduler è irreversibile)."""
+        self.scheduler = BackgroundScheduler()
     
     def start(self):
         """Avvia lo scheduler se l'import automatico è abilitato"""
@@ -27,6 +31,10 @@ class EmailImportScheduler:
             if not current_app.config.get('EMAIL_IMPORT_ENABLED'):
                 logger.info("Email import scheduler: EMAIL_IMPORT_ENABLED è False, scheduler non avviato")
                 return
+
+            # Dopo uno stop precedente lo scheduler è in stato STOPPED e non riavviabile
+            if not self.scheduler.running:
+                self._reset_scheduler()
             
             # Ottieni l'intervallo di polling (default 5 minuti)
             poll_seconds = current_app.config.get('EMAIL_POLL_SECONDS', 300)
@@ -48,16 +56,27 @@ class EmailImportScheduler:
             
         except Exception as e:
             logger.error(f"Errore nell'avvio dello scheduler email: {e}")
+            self.is_running = False
     
     def stop(self):
         """Ferma lo scheduler"""
-        if self.is_running and self.scheduler.running:
-            try:
-                self.scheduler.shutdown(wait=False)
-                self.is_running = False
-                logger.info("Email import scheduler fermato")
-            except Exception as e:
-                logger.error(f"Errore nel fermare lo scheduler email: {e}")
+        if not self.is_running:
+            return
+
+        try:
+            if self.scheduler.running:
+                try:
+                    self.scheduler.remove_job(self.job_id)
+                except Exception:
+                    pass
+                self.scheduler.shutdown(wait=True)
+            self.is_running = False
+            self._reset_scheduler()
+            logger.info("Email import scheduler fermato")
+        except Exception as e:
+            logger.error(f"Errore nel fermare lo scheduler email: {e}")
+            self.is_running = False
+            self._reset_scheduler()
     
     def _import_emails_job(self):
         """Job eseguito dallo scheduler per importare le email"""
