@@ -4,10 +4,6 @@
 {% block page_title %}Finalizza foglio{% endblock %}
 {% block page_subtitle %}{% endblock %}
 
-{% block flash_messages %}
-{% include 'fogli_tecnici/_flash_toasts.html' %}
-{% endblock %}
-
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fogli_tecnici_steps.css') }}">
 {% endblock %}

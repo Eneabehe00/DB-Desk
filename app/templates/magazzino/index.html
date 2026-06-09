@@ -58,25 +58,6 @@
 <div class="container-fluid" style="padding-bottom: 50px;">
     <!-- Navigation tabs -->
     {% include 'magazzino/_nav_tabs.html' %}
-    
-    <!-- Alert per ricambi sotto scorta -->
-    {% if stats.sotto_scorta > 0 %}
-    <div class="alert alert-warning alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert">
-        <div class="d-flex align-items-center">
-            <div class="bg-warning bg-opacity-20 text-warning p-2 rounded-circle me-3">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h6 class="alert-heading mb-1"><strong>{{ stats.sotto_scorta }}</strong> ricambi sotto scorta minima</h6>
-                <p class="mb-0 small">Alcuni ricambi hanno raggiunto la soglia di scorta minima. È consigliabile procedere con il riordino.</p>
-            </div>
-            <div class="ms-auto d-none d-md-block">
-                <a href="{{ url_for('magazzino.index', filtro_stato='sotto_scorta') }}" class="btn btn-warning btn-sm">Visualizza</a>
-            </div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endif %}
 
     <!-- Filtri e azioni -->
     <div class="card mb-4">
@@ -338,6 +319,13 @@ let currentFilters = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    {% if stats.sotto_scorta > 0 %}
+    showToast(
+        '{{ stats.sotto_scorta }} ricambi sotto scorta minima. Alcuni ricambi hanno raggiunto la soglia di scorta minima. È consigliabile procedere con il riordino.',
+        'warning'
+    );
+    {% endif %}
+
     loadTickets();
     loadResults();
     
