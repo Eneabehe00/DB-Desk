@@ -74,8 +74,8 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Configurazione per produzione con Waitress"""
-    DEBUG = False
-    FLASK_DEBUG = False
+    DEBUG = True
+    FLASK_DEBUG = True
     
     # In produzione, usa l'IP ZeroTier configurato nel .env
     # Default: 192.168.191.74 (configurato nel .env)

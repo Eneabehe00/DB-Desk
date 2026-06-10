@@ -4,6 +4,7 @@
 {% block page_title %}Gestione Macchine{% endblock %}
 
 {% block extra_head %}
+<link href="{{ url_for('static', filename='css/filters-modern.css') }}" rel="stylesheet">
 <style>
 /* Cursore pointer solo per gli header ordinabili */
 .sortable-header {
@@ -102,65 +103,75 @@
         </div>
     </div>
 
-    <!-- Filtri e azioni -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-funnel"></i>
-                    Filtri
-                </h5>
-                <div class="btn-group">
-                    <a href="{{ url_for('macchine.create_macchina') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
-                        Nuova Macchina
-                    </a>
-                    <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-clock-history"></i>
-                        Tracciamento
-                    </a>
-                    <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear-wide-connected"></i>
-                        Tipi
-                    </a>
-                </div>
+    <!-- Filtri Modern -->
+    <div class="filter-section-modern">
+        <div class="filter-header">
+            <h5>
+                <i class="bi bi-funnel"></i>
+                Filtri e Ricerca
+            </h5>
+            <div class="filter-action-buttons">
+                <a href="{{ url_for('macchine.create_macchina') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Nuova Macchina
+                </a>
+                <a href="{{ url_for('macchine.movimenti_generale') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-clock-history"></i>
+                    Tracciamento
+                </a>
+                <a href="{{ url_for('macchine.list_tipi_macchina') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    Tipi
+                </a>
             </div>
         </div>
-        <div class="card-body">
-            <form method="GET" class="row g-3" id="filter-form">
-                <div class="col-md-3">
-                    <label for="search" class="form-label">Ricerca</label>
+        
+        <form method="GET" id="filter-form-mac">
+            <div class="filter-search-row">
+                <div class="filter-search-input">
                     <input type="text" class="form-control" id="search-input" name="search"
-                           value="{{ form.search.data or '' }}" placeholder="Codice, modello, marca...">
+                           value="{{ form.search.data or '' }}" placeholder="Cerca per codice, modello, marca...">
                 </div>
-                <div class="col-md-2">
-                    <label for="tipo_macchina_id" class="form-label">Tipo</label>
-                    {{ form.tipo_macchina_id(class="form-select filter-select", id="tipo-filter") }}
-                </div>
-                <div class="col-md-2">
-                    <label for="stato" class="form-label">Stato</label>
-                    {{ form.stato(class="form-select filter-select", id="stato-filter") }}
-                </div>
-                {% if current_user.has_permission('can_view_all_departments') %}
-                <div class="col-md-2">
-                    <label for="department_id" class="form-label">Reparto</label>
-                    {{ form.department_id(class="form-select filter-select", id="dept-filter") }}
-                </div>
-                {% endif %}
-                <div class="col-md-2">
-                    <label for="cliente_id" class="form-label">Cliente</label>
-                    {{ form.cliente_id(class="form-select filter-select", id="cliente-filter") }}
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-grid">
-                        <button type="button" class="btn btn-outline-secondary" id="reset-filters">
-                            <i class="bi bi-arrow-counterclockwise"></i>
-                        </button>
+                <button type="button" class="btn-toggle-filters" id="toggleFiltersMac">
+                    <i class="bi bi-sliders"></i>
+                    <span>Filtri</span>
+                    <span class="filters-count-badge" id="filtersCountMac" style="display: none;">0</span>
+                </button>
+            </div>
+            
+            <div class="filter-advanced-section" id="advancedFiltersMac">
+                <div class="filter-advanced-grid">
+                    <div class="filter-field">
+                        <label for="tipo_macchina_id" class="form-label">Tipo</label>
+                        {{ form.tipo_macchina_id(class="form-select filter-select-mac", id="tipo-filter") }}
+                    </div>
+                    
+                    <div class="filter-field">
+                        <label for="stato" class="form-label">Stato</label>
+                        {{ form.stato(class="form-select filter-select-mac", id="stato-filter") }}
+                    </div>
+                    
+                    {% if current_user.has_permission('can_view_all_departments') %}
+                    <div class="filter-field">
+                        <label for="department_id" class="form-label">Reparto</label>
+                        {{ form.department_id(class="form-select filter-select-mac", id="dept-filter") }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="filter-field">
+                        <label for="cliente_id" class="form-label">Cliente</label>
+                        {{ form.cliente_id(class="form-select filter-select-mac", id="cliente-filter") }}
                     </div>
                 </div>
-            </form>
-        </div>
+                
+                <div class="filter-actions">
+                    <button type="button" class="btn-reset-filters" id="reset-filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Reset Filtri
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Lista macchine -->
@@ -439,10 +450,37 @@
 <script>
 // Filtri automatici
 let searchTimeout;
-const filterForm = document.getElementById('filter-form');
+const filterFormMac = document.getElementById('filter-form-mac');
+const toggleFiltersBtnMac = document.getElementById('toggleFiltersMac');
+const advancedFiltersMac = document.getElementById('advancedFiltersMac');
+const filtersCountBadgeMac = document.getElementById('filtersCountMac');
 
-document.querySelectorAll('.filter-select').forEach(select => {
+// Toggle filtri avanzati
+toggleFiltersBtnMac.addEventListener('click', function() {
+    advancedFiltersMac.classList.toggle('show');
+    toggleFiltersBtnMac.classList.toggle('active');
+});
+
+// Conta filtri attivi
+function updateFiltersCountMac() {
+    let count = 0;
+    document.querySelectorAll('.filter-select-mac').forEach(select => {
+        if (select.value && select.value !== '') {
+            count++;
+        }
+    });
+    
+    if (count > 0) {
+        filtersCountBadgeMac.textContent = count;
+        filtersCountBadgeMac.style.display = 'inline-flex';
+    } else {
+        filtersCountBadgeMac.style.display = 'none';
+    }
+}
+
+document.querySelectorAll('.filter-select-mac').forEach(select => {
     select.addEventListener('change', function() {
+        updateFiltersCountMac();
         applyFilters();
     });
 });
@@ -454,9 +492,10 @@ document.getElementById('search-input').addEventListener('input', function() {
 
 document.getElementById('reset-filters').addEventListener('click', function() {
     document.getElementById('search-input').value = '';
-    document.querySelectorAll('.filter-select').forEach(select => {
+    document.querySelectorAll('.filter-select-mac').forEach(select => {
         select.selectedIndex = 0;
     });
+    updateFiltersCountMac();
     applyFilters();
 });
 
@@ -469,7 +508,7 @@ function applyFilters() {
         url.searchParams.set('search', searchValue);
     }
     
-    document.querySelectorAll('.filter-select').forEach(select => {
+    document.querySelectorAll('.filter-select-mac').forEach(select => {
         if (select.value && select.value !== '') {
             url.searchParams.set(select.name, select.value);
         }
@@ -477,6 +516,11 @@ function applyFilters() {
     
     window.location.href = url.toString();
 }
+
+// Aggiorna conteggio (filtri chiusi di default)
+document.addEventListener('DOMContentLoaded', function() {
+    updateFiltersCountMac();
+});
 
 // Cambio vista tabella/card
 document.querySelectorAll('input[name="view"]').forEach(radio => {

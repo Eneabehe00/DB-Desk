@@ -3,65 +3,72 @@
 {% block title %}Gestione Clienti - DB-Desk{% endblock %}
 {% block page_title %}Gestione Clienti{% endblock %}
 
+{% block extra_head %}
+<link href="{{ url_for('static', filename='css/filters-modern.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<!-- Filtri e azioni -->
-<div class="card mb-4">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-funnel"></i>
-                Filtri
-            </h5>
-            <div>
-                <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    Nuovo Cliente
-                </a>
-                <a href="{{ url_for('clients.export_clients') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-download"></i>
-                    Esporta CSV
-                </a>
-                <a href="{{ url_for('clients.clients_stats') }}" class="btn btn-outline-info">
-                    <i class="bi bi-graph-up"></i>
-                    Statistiche
-                </a>
-            </div>
+<!-- Filtri Modern -->
+<div class="filter-section-modern">
+    <div class="filter-header">
+        <h5>
+            <i class="bi bi-funnel"></i>
+            Filtri e Ricerca
+        </h5>
+        <div class="filter-action-buttons">
+            <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Nuovo Cliente
+            </a>
+            <a href="{{ url_for('clients.export_clients') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-download"></i>
+                Esporta CSV
+            </a>
+            <a href="{{ url_for('clients.clients_stats') }}" class="btn btn-outline-info">
+                <i class="bi bi-graph-up"></i>
+                Statistiche
+            </a>
         </div>
     </div>
-    <div class="card-body">
-        <form method="GET" class="row g-3" id="filter-form">
-            
-            <div class="col-md-4">
-                {{ form.search.label(class="form-label") }}
-                {{ form.search(class="form-control", placeholder="Cerca clienti...", id="search-input") }}
+    
+    <form method="GET" id="filter-form">
+        <div class="filter-search-row">
+            <div class="filter-search-input">
+                {{ form.search(class="form-control", placeholder="Cerca clienti per nome, email, P.IVA...", id="search-input") }}
             </div>
-            
-            <div class="col-md-2">
-                {{ form.provincia.label(class="form-label") }}
-                {{ form.provincia(class="form-select filter-select", id="provincia-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                {{ form.settore.label(class="form-label") }}
-                {{ form.settore(class="form-control filter-input", placeholder="Settore...", id="settore-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                {{ form.is_active.label(class="form-label") }}
-                {{ form.is_active(class="form-select filter-select", id="active-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                <label class="form-label">&nbsp;</label>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-outline-secondary" id="reset-filters">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        Reset
-                    </button>
+            <button type="button" class="btn-toggle-filters" id="toggleFiltersCli">
+                <i class="bi bi-sliders"></i>
+                <span>Filtri</span>
+                <span class="filters-count-badge" id="filtersCountCli" style="display: none;">0</span>
+            </button>
+        </div>
+        
+        <div class="filter-advanced-section" id="advancedFiltersCli">
+            <div class="filter-advanced-grid">
+                <div class="filter-field">
+                    {{ form.provincia.label(class="form-label") }}
+                    {{ form.provincia(class="form-select filter-select-cli", id="provincia-filter") }}
+                </div>
+                
+                <div class="filter-field">
+                    {{ form.settore.label(class="form-label") }}
+                    {{ form.settore(class="form-control filter-input-cli", placeholder="Settore...", id="settore-filter") }}
+                </div>
+                
+                <div class="filter-field">
+                    {{ form.is_active.label(class="form-label") }}
+                    {{ form.is_active(class="form-select filter-select-cli", id="active-filter") }}
                 </div>
             </div>
-        </form>
-    </div>
+            
+            <div class="filter-actions">
+                <button type="button" class="btn-reset-filters" id="reset-filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    Reset Filtri
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 <!-- Lista clienti -->
@@ -331,10 +338,42 @@
 let searchTimeout;
 let settoreTimeout;
 const filterForm = document.getElementById('filter-form');
+const toggleFiltersBtnCli = document.getElementById('toggleFiltersCli');
+const advancedFiltersCli = document.getElementById('advancedFiltersCli');
+const filtersCountBadgeCli = document.getElementById('filtersCountCli');
+
+// Toggle filtri avanzati
+toggleFiltersBtnCli.addEventListener('click', function() {
+    advancedFiltersCli.classList.toggle('show');
+    toggleFiltersBtnCli.classList.toggle('active');
+});
+
+// Conta filtri attivi
+function updateFiltersCountCli() {
+    let count = 0;
+    document.querySelectorAll('.filter-select-cli').forEach(select => {
+        if (select.value && select.value !== '') {
+            count++;
+        }
+    });
+    
+    const settoreValue = document.getElementById('settore-filter').value.trim();
+    if (settoreValue) {
+        count++;
+    }
+    
+    if (count > 0) {
+        filtersCountBadgeCli.textContent = count;
+        filtersCountBadgeCli.style.display = 'inline-flex';
+    } else {
+        filtersCountBadgeCli.style.display = 'none';
+    }
+}
 
 // Filtri automatici per select
-document.querySelectorAll('.filter-select').forEach(select => {
+document.querySelectorAll('.filter-select-cli').forEach(select => {
     select.addEventListener('change', function() {
+        updateFiltersCountCli();
         applyFilters();
     });
 });
@@ -348,7 +387,10 @@ document.getElementById('search-input').addEventListener('input', function() {
 // Ricerca con debounce per il campo settore
 document.getElementById('settore-filter').addEventListener('input', function() {
     clearTimeout(settoreTimeout);
-    settoreTimeout = setTimeout(applyFilters, 500); // 500ms di debounce
+    settoreTimeout = setTimeout(() => {
+        updateFiltersCountCli();
+        applyFilters();
+    }, 500); // 500ms di debounce
 });
 
 // Reset filtri
@@ -356,9 +398,10 @@ document.getElementById('reset-filters').addEventListener('click', function() {
     // Reset tutti i campi
     document.getElementById('search-input').value = '';
     document.getElementById('settore-filter').value = '';
-    document.querySelectorAll('.filter-select').forEach(select => {
+    document.querySelectorAll('.filter-select-cli').forEach(select => {
         select.selectedIndex = 0;
     });
+    updateFiltersCountCli();
     // Applica filtri (vuoti)
     applyFilters();
 });
@@ -378,7 +421,7 @@ function applyFilters() {
         url.searchParams.set('settore', settoreValue);
     }
     
-    document.querySelectorAll('.filter-select').forEach(select => {
+    document.querySelectorAll('.filter-select-cli').forEach(select => {
         if (select.value && select.value !== '') {
             url.searchParams.set(select.name, select.value);
         }
@@ -405,12 +448,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Popola select filters
-    document.querySelectorAll('.filter-select').forEach(select => {
+    document.querySelectorAll('.filter-select-cli').forEach(select => {
         const paramValue = urlParams.get(select.name);
         if (paramValue) {
             select.value = paramValue;
         }
     });
+    
+    // Aggiorna conteggio (filtri chiusi di default)
+    updateFiltersCountCli();
 });
 
 // Cambio vista tabella/card

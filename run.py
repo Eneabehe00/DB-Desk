@@ -97,4 +97,5 @@ if __name__ == '__main__':
     if host == '0.0.0.0':
         print("L'app è accessibile da qualsiasi interfaccia di rete")
 
-    app.run(host=host, port=port, debug=debug)
+    # FORZATO DEBUG MODE PER DEVELOPMENT
+    app.run(host=host, port=port, debug=True, use_reloader=True)

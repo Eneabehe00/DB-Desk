@@ -3,9 +3,9 @@
 {% block title %}Gestione Ticket - DB-Desk{% endblock %}
 {% block page_title %}Gestione Ticket{% endblock %}
 
-{% block extra_css %}
+{% block extra_head %}
+<link href="{{ url_for('static', filename='css/filters-modern.css') }}" rel="stylesheet">
 <style>
-
 /* Cursore pointer solo per gli header ordinabili */
 .sortable-header {
     cursor: pointer !important;
@@ -28,13 +28,6 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer !important;
-}
-
-.sortable-header:hover {
-    background-color: rgba(13, 110, 253, 0.1) !important;
-    color: #0d6efd;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .sort-indicator {
@@ -78,65 +71,68 @@
 
 {% block content %}
 <div style="padding-bottom: 50px;">
-<!-- Filtri e azioni -->
-<div class="card mb-4">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-funnel"></i>
-                Filtri
-            </h5>
-            <div>
-                <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    Nuovo Ticket
-                </a>
-                <a href="{{ url_for('tickets.export_tickets') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-download"></i>
-                    Esporta CSV
-                </a>
-            </div>
+<!-- Filtri Modern -->
+<div class="filter-section-modern">
+    <div class="filter-header">
+        <h5>
+            <i class="bi bi-funnel"></i>
+            Filtri e Ricerca
+        </h5>
+        <div class="filter-action-buttons">
+            <a href="{{ url_for('tickets.new_ticket') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Nuovo Ticket
+            </a>
+            <a href="{{ url_for('tickets.export_tickets') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-download"></i>
+                Esporta CSV
+            </a>
         </div>
     </div>
-    <div class="card-body">
-        <form method="GET" class="row g-3" id="filter-form">
-            
-            <div class="col-md-3">
-                {{ form.search.label(class="form-label") }}
-                {{ form.search(class="form-control", placeholder="Cerca ticket...", id="search-input") }}
+    
+    <form method="GET" id="filter-form">
+        <div class="filter-search-row">
+            <div class="filter-search-input">
+                {{ form.search(class="form-control", placeholder="Cerca ticket per numero, titolo, cliente...", id="search-input") }}
             </div>
-            
-            <div class="col-md-2">
-                {{ form.stato.label(class="form-label") }}
-                {{ form.stato(class="form-select filter-select", id="stato-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                {{ form.priorita.label(class="form-label") }}
-                {{ form.priorita(class="form-select filter-select", id="priorita-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                {{ form.categoria.label(class="form-label") }}
-                {{ form.categoria(class="form-select filter-select", id="categoria-filter") }}
-            </div>
-            
-            <div class="col-md-2">
-                {{ form.cliente.label(class="form-label") }}
-                {{ form.cliente(class="form-select filter-select", id="cliente-filter") }}
-            </div>
-            
-            <div class="col-md-1">
-                <label class="form-label">&nbsp;</label>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-outline-secondary" id="reset-filters">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        Reset
-                    </button>
+            <button type="button" class="btn-toggle-filters" id="toggleFilters">
+                <i class="bi bi-sliders"></i>
+                <span>Filtri</span>
+                <span class="filters-count-badge" id="filtersCount" style="display: none;">0</span>
+            </button>
+        </div>
+        
+        <div class="filter-advanced-section" id="advancedFilters">
+            <div class="filter-advanced-grid">
+                <div class="filter-field">
+                    {{ form.stato.label(class="form-label") }}
+                    {{ form.stato(class="form-select filter-select", id="stato-filter") }}
+                </div>
+                
+                <div class="filter-field">
+                    {{ form.priorita.label(class="form-label") }}
+                    {{ form.priorita(class="form-select filter-select", id="priorita-filter") }}
+                </div>
+                
+                <div class="filter-field">
+                    {{ form.categoria.label(class="form-label") }}
+                    {{ form.categoria(class="form-select filter-select", id="categoria-filter") }}
+                </div>
+                
+                <div class="filter-field">
+                    {{ form.cliente.label(class="form-label") }}
+                    {{ form.cliente(class="form-select filter-select", id="cliente-filter") }}
                 </div>
             </div>
-        </form>
-    </div>
+            
+            <div class="filter-actions">
+                <button type="button" class="btn-reset-filters" id="reset-filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    Reset Filtri
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 <div class="card mb-4">
@@ -482,10 +478,37 @@
 // Filtri automatici
 let searchTimeout;
 const filterForm = document.getElementById('filter-form');
+const toggleFiltersBtn = document.getElementById('toggleFilters');
+const advancedFilters = document.getElementById('advancedFilters');
+const filtersCountBadge = document.getElementById('filtersCount');
+
+// Toggle filtri avanzati
+toggleFiltersBtn.addEventListener('click', function() {
+    advancedFilters.classList.toggle('show');
+    toggleFiltersBtn.classList.toggle('active');
+});
+
+// Conta filtri attivi
+function updateFiltersCount() {
+    let count = 0;
+    document.querySelectorAll('.filter-select').forEach(select => {
+        if (select.value && select.value !== '') {
+            count++;
+        }
+    });
+    
+    if (count > 0) {
+        filtersCountBadge.textContent = count;
+        filtersCountBadge.style.display = 'inline-flex';
+    } else {
+        filtersCountBadge.style.display = 'none';
+    }
+}
 
 // Filtri automatici per select
 document.querySelectorAll('.filter-select').forEach(select => {
     select.addEventListener('change', function() {
+        updateFiltersCount();
         applyFilters();
     });
 });
@@ -503,6 +526,7 @@ document.getElementById('reset-filters').addEventListener('click', function() {
     document.querySelectorAll('.filter-select').forEach(select => {
         select.selectedIndex = 0;
     });
+    updateFiltersCount();
     // Applica filtri (vuoti)
     applyFilters();
 });
@@ -544,6 +568,9 @@ document.addEventListener('DOMContentLoaded', function() {
             select.value = paramValue;
         }
     });
+    
+    // Aggiorna conteggio (filtri chiusi di default)
+    updateFiltersCount();
 });
 
 // Cambio vista tabella/card

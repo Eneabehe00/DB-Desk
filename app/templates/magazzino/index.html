@@ -4,6 +4,7 @@
 {% block page_title %}Magazzino Ricambi{% endblock %}
 
 {% block extra_head %}
+<link href="{{ url_for('static', filename='css/filters-modern.css') }}" rel="stylesheet">
 <style>
     /* Stats cards minimal (matching macchine style) */
     .stat-card-minimal {
@@ -59,38 +60,37 @@
     <!-- Navigation tabs -->
     {% include 'magazzino/_nav_tabs.html' %}
 
-    <!-- Filtri e azioni -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-funnel"></i>
-                    Filtri
-                </h5>
-                <div>
-                    <a href="{{ url_for('magazzino.nuovo_ricambio') }}" class="btn btn-primary px-4 shadow-sm">
-                        <i class="bi bi-plus-circle me-2"></i>
-                        Nuovo Ricambio
-                    </a>
-                </div>
+    <!-- Filtri Modern -->
+    <div class="filter-section-modern">
+        <div class="filter-header">
+            <h5>
+                <i class="bi bi-funnel"></i>
+                Filtri e Ricerca
+            </h5>
+            <div class="filter-action-buttons">
+                <a href="{{ url_for('magazzino.nuovo_ricambio') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Nuovo Ricambio
+                </a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label for="search-input" class="form-label">Ricerca</label>
-                    <div class="position-relative">
-                        <input type="text" id="search-input" class="form-control" placeholder="Cerca per codice o descrizione..." value="{{ request.args.get('search', '') }}">
-                        <div id="search-loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display: none;">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                <span class="visually-hidden">Caricamento...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-2">
+        
+        <div class="filter-search-row">
+            <div class="filter-search-input">
+                <input type="text" id="search-input" class="form-control" placeholder="Cerca per codice o descrizione..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <button type="button" class="btn-toggle-filters" id="toggleFiltersMag">
+                <i class="bi bi-sliders"></i>
+                <span>Filtri</span>
+                <span class="filters-count-badge" id="filtersCountMag" style="display: none;">0</span>
+            </button>
+        </div>
+        
+        <div class="filter-advanced-section" id="advancedFiltersMag">
+            <div class="filter-advanced-grid">
+                <div class="filter-field">
                     <label for="filtro-stato" class="form-label">Stato</label>
-                    <select id="filtro-stato" class="form-select">
+                    <select id="filtro-stato" class="form-select filter-select-mag">
                         <option value="">Tutti</option>
                         <option value="disponibili" {{ 'selected' if request.args.get('filtro_stato') == 'disponibili' }}>Solo Disponibili</option>
                         <option value="prenotati" {{ 'selected' if request.args.get('filtro_stato') == 'prenotati' }}>Con Prenotazioni</option>
@@ -98,23 +98,23 @@
                         <option value="esauriti" {{ 'selected' if request.args.get('filtro_stato') == 'esauriti' }}>Esauriti</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                
+                <div class="filter-field">
                     <label for="ubicazione-input" class="form-label">Ubicazione</label>
-                    <input type="text" id="ubicazione-input" class="form-control" placeholder="Ubicazione..." value="{{ request.args.get('ubicazione', '') }}">
+                    <input type="text" id="ubicazione-input" class="form-control filter-input-mag" placeholder="Ubicazione..." value="{{ request.args.get('ubicazione', '') }}">
                 </div>
-                <div class="col-md-2">
+                
+                <div class="filter-field">
                     <label for="fornitore-input" class="form-label">Fornitore</label>
-                    <input type="text" id="fornitore-input" class="form-control" placeholder="Fornitore..." value="{{ request.args.get('fornitore', '') }}">
+                    <input type="text" id="fornitore-input" class="form-control filter-input-mag" placeholder="Fornitore..." value="{{ request.args.get('fornitore', '') }}">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-grid">
-                        <button type="button" id="clear-filters" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-counterclockwise"></i>
-                            Reset
-                        </button>
-                    </div>
-                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="button" id="clear-filters" class="btn-reset-filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    Reset Filtri
+                </button>
             </div>
         </div>
     </div>
@@ -326,6 +326,34 @@ document.addEventListener('DOMContentLoaded', function() {
     );
     {% endif %}
 
+    // Toggle filtri avanzati
+    const toggleFiltersBtnMag = document.getElementById('toggleFiltersMag');
+    const advancedFiltersMag = document.getElementById('advancedFiltersMag');
+    const filtersCountBadgeMag = document.getElementById('filtersCountMag');
+    
+    toggleFiltersBtnMag.addEventListener('click', function() {
+        advancedFiltersMag.classList.toggle('show');
+        toggleFiltersBtnMag.classList.toggle('active');
+    });
+    
+    // Conta filtri attivi
+    function updateFiltersCountMag() {
+        let count = 0;
+        if (currentFilters.filtro_stato) count++;
+        if (currentFilters.ubicazione) count++;
+        if (currentFilters.fornitore) count++;
+        
+        if (count > 0) {
+            filtersCountBadgeMag.textContent = count;
+            filtersCountBadgeMag.style.display = 'inline-flex';
+        } else {
+            filtersCountBadgeMag.style.display = 'none';
+        }
+    }
+    
+    // Aggiorna conteggio iniziale (filtri chiusi di default)
+    updateFiltersCountMag();
+
     loadTickets();
     loadResults();
     
@@ -342,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filtro-stato').addEventListener('change', function() {
         currentFilters.filtro_stato = this.value;
         currentPage = 1;
+        updateFiltersCountMag();
         loadResults();
     });
     
@@ -350,6 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchTimeout = setTimeout(() => {
             currentFilters.ubicazione = this.value;
             currentPage = 1;
+            updateFiltersCountMag();
             loadResults();
         }, 500);
     });
@@ -359,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchTimeout = setTimeout(() => {
             currentFilters.fornitore = this.value;
             currentPage = 1;
+            updateFiltersCountMag();
             loadResults();
         }, 500);
     });
@@ -631,6 +662,7 @@ function clearAllFilters() {
         dir: 'asc'
     };
     currentPage = 1;
+    updateFiltersCountMag();
     loadResults();
 }
 

@@ -4,6 +4,7 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block extra_head %}
+<link href="{{ url_for('static', filename='css/filters-modern.css') }}" rel="stylesheet">
 <style>
     
     .filters-card {
@@ -257,59 +258,64 @@
 {% block content %}
 <div class="container-fluid">
 
-    <!-- Filtri -->
-    <div class="filters-card">
-        <div class="filters-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-funnel me-2"></i>
-                    Filtri di Ricerca
-                </h5>
-                <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn-nuovo-foglio">
+    <!-- Filtri Modern -->
+    <div class="filter-section-modern">
+        <div class="filter-header">
+            <h5>
+                <i class="bi bi-funnel"></i>
+                Filtri e Ricerca
+            </h5>
+            <div class="filter-action-buttons">
+                <a href="{{ url_for('fogli_tecnici.step1') }}" class="btn btn-success">
                     <i class="bi bi-plus-circle"></i>
                     Nuovo Foglio
                 </a>
             </div>
         </div>
-        <div class="filters-body">
-            <form method="GET" action="{{ url_for('fogli_tecnici.list_fogli') }}">
-                <div class="row">
-                    <div class="col-md-3">
-                        {{ form.search.label(class="form-label") }}
-                        {{ form.search(class="form-control", placeholder="Cerca per numero, titolo...") }}
-                    </div>
-                    <div class="col-md-2">
+        
+        <form method="GET" action="{{ url_for('fogli_tecnici.list_fogli') }}" id="filter-form-ft">
+            <div class="filter-search-row">
+                <div class="filter-search-input">
+                    {{ form.search(class="form-control", placeholder="Cerca per numero, titolo, cliente...", id="search-input-ft") }}
+                </div>
+                <button type="button" class="btn-toggle-filters" id="toggleFiltersFT">
+                    <i class="bi bi-sliders"></i>
+                    <span>Filtri</span>
+                    <span class="filters-count-badge" id="filtersCountFT" style="display: none;">0</span>
+                </button>
+            </div>
+            
+            <div class="filter-advanced-section" id="advancedFiltersFT">
+                <div class="filter-advanced-grid">
+                    <div class="filter-field">
                         {{ form.stato.label(class="form-label") }}
-                        {{ form.stato(class="form-select") }}
+                        {{ form.stato(class="form-select filter-select-ft") }}
                     </div>
-                    <div class="col-md-2">
+                    
+                    <div class="filter-field">
                         {{ form.categoria.label(class="form-label") }}
-                        {{ form.categoria(class="form-select") }}
+                        {{ form.categoria(class="form-select filter-select-ft") }}
                     </div>
-                    <div class="col-md-2">
+                    
+                    <div class="filter-field">
                         {{ form.cliente.label(class="form-label") }}
-                        {{ form.cliente(class="form-select") }}
+                        {{ form.cliente(class="form-select filter-select-ft") }}
                     </div>
-                    <div class="col-md-2">
+                    
+                    <div class="filter-field">
                         {{ form.tecnico.label(class="form-label") }}
-                        {{ form.tecnico(class="form-select") }}
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-search"></i>
-                        </button>
+                        {{ form.tecnico(class="form-select filter-select-ft") }}
                     </div>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-12">
-                        <a href="{{ url_for('fogli_tecnici.list_fogli') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-x-circle me-1"></i>
-                            Reset Filtri
-                        </a>
-                    </div>
+                
+                <div class="filter-actions">
+                    <button type="button" class="btn-reset-filters" id="reset-filters-ft">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Reset Filtri
+                    </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
     <!-- Tabella Fogli Tecnici -->
@@ -468,13 +474,64 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const toggleFiltersBtnFT = document.getElementById('toggleFiltersFT');
+    const advancedFiltersFT = document.getElementById('advancedFiltersFT');
+    const filtersCountBadgeFT = document.getElementById('filtersCountFT');
+    const filterFormFT = document.getElementById('filter-form-ft');
+    const searchInputFT = document.getElementById('search-input-ft');
+    let searchTimeoutFT;
+    
+    // Toggle filtri avanzati
+    toggleFiltersBtnFT.addEventListener('click', function() {
+        advancedFiltersFT.classList.toggle('show');
+        toggleFiltersBtnFT.classList.toggle('active');
+    });
+    
+    // Conta filtri attivi
+    function updateFiltersCountFT() {
+        let count = 0;
+        document.querySelectorAll('.filter-select-ft').forEach(select => {
+            if (select.value && select.value !== '') {
+                count++;
+            }
+        });
+        
+        if (count > 0) {
+            filtersCountBadgeFT.textContent = count;
+            filtersCountBadgeFT.style.display = 'inline-flex';
+        } else {
+            filtersCountBadgeFT.style.display = 'none';
+        }
+    }
+    
     // Auto-submit form quando cambiano i filtri
-    const filterSelects = document.querySelectorAll('.filters-body select');
-    filterSelects.forEach(select => {
+    document.querySelectorAll('.filter-select-ft').forEach(select => {
         select.addEventListener('change', function() {
-            this.form.submit();
+            updateFiltersCountFT();
+            filterFormFT.submit();
         });
     });
+    
+    // Ricerca con debounce
+    searchInputFT.addEventListener('input', function() {
+        clearTimeout(searchTimeoutFT);
+        searchTimeoutFT = setTimeout(() => {
+            filterFormFT.submit();
+        }, 500);
+    });
+    
+    // Reset filtri
+    document.getElementById('reset-filters-ft').addEventListener('click', function() {
+        searchInputFT.value = '';
+        document.querySelectorAll('.filter-select-ft').forEach(select => {
+            select.selectedIndex = 0;
+        });
+        updateFiltersCountFT();
+        window.location.href = '{{ url_for("fogli_tecnici.list_fogli") }}';
+    });
+    
+    // Aggiorna conteggio (filtri chiusi di default)
+    updateFiltersCountFT();
     
     // Tooltip per elementi troncati
     const truncatedElements = document.querySelectorAll('.cliente-info, .titolo-info');
@@ -483,5 +540,6 @@ document.addEventListener('DOMContentLoaded', function() {
             element.style.cursor = 'help';
         }
     });
+});
 </script>
 {% endblock %}

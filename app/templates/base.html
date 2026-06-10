@@ -666,7 +666,13 @@
         }
     </style>
     
+    <!-- TEST CACHE BUSTING 2026 -->
+    <!-- Filtri Modern CSS - Global -->
+    <link href="{{ url_for('static', filename='css/filters-modern.css') }}?v=20260610" rel="stylesheet">
+    
+    <!-- CSS Extra Pages -->
     {% block extra_head %}{% endblock %}
+    <!-- End CSS Extra Pages -->
 </head>
 <body>
     <div class="container-fluid">

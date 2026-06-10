@@ -22,6 +22,10 @@ def create_app(config_name='default'):
     # Carica la configurazione
     app.config.from_object(config[config_name])
     
+    # Disabilita cache template per development
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    
     # Inizializza le estensioni
     db.init_app(app)
     login_manager.init_app(app)
